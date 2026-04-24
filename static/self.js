@@ -1,4 +1,29 @@
 
+/*** Dropdown menu ***************************************/
+
+function toggleDropdown(event) {
+    event.preventDefault();
+    const dropdown = document.getElementById('main-dropdown');
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside of it
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('main-dropdown');
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    if (dropdown && !event.target.closest('.dropdown')) {
+        dropdown.classList.remove('show');
+    }
+});
+
+// Close dropdown when a link is clicked
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.dropdown-content a')) {
+        const dropdown = document.getElementById('main-dropdown');
+        if (dropdown) dropdown.classList.remove('show');
+    }
+});
+
 /*** Args page tabs **************************************/
 
 const TAB_STORAGE_KEY = 'boxes-active-tab';

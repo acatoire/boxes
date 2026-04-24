@@ -572,25 +572,33 @@ class BServer:
 """
 
     def genLinks(self, lang, preview=False):
-        _ = lang.gettext
-        links = [("https://florianfesti.github.io/boxes/html/usermanual.html", _("Help")),
-                 ("https://hackaday.io/project/10649-boxespy", _("Home Page")),
-                 ("https://florianfesti.github.io/boxes/html/index.html", _("Documentation")),
-                 ("https://github.com/florianfesti/boxes", _("Sources"))]
-        if self.legal_url:
-            links.append((self.legal_url, _("Legal")))
-        links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
+         _ = lang.gettext
+         links = [("https://florianfesti.github.io/boxes/html/usermanual.html", _("Help")),
+                  ("https://hackaday.io/project/10649-boxespy", _("Home Page")),
+                  ("https://florianfesti.github.io/boxes/html/index.html", _("Documentation")),
+                  ("https://github.com/florianfesti/boxes", _("Sources"))]
+         if self.legal_url:
+             links.append((self.legal_url, _("Legal")))
+         links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
 
-        result = [f'  <li><a href="{url}" target="_blank" rel="noopener">{txt}</a></li>\n' for url, txt in links]
-        result.append(f'  <li><a href="settings">\U0001f3a8 {_("Color Settings")}</a></li>\n')
+         # Build dropdown menu items
+         dropdown_items = [f'    <a href="{url}" target="_blank" rel="noopener">{txt}</a>\n' for url, txt in links]
+         dropdown_items.append(f'    <a href="settings">\U0001f3a8 {_("Color Settings")}</a>\n')
+         dropdown_html = "".join(dropdown_items)
 
+         result = [f'''  <li class="dropdown">
+    <button class="dropdown-btn" onclick="toggleDropdown(event)">\u2630 {_("Menu")}</button>
+    <div class="dropdown-content" id="main-dropdown">
+{dropdown_html}    </div>
+  </li>
+''']
 
-        if self.deploy_fingerprint:
-            tag = html.escape(self.deploy_fingerprint)
-            result.append(f'  <li class="right" title="Deployment fingerprint">Instance: {tag}</li>\n')
-        result.append(f'  <li class="right">{self.genHTMLLanguageSelection(lang)}  </li>\n')
-        result.append(f'  <li class="right">{self.genHTMLColsSelection()}  </li>\n')
-        return "".join(result)
+         if self.deploy_fingerprint:
+             tag = html.escape(self.deploy_fingerprint)
+             result.append(f'  <li class="right" title="Deployment fingerprint">Instance: {tag}</li>\n')
+         result.append(f'  <li class="right">{self.genHTMLLanguageSelection(lang)}  </li>\n')
+         result.append(f'  <li class="right">{self.genHTMLColsSelection()}  </li>\n')
+         return "".join(result)
 
     def genPageError(self, name, e, lang) -> list[bytes]:
         """Generates a error page."""
