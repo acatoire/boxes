@@ -7,7 +7,6 @@ RUN /app/env/bin/pip install gunicorn
 
 COPY . /app
 RUN /app/env/bin/pip install .
-RUN mv scripts/boxesserver scripts/boxesserver.py
 
 # ---
 
@@ -23,4 +22,4 @@ COPY --from=builder /app /app
 ARG BOXES_DEPLOY_FINGERPRINT=local-build
 ENV BOXES_DEPLOY_FINGERPRINT=${BOXES_DEPLOY_FINGERPRINT}
 
-CMD ["/app/env/bin/gunicorn",  "-b",  "[::]:8000", "-w", "4", "scripts.boxesserver"]
+CMD ["/app/env/bin/gunicorn",  "-b",  "[::]:8000", "-w", "4", "boxes.scripts.boxesserver:application"]
