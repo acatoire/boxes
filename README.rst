@@ -53,6 +53,54 @@ is used for rounded edges and living hinges.
 | .. image:: static/samples/AgricolaInsert.jpg | .. image:: static/samples/HeartBox.jpg       | .. image:: static/samples/Atreus21.jpg       |
 +----------------------------------------------+----------------------------------------------+----------------------------------------------+
 
+Touch / Tablet Interface
+------------------------
+
+Boxes.py ships a second web interface optimised for large touch screens
+(10–13" tablets, workshop displays).  It can be activated at server
+startup or switched on the fly by the user.
+
+**Start in touch mode**::
+
+    python boxes/scripts/boxesserver.py --ui-mode touch --port 4455
+
+**Environment variable alternative**::
+
+    BOXES_UI_MODE=touch python boxes/scripts/boxesserver.py
+
+**Available modes**
+
+=====================  ==============================================
+``legacy`` (default)   Classic desktop interface, unchanged
+``touch``              Full-screen tabbed hub + touch-optimised forms
+``auto``               Server decides; user can override in-browser
+=====================  ==============================================
+
+**Switching at runtime**
+
+A *"⬛ Touch mode"* link is always visible in the legacy header bar.
+A *"☰ Classic view"* button sits in the touch header bar.
+The choice is persisted in the browser's ``localStorage``.
+
+**Touch UI features**
+
+- Category tabs bar (2 rows max, labels truncated with ``…`` if needed)
+- Generator card grid with thumbnail, name and short description
+- Sticky action bar: *Generate / Download / Save URL / QR Code*
+- Side-by-side form + live SVG preview panel
+- 48 px minimum tap targets on all controls
+- Supports ``?language=`` and all existing colour-override parameters
+
+**Source layout**
+
+===========================================  ============================
+``boxes/scripts/ui_legacy.py``               Legacy HTML mixin
+``boxes/scripts/ui_touch.py``                Touch HTML mixin
+``boxes/scripts/boxesserver.py``             WSGI dispatcher (routing)
+``static/touch.css``                         Touch stylesheet
+``static/touch.js``                          Touch JS (tabs, search, mode toggle)
+===========================================  ============================
+
 Documentation
 -------------
 
