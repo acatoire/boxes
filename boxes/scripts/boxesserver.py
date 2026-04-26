@@ -305,6 +305,31 @@ class BServer(LegacyUIMixin, TouchUIMixin):
             url += "?" + environ["QUERY_STRING"]
         return url
 
+    def serveFonts(self, environ: dict, start_response: Any) -> Any:
+        """Serve font files from the boxes Python package fonts directory.
+
+        fonts.css uses relative paths ``../boxes/fonts/…`` which browsers
+        resolve as ``/boxes/fonts/…``.  This handler maps those requests to
+        the actual ``boxes/fonts/`` directory inside the package.
+        """
+        rel = environ["PATH_INFO"][len("/boxes/fonts/"):]
+        # Safety: no path traversal
+        if not re.match(r"[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$", rel):
+            start_response("404 Not Found", [("Content-type", "text/plain")])
+            return [b"Not found"]
+        fonts_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fonts")
+        path = os.path.join(fonts_dir, rel)
+        if not os.path.isfile(path):
+            start_response("404 Not Found", [("Content-type", "text/plain")])
+            return [b"Not found"]
+        type_, encoding = mimetypes.guess_type(rel)
+        ct = type_ or "application/octet-stream"
+        start_response("200 OK", [
+            ("Content-type", ct),
+            ("Cache-Control", "public, max-age=86400"),
+        ])
+        return environ["wsgi.file_wrapper"](open(path, "rb"), 512 * 1024)
+
     # ── Main WSGI dispatcher ─────────────────────────────────────────
 
     def serve(self, environ: dict, start_response: Any) -> Any:
@@ -312,6 +337,9 @@ class BServer(LegacyUIMixin, TouchUIMixin):
             environ["PATH_INFO"] = "/static/favicon.ico"
         if environ["PATH_INFO"].startswith("/static/"):
             return self.serveStatic(environ, start_response)
+        # fonts.css references ../boxes/fonts/… which browsers resolve as /boxes/fonts/…
+        if environ["PATH_INFO"].startswith("/boxes/fonts/"):
+            return self.serveFonts(environ, start_response)
 
         status = "200 OK"
         headers = [

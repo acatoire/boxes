@@ -23,6 +23,8 @@ class TouchUIMixin:
     static_url: str
     groups: list
     _cache: dict
+    legal_url: str
+    deploy_fingerprint: str
 
     # ── Shared helpers expected from LegacyUIMixin / BServer ─────────
     def genHTMLStart(self, lang: object) -> str:
@@ -64,12 +66,44 @@ class TouchUIMixin:
         _ = lang.gettext  # type: ignore[attr-defined]
         lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
         langparam = f"?language={lang_name}" if lang_name else ""
+
         back_btn = (
             f'<a class="th-mode-btn" href="{html.escape(back_url)}" '
             f'aria-label="{_("Back")}">← {_("Back")}</a>'
             if back_url
             else ""
         )
+
+        # Build the ☰ dropdown menu (mirrors legacy genLinks dropdown)
+        links: list[tuple[str, str]] = [
+            ("https://florianfesti.github.io/boxes/html/usermanual.html", _("Help")),
+            ("https://hackaday.io/project/10649-boxespy", _("Home Page")),
+            ("https://florianfesti.github.io/boxes/html/index.html", _("Documentation")),
+            ("https://github.com/florianfesti/boxes", _("Sources")),
+        ]
+        if self.legal_url:
+            links.append((self.legal_url, _("Legal")))
+        links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
+
+        dropdown_items: list[str] = [
+            f'      <a href="{url}" target="_blank" rel="noopener">{txt}</a>'
+            for url, txt in links
+        ]
+        dropdown_items.append(f'      <a href="settings">\U0001f3a8 {_("Color Settings")}</a>')
+        dropdown_items.append(
+            f'      <a href="Menu" '
+            f"onclick=\"try{{localStorage.setItem('boxes-ui-mode','legacy')}}catch(e){{}}\" "
+            f'title="{_("Switch to classic desktop interface")}">'
+            f'\u2630 {_("Classic view")}</a>'
+        )
+        if self.deploy_fingerprint:
+            tag = html.escape(self.deploy_fingerprint)
+            dropdown_items.append(
+                f'      <span style="padding:6px 12px;color:#aaa;font-size:0.8em;">Instance: {tag}</span>'
+            )
+
+        dropdown_html = "\n".join(dropdown_items)
+
         return f"""
   <header class="th-header">
     <a class="th-logo" href="TouchHub{langparam}">
@@ -79,7 +113,12 @@ class TouchUIMixin:
     <div class="th-header-actions">
       {self.genHTMLLanguageSelection(lang)}
       {back_btn}
-      <button class="th-mode-btn" onclick="thSwitchToLegacy()">☰ {_("Classic view")}</button>
+      <div class="dropdown th-dropdown">
+        <button class="th-mode-btn dropdown-btn" onclick="toggleDropdown(event)">\u2630 {_("Menu")}</button>
+        <div class="dropdown-content th-dropdown-content" id="main-dropdown">
+{dropdown_html}
+        </div>
+      </div>
     </div>
   </header>"""
 
