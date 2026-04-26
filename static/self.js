@@ -169,6 +169,92 @@ function initColorInjection() {
     form.addEventListener('submit', () => injectColorHiddenFields(form));
 }
 
+/*** Category visibility *******************************/
+
+const HIDDEN_CATS_KEY = 'boxes-hidden-categories';
+
+function loadHiddenCategories() {
+    try { return new Set(JSON.parse(localStorage.getItem(HIDDEN_CATS_KEY) || '[]')); }
+    catch(_) { return new Set(); }
+}
+
+/** Menu page: hide h3 + its content div for hidden categories. */
+function applyHiddenCategoriesMenu() {
+    const hidden = loadHiddenCategories();
+    document.querySelectorAll('h3.toggle[data-id]').forEach(function(el) {
+        const id = el.getAttribute('data-id');
+        const div = document.getElementById(id);
+        const hide = hidden.has(id);
+        el.style.display = hide ? 'none' : '';
+        if (div) div.style.display = hide ? 'none' : '';
+    });
+}
+
+/** Gallery page: hide .gallery-group divs for hidden categories. */
+function applyHiddenCategoriesGallery() {
+    const hidden = loadHiddenCategories();
+    document.querySelectorAll('.gallery-group[data-group-id]').forEach(function(div) {
+        div.style.display = hidden.has(div.dataset.groupId) ? 'none' : '';
+    });
+}
+
+/** Apply hidden-category rules on whatever page is loaded. */
+function applyHiddenCategories() {
+    applyHiddenCategoriesMenu();
+    applyHiddenCategoriesGallery();
+}
+
+/** Category settings page – explicit Save button. */
+function saveCategorySettingsExplicit() {
+    const hidden = new Set();
+    document.querySelectorAll('input[data-cat-id]').forEach(function(cb) {
+        if (!cb.checked) hidden.add(cb.dataset.catId);
+    });
+    try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hidden])); } catch(_) {}
+    window.history.back();
+}
+
+/** Color settings page – explicit Save button. */
+function saveColorSettingsExplicit() {
+    const overrides = loadColorSettings();
+    document.querySelectorAll('select[data-role]').forEach(function(sel) {
+        overrides[sel.dataset.role] = sel.value;
+    });
+    persistColorSettings(overrides);
+    window.history.back();
+}
+
+/** Category settings page – init checkboxes from localStorage. */
+function initCategorySettingsPage() {
+    const hidden = loadHiddenCategories();
+    document.querySelectorAll('input[data-cat-id]').forEach(function(cb) {
+        cb.checked = !hidden.has(cb.dataset.catId);
+    });
+}
+
+/** Category settings page – called by each checkbox onchange. */
+function onCategoryCheckboxChange(cb) {
+    const hidden = loadHiddenCategories();
+    if (cb.checked) {
+        hidden.delete(cb.dataset.catId);
+    } else {
+        hidden.add(cb.dataset.catId);
+    }
+    try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hidden])); } catch(_) {}
+    const status = document.getElementById('cat-settings-status');
+    if (status) {
+        status.style.display = 'inline';
+        clearTimeout(status._hideTimer);
+        status._hideTimer = setTimeout(function() { status.style.display = 'none'; }, 1500);
+    }
+}
+
+/** Category settings page – restore all categories. */
+function resetCategorySettings() {
+    try { localStorage.removeItem(HIDDEN_CATS_KEY); } catch(_) {}
+    window.location.reload();
+}
+
 /*** Gallery image height zoom ****************************/
 
 const GALLERY_ZOOM_DEFAULT = 120;
@@ -294,6 +380,7 @@ function initPage(num_hide = null) {
     }
     const t = document.getElementsByClassName("thumbnail");
     for (let el of t) initThumbnail(el);
+    applyHiddenCategories();
 }
 
 function initArgsPage(num_hide = null) {
@@ -785,6 +872,7 @@ function filterSearchItems() {
     if (search.value.length == 0) {
         collapseAll();
         showAll()
+        applyHiddenCategories();
     } else {
         expandAll();
         showOnly(search.value)

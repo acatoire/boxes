@@ -87,6 +87,35 @@ function thApplySearch(q) {
     }
 }
 
+/* ── Category visibility (shared with self.js HIDDEN_CATS_KEY) ──── */
+
+/**
+ * Hide tabs and panels for categories the user has disabled.
+ * Falls back gracefully if loadHiddenCategories (self.js) is unavailable.
+ */
+function applyHiddenCategoriesTouch() {
+    const hidden = (typeof loadHiddenCategories === 'function')
+        ? loadHiddenCategories()
+        : new Set();
+
+    document.querySelectorAll('.th-tab[data-group]').forEach(function(tab) {
+        tab.style.display = hidden.has(tab.dataset.group) ? 'none' : '';
+    });
+    document.querySelectorAll('.th-panel[data-group]').forEach(function(panel) {
+        if (hidden.has(panel.dataset.group)) {
+            panel.style.display = 'none';
+            panel.classList.remove('active');
+        }
+    });
+
+    // If the currently-active tab is now hidden, jump to first visible one.
+    const activeTab = document.querySelector('.th-tab.active');
+    if (!activeTab || activeTab.style.display === 'none') {
+        const first = document.querySelector('.th-tab[data-group]:not([style*="none"])');
+        if (first) thSwitchTab(first.dataset.group);
+    }
+}
+
 /* ── Hub init ────────────────────────────────────────────────────── */
 
 function initTouchHub() {
@@ -113,6 +142,8 @@ function initTouchHub() {
     if (lastGroup !== null && document.querySelector(`.th-tab[data-group="${lastGroup}"]`)) {
         thSwitchTab(lastGroup);
     }
+
+    applyHiddenCategoriesTouch();
 }
 
 /* ── Touch args page init ────────────────────────────────────────── */

@@ -376,6 +376,9 @@ class BServer(LegacyUIMixin, TouchUIMixin):
         if name == "settings":
             return self.serveSettings(environ, start_response, lang)
 
+        if name == "categories":
+            return self.serveCategorySettings(environ, start_response, lang)
+
         # ── Route: unknown name → legacy menu ────────────────────────
         box_cls = self.boxes.get(name, None)
         if not box_cls:

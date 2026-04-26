@@ -138,6 +138,7 @@ class LegacyUIMixin:
 
         dropdown_items = [f'    <a href="{url}" target="_blank" rel="noopener">{txt}</a>\n' for url, txt in links]
         dropdown_items.append(f'    <a href="settings">\U0001f3a8 {_("Color Settings")}</a>\n')
+        dropdown_items.append(f'    <a href="categories">\U0001f4c2 {_("Category Settings")}</a>\n')
         # Touch mode link inside the dropdown menu
         dropdown_items.append(
             f'    <a href="TouchHub" '
@@ -524,11 +525,59 @@ class LegacyUIMixin:
   </tbody>
 </table>
 <div class="settings-actions">
+  <button onclick="saveColorSettingsExplicit()">{_("Save")}</button>
   <button onclick="exportColorSettings()">{_("Export JSON")}</button>
   <button onclick="document.getElementById('import-file').click()">{_("Import JSON")}</button>
   <input type="file" id="import-file" accept=".json,application/json" onchange="importColorSettings(this)">
   <button onclick="resetColorSettings()">{_("Reset to defaults")}</button>
   <span id="color-settings-status" style="color:green; display:none">{_("Saved.")}</span>
+</div>
+</div>
+<div style="width:5%; float:left;"></div>
+<div class="clear"></div><hr>
+</div>
+</body>
+</html>
+"""
+        start_response("200 OK", [("Content-type", "text/html; charset=utf-8")])  # type: ignore[operator]
+        return [page.encode("utf-8")]
+
+    def serveCategorySettings(self, environ: object, start_response: object, lang: object) -> list[bytes]:
+        """Render the /categories page – checkbox per generator category."""
+        _ = lang.gettext  # type: ignore[attr-defined]
+
+        rows: list[str] = []
+        for nr, group in enumerate(self.groups):
+            rows.append(f"""
+  <tr>
+    <td><input type="checkbox" id="cat_{nr}" data-cat-id="{nr}"
+               onchange="onCategoryCheckboxChange(this)" checked></td>
+    <td><label for="cat_{nr}">{html.escape(_(group.title))}</label></td>
+  </tr>""")
+
+        rows_html = "\n".join(rows)
+        page = f"""{self.genHTMLStart(lang)}
+<head>
+  <title>{_("Category Settings")} \u2013 {_("Boxes.py")}</title>
+  {self.genHTMLMeta()}
+  {self.genHTMLCSS()}
+  {self.genHTMLJS()}
+</head>
+<body onload="initCategorySettingsPage()">
+<div class="container">
+<div style="width:75%; float:left;">
+{self.genPagePartHeader(lang)}
+<h2>{_("Category Settings")}</h2>
+<p>{_("Uncheck categories to hide them from the menu, gallery and touch interface.")}</p>
+<table class="cat-settings-table">
+  <tbody>
+{rows_html}
+  </tbody>
+</table>
+<div class="cat-settings-actions">
+  <button onclick="saveCategorySettingsExplicit()">{_("Save")}</button>
+  <button onclick="resetCategorySettings()">{_("Show all categories")}</button>
+  <span id="cat-settings-status" style="color:green; display:none">{_("Saved.")}</span>
 </div>
 </div>
 <div style="width:5%; float:left;"></div>
@@ -571,6 +620,7 @@ class LegacyUIMixin:
 </div>
 """]
         for nr, group in enumerate(self.groups):
+            result.append(f'<div class="gallery-group" data-group-id="{nr}">\n')
             result.append(f"<h2>{_(group.title)}</h2>\n")
             for box in group.generators:
                 bname = box.__name__
@@ -585,6 +635,7 @@ class LegacyUIMixin:
                     f'<img alt="{_(bname)}" src="{thumbnail}">{overlay}</span>'
                     f"<br>{_(bname)}</a></span>\n"
                 )
+            result.append("</div>\n")  # close .gallery-group
 
         result.append(
             "\n</div><div style=\"width: 5%; float: left;\"></div>\n"

@@ -370,6 +370,39 @@ textarea {
     overflow: hidden;
 }
 
+/* ── Category settings page ─────────────────────────────────────── */
+.cat-settings-table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 8px;
+}
+
+.cat-settings-table td {
+    padding: 6px 10px;
+    vertical-align: middle;
+}
+
+.cat-settings-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #5F584A;
+}
+
+.cat-settings-table label {
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.cat-settings-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+
 .modebutton {
     float: left;
     border: none;

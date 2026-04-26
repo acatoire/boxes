@@ -90,6 +90,7 @@ class TouchUIMixin:
             for url, txt in links
         ]
         dropdown_items.append(f'      <a href="settings">\U0001f3a8 {_("Color Settings")}</a>')
+        dropdown_items.append(f'      <a href="categories">\U0001f4c2 {_("Category Settings")}</a>')
         dropdown_items.append(
             f'      <a href="Menu" '
             f"onclick=\"try{{localStorage.setItem('boxes-ui-mode','legacy')}}catch(e){{}}\" "
