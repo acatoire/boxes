@@ -14,16 +14,27 @@ function setUIModePreference(mode) {
     try { localStorage.setItem(UI_MODE_KEY, mode); } catch(_) {}
 }
 
+function thBuildModeSwitchUrl(path) {
+    const params = new URLSearchParams(window.location.search);
+    const language = params.get('language');
+
+    if (!language) return path;
+
+    const targetParams = new URLSearchParams();
+    targetParams.set('language', language);
+    return path + '?' + targetParams.toString();
+}
+
 /** Switch to classic (legacy) mode: save pref and go to Menu. */
 function thSwitchToLegacy() {
     setUIModePreference('legacy');
-    window.location.href = 'Menu';
+    window.location.href = thBuildModeSwitchUrl('Menu');
 }
 
 /** Switch to touch mode from any classic page. */
 function thSwitchToTouch() {
     setUIModePreference('touch');
-    window.location.href = 'TouchHub';
+    window.location.href = thBuildModeSwitchUrl('TouchHub');
 }
 
 /* ── Category tab switching ──────────────────────────────────────── */
