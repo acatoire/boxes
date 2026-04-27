@@ -109,7 +109,7 @@ class TouchUIMixin:
         links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
 
         dropdown_items: list[str] = [
-            f'      <a href="{url}" target="_blank" rel="noopener">{txt}</a>'
+            f'      <a href="{html.escape(url)}" target="_blank" rel="noopener">{txt}</a>'
             for url, txt in links
         ]
         # Interface switcher (Touch is always the current interface here)

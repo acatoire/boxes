@@ -14,16 +14,27 @@ function setUIModePreference(mode) {
     try { localStorage.setItem(UI_MODE_KEY, mode); } catch(_) {}
 }
 
+function thBuildModeSwitchUrl(path) {
+    const params = new URLSearchParams(window.location.search);
+    const language = params.get('language');
+
+    if (!language) return path;
+
+    const targetParams = new URLSearchParams();
+    targetParams.set('language', language);
+    return path + '?' + targetParams.toString();
+}
+
 /** Switch to classic (legacy) mode: save pref and go to Menu. */
 function thSwitchToLegacy() {
     setUIModePreference('legacy');
-    window.location.href = 'Menu';
+    window.location.href = thBuildModeSwitchUrl('Menu');
 }
 
 /** Switch to touch mode from any classic page. */
 function thSwitchToTouch() {
     setUIModePreference('touch');
-    window.location.href = 'TouchHub';
+    window.location.href = thBuildModeSwitchUrl('TouchHub');
 }
 
 /* Category tab switching */
@@ -213,31 +224,4 @@ function _bindTouchActionBar() {
             form.target = prevTarget;
         });
     });
-}
-
-/* Classic mode: inject "Touch mode" button into linkbar */
-
-/**
- * Called on any legacy page if the server was started with --ui-mode auto.
- * Injects a "Touch mode" button in the linkbar so the user can switch.
- */
-function injectTouchModeButton() {
-    const pref = getUIModePreference();
-    if (pref === 'touch') {
-        // Redirect to hub immediately if the user previously chose touch
-        window.location.replace('TouchHub');
-        return;
-    }
-    // Inject a button in the linkbar
-    const ul = document.querySelector('.linkbar ul');
-    if (!ul) return;
-    const li = document.createElement('li');
-    li.className = 'right';
-    const btn = document.createElement('button');
-    btn.textContent = '⬛ Touch mode';
-    btn.title = 'Switch to tablet-optimised interface';
-    btn.style.cssText = 'font-size:0.85em;padding:2px 10px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#EFE8DA;';
-    btn.addEventListener('click', thSwitchToTouch);
-    li.appendChild(btn);
-    ul.appendChild(li);
 }
