@@ -215,29 +215,6 @@ function _bindTouchActionBar() {
     });
 }
 
-/* ── Classic mode: inject "Touch mode" button into linkbar ──────── */
-
-/**
- * Called on any legacy page if the server was started with --ui-mode auto.
- * Injects a "Touch mode" button in the linkbar so the user can switch.
- */
-function injectTouchModeButton() {
-    const pref = getUIModePreference();
-    if (pref === 'touch') {
-        // Redirect to hub immediately if the user previously chose touch
-        window.location.replace('TouchHub');
-        return;
-    }
-    // Inject a button in the linkbar
-    const ul = document.querySelector('.linkbar ul');
-    if (!ul) return;
-    const li = document.createElement('li');
-    li.className = 'right';
-    const btn = document.createElement('button');
-    btn.textContent = '⬛ Touch mode';
-    btn.title = 'Switch to tablet-optimised interface';
-    btn.style.cssText = 'font-size:0.85em;padding:2px 10px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#EFE8DA;';
-    btn.addEventListener('click', thSwitchToTouch);
-    li.appendChild(btn);
-    ul.appendChild(li);
-}
+/* Legacy-page "Touch mode" button injection removed.
+   This script is not initialised on classic pages, so keeping an unused
+   helper here only leaves a dead feature path behind. */
