@@ -35,7 +35,7 @@ class MenuUIMixin:
     def genHTMLJS(self) -> str:
         raise NotImplementedError
 
-    def genPagePartHeader(self, lang: object) -> str:
+    def genPagePartHeader(self, lang: object, current_interface: str = "") -> str:
         raise NotImplementedError
 
     def tag_badges_html(self, box: type) -> str:
@@ -60,7 +60,7 @@ class MenuUIMixin:
 <body onload="initPage()">
 <div class="container">
 <div style="width: 75%; float: left;">
-{self.genPagePartHeader(lang)}
+{self.genPagePartHeader(lang, current_interface="Menu")}
 <br>
 <div class="menu" style="width: 100%">
 <img style="width: 200px;" id="sample-preview" src="{self.static_url}/nothing.png" alt="">

@@ -37,7 +37,7 @@ class GalleryUIMixin:
     def genHTMLJS(self) -> str:
         raise NotImplementedError
 
-    def genPagePartHeader(self, lang: object) -> str:
+    def genPagePartHeader(self, lang: object, current_interface: str = "") -> str:
         raise NotImplementedError
 
     def tag_badges_html(self, box: type) -> str:
@@ -72,7 +72,7 @@ class GalleryUIMixin:
 <body onload="initPage()">
 <div class="container">
 <div style="width: 75%; float: left;">
-{self.genPagePartHeader(lang)}
+{self.genPagePartHeader(lang, current_interface="Gallery")}
 """]
         for nr, group in enumerate(self.groups):
             result.append(f'<div class="gallery-group" data-group-id="{nr}">\n')

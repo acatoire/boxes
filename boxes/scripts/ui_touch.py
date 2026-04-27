@@ -11,6 +11,8 @@ import html
 
 import markdown
 
+from boxes.scripts.ui_shared import gen_interface_select_html
+
 
 class TouchUIMixin:
     """HTML generation for the touch / tablet interface.
@@ -89,18 +91,8 @@ class TouchUIMixin:
             f'      <a href="{url}" target="_blank" rel="noopener">{txt}</a>'
             for url, txt in links
         ]
-        dropdown_items.append(
-            f'      <a href="Gallery" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'legacy\')}}catch(e){{}}">'
-            f'\U0001f5bc\ufe0f {_("Gallery interface")}</a>'
-        )
-        dropdown_items.append(
-            f'      <a href="Menu" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'legacy\')}}catch(e){{}}">'
-            f'\U0001f4cb {_("Menu interface")}</a>'
-        )
-        dropdown_items.append(
-            f'      <a href="TouchHub" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'touch\')}}catch(e){{}}">'
-            f'\U0001f4f1 {_("Touch interface")}</a>'
-        )
+        # Interface switcher (Touch is always the current interface here)
+        dropdown_items.append("      " + gen_interface_select_html("TouchHub", _))
         dropdown_items.append(f'      <a href="settings">\U0001f3a8 {_("Color Settings")}</a>')
         dropdown_items.append(f'      <a href="categories">\U0001f4c2 {_("Category Settings")}</a>')
         # Language selection inside the dropdown

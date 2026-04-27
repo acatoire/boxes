@@ -12,6 +12,7 @@ import html
 import markdown
 
 import boxes
+from boxes.scripts.ui_shared import gen_interface_select_html
 
 
 class LegacyUIMixin:
@@ -34,6 +35,9 @@ class LegacyUIMixin:
     # ── Shared helpers expected from BServer ─────────────────────────
     def getLanguages(self) -> list:
         raise NotImplementedError
+
+    # genHTMLTouchCSS / genHTMLTouchJS / _touch_header_html are provided
+    # by TouchUIMixin at runtime – do NOT redefine them here.
 
     def genHTMLStart(self, lang: object) -> str:
         lang_attr = lang.info().get("language", "")  # type: ignore[attr-defined]
@@ -95,7 +99,7 @@ class LegacyUIMixin:
             'border-radius:4px;background:#EFE8DA;">🔍+</button>'
         )
 
-    def genPagePartHeader(self, lang: object) -> str:
+    def genPagePartHeader(self, lang: object, current_interface: str = "") -> str:
         _ = lang.gettext  # type: ignore[attr-defined]
         lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
         langparam = f"?language={lang_name}" if lang_name else ""
@@ -117,14 +121,14 @@ class LegacyUIMixin:
 <hr/>
 <div class="linkbar">
 <ul>
-{self.genLinks(lang)}
+{self.genLinks(lang, current_interface=current_interface)}
   <li class="right">\U0001f50d <input autocomplete="off" type="search" oninput="filterSearchItems();" name="search" id="search" placeholder="Search"></li>
 </ul>
 </div>
 <hr/>
 """
 
-    def genLinks(self, lang: object, preview: bool = False) -> str:
+    def genLinks(self, lang: object, preview: bool = False, current_interface: str = "") -> str:
         _ = lang.gettext  # type: ignore[attr-defined]
         links = [
             ("https://florianfesti.github.io/boxes/html/usermanual.html", _("Help")),
@@ -137,18 +141,9 @@ class LegacyUIMixin:
         links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
 
         dropdown_items = [f'    <a href="{url}" target="_blank" rel="noopener">{txt}</a>\n' for url, txt in links]
-        # View switchers
+        # Interface switcher
         dropdown_items.append(
-            f'    <a href="Gallery" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'legacy\')}}catch(e){{}}">'
-            f'\U0001f5bc\ufe0f {_("Gallery interface")}</a>\n'
-        )
-        dropdown_items.append(
-            f'    <a href="Menu" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'legacy\')}}catch(e){{}}">'
-            f'\U0001f4cb {_("Menu interface")}</a>\n'
-        )
-        dropdown_items.append(
-            f'    <a href="TouchHub" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'touch\')}}catch(e){{}}">'
-            f'\U0001f4f1 {_("Touch interface")}</a>\n'
+            "    " + gen_interface_select_html(current_interface, _) + "\n"
         )
         dropdown_items.append(f'    <a href="settings">\U0001f3a8 {_("Color Settings")}</a>\n')
         dropdown_items.append(f'    <a href="categories">\U0001f4c2 {_("Category Settings")}</a>\n')
@@ -494,46 +489,137 @@ class LegacyUIMixin:
         return [page.encode("utf-8")]
 
     def serveCategorySettings(self, environ: object, start_response: object, lang: object) -> list[bytes]:
-        """Render the /categories page – checkbox per generator category."""
+        """Render the /categories page – checkbox per generator category (touch style)."""
         _ = lang.gettext  # type: ignore[attr-defined]
+        lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
+        langparam = f"?language={lang_name}" if lang_name else ""
 
-        rows: list[str] = []
+        cards: list[str] = []
         for nr, group in enumerate(self.groups):
-            rows.append(f"""
-  <tr>
-    <td><input type="checkbox" id="cat_{nr}" data-cat-id="{nr}"
-               onchange="onCategoryCheckboxChange(this)" checked></td>
-    <td><label for="cat_{nr}">{html.escape(_(group.title))}</label></td>
-  </tr>""")
+            gen_count = len(group.generators)
+            # Use the first generator's thumbnail as card background
+            first_thumb = (
+                f"{self.static_url}/samples/{group.generators[0].__name__}-thumb.jpg"
+                if group.generators else f"{self.static_url}/nothing.png"
+            )
+            cards.append(
+                f'  <label class="cat-card" for="cat_{nr}" '
+                f'style="background-image:url(\'{html.escape(first_thumb)}\')">\n'
+                f'    <div class="cat-card-overlay">\n'
+                f'      <input type="checkbox" id="cat_{nr}" data-cat-id="{nr}"\n'
+                f'             onchange="onCategoryCheckboxChange(this)" checked>\n'
+                f'      <span class="cat-card-title">{html.escape(_(group.title))}</span>\n'
+                f'      <span class="cat-card-count">{gen_count}</span>\n'
+                f'    </div>\n'
+                f'  </label>'
+            )
 
-        rows_html = "\n".join(rows)
+        cards_html = "\n".join(cards)
+        touch_css = self.genHTMLTouchCSS()  # type: ignore[attr-defined]
+        touch_js = self.genHTMLTouchJS()  # type: ignore[attr-defined]
+        touch_header = self._touch_header_html(lang, back_url=f"TouchHub{langparam}")  # type: ignore[attr-defined]
         page = f"""{self.genHTMLStart(lang)}
 <head>
   <title>{_("Category Settings")} \u2013 {_("Boxes.py")}</title>
   {self.genHTMLMeta()}
   {self.genHTMLCSS()}
+  {touch_css}
   {self.genHTMLJS()}
+  {touch_js}
+  <style>
+    body.touch-cat {{
+      margin: 0; padding: 0;
+      min-height: 100dvh;
+      display: flex; flex-direction: column;
+      background: var(--th-page-bg);
+      font-size: 17px;
+    }}
+    .cat-body {{
+      flex: 1; padding: 20px 24px;
+      overflow-y: auto;
+    }}
+    .cat-body h2 {{ margin: 0 0 6px; color: #333; }}
+    .cat-body p  {{ margin: 0 0 18px; color: #666; font-size: 0.9em; }}
+    .cat-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }}
+    /* Square card with background image */
+    .cat-card {{
+      position: relative;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      cursor: pointer;
+      user-select: none;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+      background-size: cover;
+      background-position: center;
+      background-color: #d8d0c0;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }}
+    .cat-card:hover  {{ transform: scale(1.03); box-shadow: 0 6px 20px rgba(0,0,0,0.28); }}
+    .cat-card:active {{ transform: scale(0.97); }}
+    /* Dark gradient overlay at the bottom */
+    .cat-card-overlay {{
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.72) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 10px;
+      gap: 4px;
+    }}
+    .cat-card input[type="checkbox"] {{
+      position: absolute; top: 10px; right: 10px;
+      width: 24px; height: 24px; cursor: pointer;
+      accent-color: var(--th-accent);
+    }}
+    .cat-card-title {{
+      font-weight: bold; font-size: 0.92em;
+      color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      line-height: 1.2;
+    }}
+    .cat-card-count {{
+      font-size: 0.75em;
+      color: rgba(255,255,255,0.80);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    }}
+    .cat-actions {{
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    }}
+    .cat-btn {{
+      background: var(--th-accent);
+      color: #fff; border: none; border-radius: 10px;
+      padding: 0 24px; min-height: 48px; font-size: 1em;
+      font-family: inherit; font-weight: bold;
+      cursor: pointer; transition: background 0.15s;
+    }}
+    .cat-btn:hover {{ background: var(--th-accent2); }}
+    .cat-btn.secondary {{ background: #666; }}
+    .cat-btn.secondary:hover {{ background: #444; }}
+    #cat-settings-status {{ color: green; font-weight: bold; }}
+  </style>
 </head>
-<body onload="initCategorySettingsPage()">
-<div class="container">
-<div style="width:75%; float:left;">
-{self.genPagePartHeader(lang)}
-<h2>{_("Category Settings")}</h2>
-<p>{_("Uncheck categories to hide them from the menu, gallery and touch interface.")}</p>
-<table class="cat-settings-table">
-  <tbody>
-{rows_html}
-  </tbody>
-</table>
-<div class="cat-settings-actions">
-  <button onclick="saveCategorySettingsExplicit()">{_("Save")}</button>
-  <button onclick="resetCategorySettings()">{_("Show all categories")}</button>
-  <span id="cat-settings-status" style="color:green; display:none">{_("Saved.")}</span>
+<body class="touch-cat" onload="initCategorySettingsPage()">
+
+{touch_header}
+
+<div class="cat-body">
+  <h2>{_("Category Settings")}</h2>
+  <p>{_("Uncheck categories to hide them from the menu, gallery and touch interface.")}</p>
+  <div class="cat-grid">
+{cards_html}
+  </div>
+  <div class="cat-actions">
+    <button class="cat-btn" onclick="saveCategorySettingsExplicit()">{_("Save")}</button>
+    <button class="cat-btn secondary" onclick="resetCategorySettings()">{_("Show all categories")}</button>
+    <span id="cat-settings-status" style="display:none">{_("Saved.")}</span>
+  </div>
 </div>
-</div>
-<div style="width:5%; float:left;"></div>
-<div class="clear"></div><hr>
-</div>
+
 </body>
 </html>
 """

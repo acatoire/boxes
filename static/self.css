@@ -253,6 +253,27 @@ video {
     margin-top: 4px;
 }
 
+/* Interface switcher row inside dropdown */
+.dropdown-interface {
+    padding: 8px 16px;
+    font-size: 0.9em;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #e8e0d0;
+    margin-top: 4px;
+}
+
+.dropdown-interface select {
+    padding: 2px 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background: #F8F4EE;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+
 .dropdown-lang form {
     display: inline;
     margin: 0;
