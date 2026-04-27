@@ -156,6 +156,9 @@ function initTouchArgs(numHide) {
     // Wire up the sticky action bar buttons
     _bindTouchActionBar();
 
+    // Machine config panel (localStorage-backed)
+    if (typeof initMachineConfigPanel === 'function') initMachineConfigPanel();
+
     // Auto-size inputs/selects if field-sizing:content is unsupported (Firefox < 128)
     if (!CSS.supports('field-sizing', 'content')) {
         _autoSizeAllFields();

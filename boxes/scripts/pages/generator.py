@@ -130,6 +130,17 @@ class GeneratorUIMixin:
             f'          {"".join(form_rows)}\n'
             f'          <input type="hidden" name="language" id="language" value="{lang_name}">\n'
             "        </form>\n"
+            '        <!-- Machine configuration (stored in localStorage, not submitted) -->\n'
+            f'        <h3 id="h-machine-cfg" data-id="machine-cfg" role="button" aria-expanded="true"'
+            f' tabindex="0" class="toggle open">\u2699 {_("Machine")}</h3>\n'
+            '        <table role="presentation" id="machine-cfg">\n'
+            f'          <tr><td><label>{_("Preset")}</label></td>'
+            f'<td><select id="machine-preset"></select></td></tr>\n'
+            f'          <tr><td><label for="machine-w">{_("Width (mm)")}</label></td>'
+            f'<td><input type="number" id="machine-w" min="1" max="9999" step="1" value="300"></td></tr>\n'
+            f'          <tr><td><label for="machine-h">{_("Height (mm)")}</label></td>'
+            f'<td><input type="number" id="machine-h" min="1" max="9999" step="1" value="300"></td></tr>\n'
+            "        </table>\n"
             "      </div>\n"
             '      <div id="preview" class="config-preview">\n'
             '        <div id="preview_buttons">\n'
@@ -143,6 +154,8 @@ class GeneratorUIMixin:
             f'            <img id="preview_img" style="width:100%" src="{self.static_url}/nothing.png">\n'
             "          </figure>\n"
             "        </div>\n"
+            '        <div id="surface-info-bar" class="surface-info-bar"></div>\n'
+            '        <div id="fit-info-bar" class="fit-info"></div>\n'
             "      </div>\n"
             "    </div>\n"
             "  </div>\n"

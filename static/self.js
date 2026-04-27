@@ -521,6 +521,149 @@ function refreshPreview() {
 
     const preview = document.getElementById("preview_img");
     preview.src = url;
+    updateSurfaceInfo(url);
+}
+
+/*** Machine configuration ******************************/
+
+const MACHINE_STORAGE_KEY = 'boxes-machine-config';
+
+const KNOWN_MACHINES = [
+    { brand: 'Ortur', model: 'Master 3', w: 400, h: 380 },
+    { brand: 'Ortur', model: 'H20 40W',  w: 410, h: 275 },
+    { brand: 'xTool', model: 'M1 Ultra', w: 300, h: 300 },
+];
+
+function loadMachineConfig() {
+    try {
+        return JSON.parse(localStorage.getItem(MACHINE_STORAGE_KEY) || 'null') || { w: 300, h: 300 };
+    } catch(_) { return { w: 300, h: 300 }; }
+}
+
+function saveMachineConfig(w, h) {
+    try { localStorage.setItem(MACHINE_STORAGE_KEY, JSON.stringify({ w, h })); } catch(_) {}
+}
+
+function initMachineConfigPanel() {
+    const sel    = document.getElementById('machine-preset');
+    const wInput = document.getElementById('machine-w');
+    const hInput = document.getElementById('machine-h');
+    if (!sel || !wInput || !hInput) return;
+
+    // Build <optgroup> options sorted by brand
+    sel.innerHTML = '<option value="">\u2014 Custom \u2014</option>';
+    const byBrand = {};
+    for (const m of KNOWN_MACHINES) {
+        (byBrand[m.brand] = byBrand[m.brand] || []).push(m);
+    }
+    for (const brand of Object.keys(byBrand).sort()) {
+        const og = document.createElement('optgroup');
+        og.label = brand;
+        for (const m of byBrand[brand]) {
+            const opt = document.createElement('option');
+            opt.value = `${m.w}x${m.h}`;
+            opt.textContent = `${m.model} (${m.w}\u00d7${m.h} mm)`;
+            og.appendChild(opt);
+        }
+        sel.appendChild(og);
+    }
+
+    // Restore saved config
+    const cfg = loadMachineConfig();
+    wInput.value = cfg.w;
+    hInput.value = cfg.h;
+    _syncMachinePreset(sel, cfg.w, cfg.h);
+
+    sel.addEventListener('change', function() {
+        if (!sel.value) return;
+        const parts = sel.value.split('x');
+        const w = Number(parts[0]);
+        const h = Number(parts[1]);
+        wInput.value = w;
+        hInput.value = h;
+        saveMachineConfig(w, h);
+        _updateFitInfo();
+    });
+
+    const onDimChange = function() {
+        const w = parseFloat(wInput.value) || 300;
+        const h = parseFloat(hInput.value) || 300;
+        saveMachineConfig(w, h);
+        _syncMachinePreset(sel, w, h);
+        _updateFitInfo();
+    };
+    wInput.addEventListener('change', onDimChange);
+    hInput.addEventListener('change', onDimChange);
+}
+
+function _syncMachinePreset(sel, w, h) {
+    for (const opt of sel.options) {
+        if (opt.value === `${w}x${h}`) { sel.value = opt.value; return; }
+    }
+    sel.value = '';
+}
+
+/*** Surface info ***************************************/
+
+let _svgDims = null;
+
+async function updateSurfaceInfo(svgUrl) {
+    const bar = document.getElementById('surface-info-bar');
+    if (!bar) return;
+    try {
+        const resp = await fetch(svgUrl);
+        if (!resp.ok) { _clearSurfaceInfo(); return; }
+        const text = await resp.text();
+        const dims = _parseSvgMmDims(text);
+        if (!dims) { _clearSurfaceInfo(); return; }
+        _svgDims = dims;
+        const surface = Math.round(dims.w * dims.h);
+        bar.innerHTML =
+            `<span class="surf-dims">\ud83d\udcd0 ${dims.w.toFixed(1)} \u00d7 ${dims.h.toFixed(1)} mm</span>`
+            + `<span class="surf-sep">\u2022</span>`
+            + `<span class="surf-area">${surface.toLocaleString()} mm\u00b2</span>`;
+        bar.style.display = 'flex';
+        _updateFitInfo();
+    } catch(_) { _clearSurfaceInfo(); }
+}
+
+function _parseSvgMmDims(svgText) {
+    const m = svgText.match(/<svg\b[^>]*>/);
+    if (!m) return null;
+    const tag = m[0];
+    const wm = tag.match(/\bwidth="([\d.]+)mm"/);
+    const hm = tag.match(/\bheight="([\d.]+)mm"/);
+    if (!wm || !hm) return null;
+    const w = parseFloat(wm[1]);
+    const h = parseFloat(hm[1]);
+    return (isFinite(w) && isFinite(h) && w > 0 && h > 0) ? { w, h } : null;
+}
+
+function _clearSurfaceInfo() {
+    _svgDims = null;
+    const bar = document.getElementById('surface-info-bar');
+    const fit = document.getElementById('fit-info-bar');
+    if (bar) bar.style.display = 'none';
+    if (fit) fit.style.display = 'none';
+}
+
+function _updateFitInfo() {
+    const fit = document.getElementById('fit-info-bar');
+    if (!fit || !_svgDims) return;
+    const cfg = loadMachineConfig();
+    const mw = cfg.w, mh = cfg.h;
+    const dw = _svgDims.w, dh = _svgDims.h;
+    if (dw <= mw && dh <= mh) {
+        fit.className = 'fit-info fit-ok';
+        fit.textContent = `\u2705 Fits on 1 sheet (machine: ${mw}\u00d7${mh} mm)`;
+    } else {
+        const sw = Math.ceil(dw / mw);
+        const sh = Math.ceil(dh / mh);
+        const total = sw * sh;
+        fit.className = 'fit-info fit-warn';
+        fit.textContent = `\u26a0\ufe0f Needs ${total} sheet${total > 1 ? 's' : ''} (${sw}\u00d7${sh} grid) \u2013 machine: ${mw}\u00d7${mh} mm`;
+    }
+    fit.style.display = 'block';
 }
 
 
