@@ -185,7 +185,7 @@ class Parts:
             ixr, iyr = pt_on(ri, ca_in + tooth_half)
             return (ixl + depth * bx, iyl + depth * by), (ixr + depth * bx, iyr + depth * by)
 
-        # ── blade: half-ellipse per sector, bases touching ──────────────────
+        #  blade: half-ellipse per sector, bases touching
         if shape == "blade":
             k_bez = 4.0 / 3.0 * (math.sqrt(2.0) - 1.0)   # Bézier quarter-ellipse constant
             a_chord = ri * math.sin(half)
@@ -209,7 +209,7 @@ class Parts:
             ctx.line_to(*pt_on(ri, start_angle - half))
             ctx.stroke()
             return
-        # ────────────────────────────────────────────────────────────────────
+
 
         ctx.move_to(*pt_on(ri, start_angle - half))
         last_tooth_r: float = start_angle - half

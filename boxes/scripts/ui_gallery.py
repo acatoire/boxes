@@ -1,6 +1,6 @@
 ﻿# Copyright (C) 2016-2017 Florian Festi
 #
-#   This program is free software: you can redistribute it and/or modify
+#  This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
@@ -16,12 +16,12 @@ class GalleryUIMixin:
     set by BServer.__init__ (static_url, groups, _cache, …).
     """
 
-    # ── Stubs for attributes provided by BServer ─────────────────────
+    # Stubs for attributes provided by BServer
     static_url: str
     groups: list
     _cache: dict
 
-    # ── Shared helpers expected from LegacyUIMixin / BServer ─────────
+    # Shared helpers expected from LegacyUIMixin / BServer
     def genHTMLStart(self, lang: object) -> str:
         raise NotImplementedError
 
@@ -46,7 +46,7 @@ class GalleryUIMixin:
     def tag_badges_html(self, box: type) -> str:
         raise NotImplementedError
 
-    # ── Gallery page ─────────────────────────────────────────────────
+    # Gallery page
 
     def serveGallery(
         self, environ: object, start_response: object, lang: object

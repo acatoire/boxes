@@ -26,17 +26,17 @@ class TouchUIMixin:
     """HTML generation for the touch / tablet interface.
 
     Designed as a mixin for BServer.  All methods use ``self`` attributes
-    set by BServer.__init__ (static_url, groups, _cache, â€¦).
+    set by BServer.__init__ (static_url, groups, _cache, …).
     """
 
-    # â”€â”€ Stubs for attributes provided by BServer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Stubs for attributes provided by BServer
     static_url: str
     groups: list
     _cache: dict
     legal_url: str
     deploy_fingerprint: str
 
-    # â”€â”€ Shared helpers expected from LegacyUIMixin / BServer â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Shared helpers expected from LegacyUIMixin / BServer
     def genHTMLStart(self, lang: object) -> str:
         raise NotImplementedError
 
@@ -67,7 +67,7 @@ class TouchUIMixin:
     ) -> str:
         raise NotImplementedError
 
-    # â”€â”€ Touch-specific assets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Touch-specific assets
 
     def genHTMLTouchCSS(self) -> str:
         return f'<link rel="stylesheet" href="{self.static_url}/touch.css">'
@@ -75,7 +75,7 @@ class TouchUIMixin:
     def genHTMLTouchJS(self) -> str:
         return f'<script src="{self.static_url}/touch.js"></script>'
 
-    # â”€â”€ Shared header bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Shared header bar
 
     def _touch_header_html(self, lang: object, back_url: str = "", back_icon_only: bool = False, center_html: str = "") -> str:
         """Sticky header bar rendered on every touch page."""
@@ -150,7 +150,7 @@ class TouchUIMixin:
     </div>
   </header>"""
 
-    # â”€â”€ Hub page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Hub page
 
     def genTouchHub(self, lang: object) -> list[bytes]:
         """Generate the full tabbed touch-mode hub page."""
@@ -228,7 +228,7 @@ class TouchUIMixin:
 </html>"""
         return [page.encode("utf-8")]
 
-    # â”€â”€ WSGI handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # WSGI handler
 
     def serveTouchHub(self, environ: object, start_response: object, lang: object) -> list[bytes]:
         """Serve the touch-mode category hub page (with caching)."""

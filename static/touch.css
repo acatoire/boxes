@@ -5,7 +5,7 @@
    to avoid polluting the legacy UI.
    ================================================================ */
 
-/* ── CSS variables ──────────────────────────────────────────────── */
+/* CSS variables */
 :root {
   --th-bar-bg:     #3a3330;
   --th-bar-fg:     #fff;
@@ -32,7 +32,7 @@ body.touch-hub {
   overflow: hidden;
 }
 
-/* ── Top header bar ─────────────────────────────────────────────── */
+/* Top header bar */
 .th-header {
   background: var(--th-bar-bg);
   color: var(--th-bar-fg);
@@ -160,7 +160,7 @@ body.touch-hub {
   min-width: 44px;
 }
 
-/* ── Touch header dropdown ──────────────────────────────────────── */
+/* Touch header dropdown */
 .th-dropdown { position: relative; }
 
 /* Reuse .dropdown-content from self.css but override position and colours */
@@ -208,7 +208,7 @@ body.touch-hub {
 }
 
 
-/* ── Category tab bar ───────────────────────────────────────────── */
+/* Category tab bar */
 .th-tabbar {
   background: #4a3f3a;
   display: flex;
@@ -267,7 +267,7 @@ body.touch-hub {
 }
 .th-tab.active .th-tab-count { background: rgba(255,255,255,0.3); }
 
-/* ── Tab panel content area ─────────────────────────────────────── */
+/* Tab panel content area */
 .th-content {
   flex: 1;
   overflow-y: auto;
@@ -287,7 +287,7 @@ body.touch-hub {
   font-size: 1.1em;
 }
 
-/* ── Generator cards grid ───────────────────────────────────────── */
+/* Generator cards grid */
 .th-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -355,7 +355,7 @@ body.touch-hub {
 
 .th-card .tag-badge { font-size: 0.72em; }
 
-/* ── Touch args page (body.touch-args) ──────────────────────────── */
+/* Touch args page (body.touch-args) */
 
 body.touch-args {
   font-size: 17px;
@@ -454,7 +454,7 @@ body.touch-args table td:first-child label {
   font-size: 1.05em;
 }
 
-/* ── Touch checkboxes – large toggle-style ───────────────────────── */
+/* Touch checkboxes – large toggle-style */
 body.touch-args table input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -536,7 +536,7 @@ body.touch-args table td:has(input[type="checkbox"]) {
 /* Hide legacy render button row on touch args page */
 body.touch-args form > p:last-of-type { display: none; }
 
-/* ── Responsive: narrow tablets / phones ────────────────────────── */
+/* Responsive: narrow tablets / phones */
 @media (max-width: 860px) {
   .th-logo-text      { display: none; }
   .th-grid           { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }

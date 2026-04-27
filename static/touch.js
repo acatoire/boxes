@@ -5,7 +5,7 @@
 const UI_MODE_KEY   = 'boxes-ui-mode';
 const TH_GROUP_KEY  = 'th-active-group';
 
-/* ── Mode preference (localStorage) ─────────────────────────────── */
+/* Mode preference (localStorage) */
 
 function getUIModePreference() {
     try { return localStorage.getItem(UI_MODE_KEY); } catch(_) { return null; }
@@ -26,7 +26,7 @@ function thSwitchToTouch() {
     window.location.href = 'TouchHub';
 }
 
-/* ── Category tab switching ──────────────────────────────────────── */
+/* Category tab switching */
 
 function thSwitchTab(groupId) {
     groupId = String(groupId);
@@ -54,7 +54,7 @@ function thSwitchTab(groupId) {
     if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 }
 
-/* ── Search / filter ─────────────────────────────────────────────── */
+/* Search / filter */
 
 function thFilterSearch() {
     const q = (document.getElementById('th-search').value || '').trim().toLowerCase();
@@ -87,7 +87,7 @@ function thApplySearch(q) {
     }
 }
 
-/* ── Category visibility (shared with self.js HIDDEN_CATS_KEY) ──── */
+/* Category visibility (shared with self.js HIDDEN_CATS_KEY) */
 
 /**
  * Hide tabs and panels for categories the user has disabled.
@@ -116,7 +116,7 @@ function applyHiddenCategoriesTouch() {
     }
 }
 
-/* ── Hub init ────────────────────────────────────────────────────── */
+/* Hub init */
 
 function initTouchHub() {
     // Record that we're in touch mode.
@@ -132,7 +132,7 @@ function initTouchHub() {
     applyHiddenCategoriesTouch();
 }
 
-/* ── Touch args page init ────────────────────────────────────────── */
+/* Touch args page init */
 
 /**
  * Called from the touch args page onload.
@@ -151,7 +151,7 @@ function initTouchArgs(numHide) {
     }
 }
 
-/* ── field-sizing fallback (Firefox / Safari) ────────────────────── */
+/* field-sizing fallback (Firefox / Safari) */
 
 const _sizeCanvas = document.createElement('canvas');
 
@@ -215,7 +215,7 @@ function _bindTouchActionBar() {
     });
 }
 
-/* ── Classic mode: inject "Touch mode" button into linkbar ──────── */
+/* Classic mode: inject "Touch mode" button into linkbar */
 
 /**
  * Called on any legacy page if the server was started with --ui-mode auto.

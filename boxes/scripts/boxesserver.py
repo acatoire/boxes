@@ -214,7 +214,7 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
         self.deploy_fingerprint = deploy_fingerprint
         self.ui_mode = ui_mode  # "legacy" | "touch" | "auto"
 
-    # ── Language helpers ─────────────────────────────────────────────
+    #  Language helpers
 
     def getLanguages(self, domain: str | None = None, localedir: str | None = None) -> list[str]:
         if self._languages is not None:
@@ -259,7 +259,7 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
         except OSError:
             return gettext.translation("boxes.py", languages=lang_list, fallback=True)
 
-    # ── Static file serving ──────────────────────────────────────────
+    #  Static file serving
 
     def serveStatic(self, environ: dict, start_response: Any) -> Any:
         filename = environ["PATH_INFO"][len("/static/"):]
@@ -336,7 +336,7 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
         ])
         return environ["wsgi.file_wrapper"](open(path, "rb"), 512 * 1024)
 
-    # ── Main WSGI dispatcher ─────────────────────────────────────────
+    #  Main WSGI dispatcher
 
     def serve(self, environ: dict, start_response: Any) -> Any:
         if environ["PATH_INFO"] == "favicon.ico":
@@ -370,7 +370,7 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
 
         lang = self.getLanguage(args, environ.get("HTTP_ACCEPT_LANGUAGE", ""))
 
-        # ── Route: hub / gallery ─────────────────────────────────────
+        #  Route: hub / gallery
         if not name:
             return self.serveTouchHub(environ, start_response, lang)
 
@@ -386,7 +386,7 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
         if name == "categories":
             return self.serveCategorySettings(environ, start_response, lang)
 
-        # ── Route: unknown name → legacy menu ────────────────────────
+        #  Route: unknown name → legacy menu
         box_cls = self.boxes.get(name, None)
         if not box_cls:
             start_response(status, headers)
@@ -395,7 +395,7 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
                 self._cache[lang_name] = list(self.genPageMenu(lang))
             return self._cache[lang_name]
 
-        # ── Route: generator page ────────────────────────────────────
+        #  Route: generator page
         box = box_cls()
         box.translations = lang
 
@@ -418,7 +418,7 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
                 back_url = f"TouchHub{langparam}"
             return self.genTouchArgs(name, box, lang, "./" + name, defaults=defaults, back_url=back_url)
 
-        # ── Render / download / QR ───────────────────────────────────
+        #  Render / download / QR
         args = [
             "--" + arg
             for arg in args

@@ -190,7 +190,7 @@ video {
     margin-right: 10px;
 }
 
-/* ── Dropdown menu ─────────────────────────────────────────────────── */
+/* Dropdown menu */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -420,7 +420,7 @@ textarea {
     overflow: hidden;
 }
 
-/* ── Categories page ─────────────────────────────────────── */
+/* Categories page */
 .cat-settings-table {
     border-collapse: collapse;
     width: 100%;
@@ -510,7 +510,7 @@ textarea {
     padding: 4px 20px;
 }
 
-/* ── Tag badges ─────────────────────────────────────────────────────── */
+/* Tag badges */
 .tag-badge {
     display: inline-block;
     font-size: 0.78em;
@@ -540,7 +540,7 @@ textarea {
     color: #fff;
 }
 
-/* ── Configuration tab: form + preview side-by-side ─────────────────── */
+/* Configuration tab: form + preview side-by-side */
 .config-layout {
     display: flex;
     gap: 16px;
@@ -563,7 +563,7 @@ textarea {
     padding: 8px;
 }
 
-/* ── Image full-screen modal ─────────────────────────────────────────── */
+/* Image full-screen modal */
 .img-modal-overlay {
     display: none;
     position: fixed;
@@ -583,7 +583,7 @@ textarea {
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
-/* ── Responsive breakpoints ──────────────────────────────────────────── */
+/* Responsive breakpoints */
 @media (max-width: 720px) {
     .config-layout {
         flex-direction: column;
@@ -605,7 +605,7 @@ textarea {
     }
 }
 
-/* ── Args page tabs ──────────────────────────────────────────────────── */
+/* Args page tabs */
 .tabnav {
     overflow: hidden;
     margin-bottom: 10px;
@@ -633,7 +633,7 @@ textarea {
     clear: both;
 }
 
-/* ── D-pad widgets (DPadArg radio variant + DPadMoverArg button variant) ── */
+/* D-pad widgets (DPadArg radio variant + DPadMoverArg button variant) */
 
 /* Shared 3×3 grid container */
 .dpad-grid {

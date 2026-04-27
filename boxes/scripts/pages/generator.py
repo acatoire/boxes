@@ -36,20 +36,20 @@ class GeneratorUIMixin:
         self,
         a: argparse.Action,
         prefix: str | None,
-        defaults: dict = {},
+        defaults: dict | None = None,
         _=lambda s: s,
     ) -> str:
         raise NotImplementedError
     def tag_badges_html(self, box: type) -> str:
         raise NotImplementedError
-    # ── Generator config page ─────────────────────────────────────────
+    # Generator config page
     def genTouchArgs(
         self,
         name: str,
         box: object,
         lang: object,
         action: str = "",
-        defaults: dict = {},
+        defaults: dict | None = None,
         back_url: str = "",
     ) -> list[bytes]:
         """Touch-mode generator configuration page."""

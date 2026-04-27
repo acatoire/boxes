@@ -27,10 +27,10 @@ class LegacyUIMixin:
     """HTML generation for the classic (legacy) web interface.
 
     Designed as a mixin for BServer.  All methods use ``self`` attributes
-    set by BServer.__init__ (static_url, groups, _cache, â€¦).
+    set by BServer.__init__ (static_url, groups, _cache).
     """
 
-    # â”€â”€ Stubs for attributes provided by BServer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Stubs for attributes provided by BServer
     static_url: str
     groups: list
     groups_by_name: dict
@@ -40,12 +40,12 @@ class LegacyUIMixin:
     deploy_fingerprint: str
     ui_mode: str
 
-    # â”€â”€ Shared helpers expected from BServer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Shared helpers expected from BServer
     def getLanguages(self) -> list:
         raise NotImplementedError
 
     # genHTMLTouchCSS / genHTMLTouchJS / _touch_header_html are provided
-    # by TouchUIMixin at runtime â€“ do NOT redefine them here.
+    # by TouchUIMixin at runtime – do NOT redefine them here.
 
     def genHTMLStart(self, lang: object) -> str:
         lang_attr = lang.info().get("language", "")  # type: ignore[attr-defined]
@@ -176,9 +176,9 @@ class LegacyUIMixin:
             f"  </li>\n"
         )
 
-    # â”€â”€ Form argument rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Form argument rendering
 
-    def arg2html(self, a: argparse.Action, prefix: str | None, defaults: dict = {}, _=lambda s: s) -> str:
+    def arg2html(self, a: argparse.Action, prefix: str | None, defaults: dict | None = None, _=lambda s: s) -> str:
         name = a.option_strings[0].replace("-", "")
         if isinstance(a, argparse._HelpAction):
             return ""
@@ -186,7 +186,8 @@ class LegacyUIMixin:
         if prefix and name.startswith(prefix + "_"):
             viewname = name[len(prefix) + 1:]
 
-        default = defaults.get(name, None)
+        _defaults = defaults or {}
+        default = _defaults.get(name, None)
         help_html = "" if not a.help else markdown.markdown(_(a.help))
         help_btn = (
             f'<button type="button" class="stepper-btn help-btn"'
@@ -385,11 +386,11 @@ class LegacyUIMixin:
         """)
         return (s.encode("utf-8") for s in result)
 
-    # â”€â”€ Page generators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    # genPageMenu          â†’ ui_menu.py              (MenuUIMixin)
-    # serveGallery         â†’ ui_gallery.py           (GalleryUIMixin)
-    # serveSettings        â†’ pages/settings.py       (SettingsUIMixin)
-    # serveCategorySettingsâ†’ pages/categories.py     (CategoriesUIMixin)
+    # Page generators
+    # genPageMenu          → ui_menu.py              (MenuUIMixin)
+    # serveGallery         → ui_gallery.py           (GalleryUIMixin)
+    # serveSettings        → pages/settings.py       (SettingsUIMixin)
+    # serveCategorySettings→ pages/categories.py     (CategoriesUIMixin)
 
     def genPageError(self, name: str, e: Exception, lang: object) -> list[bytes]:
         """Generates an error page."""
@@ -418,4 +419,4 @@ class LegacyUIMixin:
         box.text(str(e), y=-20, fontsize=7)
         return box.close()
 
-    # serveGallery â†’ ui_gallery.py (GalleryUIMixin)
+    # serveGallery → ui_gallery.py (GalleryUIMixin)

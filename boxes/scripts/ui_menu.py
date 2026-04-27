@@ -14,12 +14,12 @@ class MenuUIMixin:
     set by BServer.__init__ (static_url, groups, _cache, …).
     """
 
-    # ── Stubs for attributes provided by BServer ─────────────────────
+    # Stubs for attributes provided by BServer
     static_url: str
     groups: list
     _cache: dict
 
-    # ── Shared helpers expected from LegacyUIMixin / BServer ─────────
+    # Shared helpers expected from LegacyUIMixin / BServer
     def genHTMLStart(self, lang: object) -> str:
         raise NotImplementedError
 
@@ -41,7 +41,7 @@ class MenuUIMixin:
     def tag_badges_html(self, box: type) -> str:
         raise NotImplementedError
 
-    # ── Menu page ────────────────────────────────────────────────────
+    # Menu page
 
     def genPageMenu(self, lang: object):
         """Generate the collapsible category/generator list page."""
