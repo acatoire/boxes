@@ -170,6 +170,7 @@ video {
 .linkbar ul {
     margin-top: 0px;
     padding-left: 10px;
+    display: flow-root;  /* contain float:right children without clipping absolute dropdown */
 }
 
 .linkbar ul li {
@@ -181,6 +182,7 @@ video {
 .linkbar ul li.right {
     float: right;
     margin-right : 10px;
+    list-style-type: none;
 }
 
 .linkbar ul li a {
@@ -188,7 +190,7 @@ video {
     margin-right: 10px;
 }
 
-/* ── Dropdown menu ─────────────────────────────────────────────────── */
+/* Dropdown menu */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -221,7 +223,8 @@ video {
     border-radius: 4px;
     border: 1px solid #ddd;
     top: 100%;
-    left: 0;
+    right: 0;
+    left: auto;
 }
 
 .dropdown-content.show {
@@ -239,6 +242,53 @@ video {
 .dropdown-content a:hover {
     background-color: #f1ede1;
     color: #333;
+}
+
+/* Language row inside dropdown */
+.dropdown-lang {
+    padding: 8px 16px;
+    font-size: 0.9em;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #e8e0d0;
+    margin-top: 4px;
+}
+
+/* Interface switcher row inside dropdown */
+.dropdown-interface {
+    padding: 8px 16px;
+    font-size: 0.9em;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #e8e0d0;
+    margin-top: 4px;
+}
+
+.dropdown-interface select {
+    padding: 2px 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background: #F8F4EE;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+
+.dropdown-lang form {
+    display: inline;
+    margin: 0;
+}
+
+.dropdown-lang select {
+    padding: 2px 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background: #F8F4EE;
+    font-size: 0.95em;
+    cursor: pointer;
 }
 
 img[id|=sample] {
@@ -370,6 +420,39 @@ textarea {
     overflow: hidden;
 }
 
+/* Categories page */
+.cat-settings-table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 8px;
+}
+
+.cat-settings-table td {
+    padding: 6px 10px;
+    vertical-align: middle;
+}
+
+.cat-settings-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #5F584A;
+}
+
+.cat-settings-table label {
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.cat-settings-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+
 .modebutton {
     float: left;
     border: none;
@@ -427,7 +510,7 @@ textarea {
     padding: 4px 20px;
 }
 
-/* ── Tag badges ─────────────────────────────────────────────────────── */
+/* Tag badges */
 .tag-badge {
     display: inline-block;
     font-size: 0.78em;
@@ -457,7 +540,7 @@ textarea {
     color: #fff;
 }
 
-/* ── Configuration tab: form + preview side-by-side ─────────────────── */
+/* Configuration tab: form + preview side-by-side */
 .config-layout {
     display: flex;
     gap: 16px;
@@ -480,7 +563,7 @@ textarea {
     padding: 8px;
 }
 
-/* ── Image full-screen modal ─────────────────────────────────────────── */
+/* Image full-screen modal */
 .img-modal-overlay {
     display: none;
     position: fixed;
@@ -500,7 +583,7 @@ textarea {
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
-/* ── Responsive breakpoints ──────────────────────────────────────────── */
+/* Responsive breakpoints */
 @media (max-width: 720px) {
     .config-layout {
         flex-direction: column;
@@ -522,7 +605,7 @@ textarea {
     }
 }
 
-/* ── Args page tabs ──────────────────────────────────────────────────── */
+/* Args page tabs */
 .tabnav {
     overflow: hidden;
     margin-bottom: 10px;
@@ -550,7 +633,7 @@ textarea {
     clear: both;
 }
 
-/* ── D-pad widgets (DPadArg radio variant + DPadMoverArg button variant) ── */
+/* D-pad widgets (DPadArg radio variant + DPadMoverArg button variant) */
 
 /* Shared 3×3 grid container */
 .dpad-grid {

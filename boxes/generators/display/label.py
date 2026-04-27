@@ -100,13 +100,13 @@ Assembly: none required – this is a single flat piece.
 
         ctx = cast(Context, self.ctx)
 
-        # ── Outer perimeter cut (OUTER_CUT = black) ──────────────────────
+        #  Outer perimeter cut (OUTER_CUT = black)
         self.set_source_color(Color.OUTER_CUT)
         with self.saved_context():
             self._rounded_rect(w, h, r)
             ctx.stroke()
 
-        # ── Inner border line (INNER_CUT = blue, optional) ───────────────
+        #  Inner border line (INNER_CUT = blue, optional)
         if self.Label_inner_border and margin > 0:
             iw = w - 2 * margin
             ih = h - 2 * margin
@@ -118,7 +118,7 @@ Assembly: none required – this is a single flat piece.
                     self._rounded_rect(iw, ih, ir)
                     ctx.stroke()
 
-        # ── Engraved text (ETCHING = green) ──────────────────────────────
+        #  Engraved text (ETCHING = green)
         if self.Text_text and self.Font_size > 0:
             tx = w / 2.0 + self.Text_x
             ty = h / 2.0 + self.Text_y
@@ -132,5 +132,5 @@ Assembly: none required – this is a single flat piece.
                 outline_lw=self.Text_outline,
             )
 
-        # ── Finalise move ─────────────────────────────────────────────────
+        #  Finalise move ─
         self.move(w, h, "right")

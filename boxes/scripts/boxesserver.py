@@ -33,7 +33,6 @@ from typing import Any, NoReturn
 from urllib.parse import quote, unquote_plus
 from wsgiref.simple_server import make_server
 
-import markdown
 import qrcode
 
 try:
@@ -42,6 +41,14 @@ except ImportError:
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))
     import boxes.generators
 import boxes
+
+from boxes.scripts.ui_legacy import LegacyUIMixin
+from boxes.scripts.ui_menu import MenuUIMixin
+from boxes.scripts.ui_gallery import GalleryUIMixin
+from boxes.scripts.ui_touch import TouchUIMixin
+from boxes.scripts.pages.colors import ColorsUIMixin
+from boxes.scripts.pages.categories import CategoriesUIMixin
+from boxes.scripts.pages.generator import GeneratorUIMixin
 
 
 class FileChecker(threading.Thread):
@@ -77,40 +84,37 @@ class FileChecker(threading.Thread):
     def run(self) -> None:
         while not self._stopped:
             if not self.filesOK():
-                os.execl(sys.executable, 'python', __file__, *sys.argv[1:])
+                os.execl(sys.executable, "python", __file__, *sys.argv[1:])
             time.sleep(1)
 
     def stop(self) -> None:
         self._stopped = True
 
 
-def filter_url(url, non_default_args):
+def filter_url(url: str, non_default_args: Any) -> str:
     if len(url) == 0:
-        return ''
+        return ""
     try:
-        base, args = url.split('?')
+        base, args_str = url.split("?")
     except ValueError:
-        return ''
-    args = args.split('&')
+        return ""
     new_args = []
-    args_to_ignore = ["qr_code", "format"]
-    for arg in args:
-        a, b = arg.split('=')
+    args_to_ignore = {"qr_code", "format"}
+    for arg in args_str.split("&"):
+        a, *_ = arg.split("=")
         if a.strip() in args_to_ignore:
             continue
         if a in non_default_args:
             new_args.append(arg)
-    if len(new_args):
-        return f"{base}?{'&'.join(new_args)}"
-    else:
-        return f"{base}"
+    return f"{base}?{'&'.join(new_args)}" if new_args else base
 
 
-class ArgumentParserError(Exception): pass
+class ArgumentParserError(Exception):
+    pass
 
 
 class ThrowingArgumentParser(argparse.ArgumentParser):
-    def error(self, message) -> NoReturn:
+    def error(self, message: str) -> NoReturn:
         raise ArgumentParserError(message)
 
 
@@ -118,14 +122,28 @@ class ThrowingArgumentParser(argparse.ArgumentParser):
 boxes.ArgumentParser = ThrowingArgumentParser  # type: ignore
 
 
-class BServer:
+class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUIMixin, CategoriesUIMixin, GeneratorUIMixin):
+    """WSGI application that serves the Boxes.py web UI.
+
+    HTML rendering is split across mixins:
+
+    * :mod:`boxes.scripts.ui_legacy`          – classic desktop/browser interface
+    * :mod:`boxes.scripts.ui_touch`           – tablet-optimised tabbed interface
+    * :mod:`boxes.scripts.pages.settings`     – /settings color page
+    * :mod:`boxes.scripts.pages.categories`   – /categories page
+
+    The active interface is controlled by the ``--ui-mode`` CLI flag
+    (``legacy`` | ``touch`` | ``auto``, default ``legacy``) or the
+    ``BOXES_UI_MODE`` environment variable.
+    """
+
     lang_re = re.compile(r"([a-z]{2,3}(-[-a-zA-Z0-9]*)?)\s*(;\s*q=(\d\.?\d*))?")
 
-    # Special tags: tag → (emoji, tooltip, CSS class suffix)
+    # Special tags: tag → (emoji, tooltip)
     SPECIAL_TAGS: dict[str, tuple[str, str]] = {
         "unstable": ("⚠", "Unstable – may not work correctly"),
-        "wip":      ("🚧", "Work in progress"),
-        "new":      ("✨", "New generator"),
+        "wip": ("🚧", "Work in progress"),
+        "new": ("✨", "New generator"),
     }
 
     @staticmethod
@@ -140,68 +158,80 @@ class BServer:
                 icon, tip = BServer.SPECIAL_TAGS[tag]
                 parts.append(
                     f'<span class="tag-badge tag-{html.escape(tag)}" title="{html.escape(tip)}">'
-                    f'{icon}</span>'
+                    f"{icon}</span>"
                 )
             else:
-                parts.append(
-                    f'<span class="tag-badge">{html.escape(tag)}</span>'
-                )
+                parts.append(f'<span class="tag-badge">{html.escape(tag)}</span>')
         return " " + "".join(parts)
 
     def __init__(
         self,
-        url_prefix="",
-        static_url="static",
-        static_path="../static/",
-        legal_url="",
+        url_prefix: str = "",
+        static_url: str = "static",
+        static_path: str = "../static/",
+        legal_url: str = "",
         deploy_fingerprint: str = "",
+        ui_mode: str = "legacy",
     ) -> None:
-        self.boxes = {b.__name__: b for b in boxes.generators.getAllBoxGenerators().values() if b.webinterface}
+        self.boxes = {
+            b.__name__: b
+            for b in boxes.generators.getAllBoxGenerators().values()
+            if b.webinterface
+        }
         self.groups = boxes.generators.ui_groups
         self.groups_by_name = boxes.generators.ui_groups_by_name
 
         for name, box in self.boxes.items():
             box.UI = "web"
-            self.groups_by_name.get(box.ui_group,
-                                    self.groups_by_name["Misc"]).add(box)
+            self.groups_by_name.get(box.ui_group, self.groups_by_name["Misc"]).add(box)
 
-        # Build map: "ClassName.jpg" / "ClassName-thumb.jpg" -> Path next to generator
+        # Build map: "ClassName.jpg" / "ClassName-thumb.jpg" → Path next to generator
         self._samples_map: dict[str, Path] = {}
         for cls_name, cls in self.boxes.items():
             try:
                 gen_file = Path(inspect.getfile(cls))
             except TypeError:
                 continue
-            self._samples_map[f"{cls_name}.jpg"] = gen_file.with_suffix('.jpg')
-            self._samples_map[f"{cls_name}-thumb.jpg"] = gen_file.parent / f"{gen_file.stem}-thumb.jpg"
+            self._samples_map[f"{cls_name}.jpg"] = gen_file.with_suffix(".jpg")
+            self._samples_map[f"{cls_name}-thumb.jpg"] = (
+                gen_file.parent / f"{gen_file.stem}-thumb.jpg"
+            )
 
         if os.path.isabs(static_path):
             self.staticdir = static_path
         else:
-            self.staticdir = os.path.join(os.path.dirname(__file__), '../static/')
+            self.staticdir = os.path.join(os.path.dirname(__file__), "../static/")
             if not os.path.isdir(self.staticdir):
-                self.staticdir = os.path.join(os.path.dirname(__file__), '..', '../static/')
-        self._languages = None
+                self.staticdir = os.path.join(
+                    os.path.dirname(__file__), "..", "../static/"
+                )
+
+        self._languages: list[str] | None = None
         self._cache: dict[Any, Any] = {}
         self.url_prefix = url_prefix
         self.static_url = static_url
         self.legal_url = legal_url
         self.deploy_fingerprint = deploy_fingerprint
+        self.ui_mode = ui_mode  # "legacy" | "touch" | "auto"
 
-    def getLanguages(self, domain=None, localedir=None):
+    #  Language helpers
+
+    def getLanguages(self, domain: str | None = None, localedir: str | None = None) -> list[str]:
         if self._languages is not None:
             return self._languages
         self._languages = []
         domain = "boxes.py"
-        for localedir in ["locale", gettext._default_localedir]:
-            files = glob.glob(os.path.join(localedir, '*', 'LC_MESSAGES', '%s.mo' % domain))
-            self._languages.extend([file.split(os.path.sep)[-3] for file in files])
+        for localedir in ["locale", gettext._default_localedir]:  # type: ignore[attr-defined]
+            files = glob.glob(
+                os.path.join(localedir, "*", "LC_MESSAGES", f"{domain}.mo")
+            )
+            self._languages.extend([f.split(os.path.sep)[-3] for f in files])
         self._languages.sort()
         return self._languages
 
-    def getLanguage(self, args, accept_language):
+    def getLanguage(self, args: list[str], accept_language: str) -> Any:
         lang = None
-        langs = []
+        langs: list[tuple[float, str]] = []
 
         for i, arg in enumerate(args):
             if arg.startswith("language="):
@@ -209,512 +239,29 @@ class BServer:
                 del args[i]
                 break
         if lang:
-            try:
-                return gettext.translation('boxes.py', localedir='locale', languages=[lang])
-            except OSError:
-                pass
-            try:
-                return gettext.translation('boxes.py', languages=[lang])
-            except OSError:
-                pass
+            for localedir in ["locale", None]:
+                try:
+                    kw: dict[str, Any] = {"languages": [lang]}
+                    if localedir:
+                        kw["localedir"] = localedir
+                    return gettext.translation("boxes.py", **kw)
+                except OSError:
+                    pass
 
-        # selected language not found try browser default
-        languages = accept_language.split(",")
-        for l in languages:
+        for l in accept_language.split(","):
             m = self.lang_re.match(l.strip())
             if m:
                 langs.append((float(m.group(4) or 1.0), m.group(1)))
-
         langs.sort(reverse=True)
-        langs = [l[1].replace("-", "_") for l in langs]
-
+        lang_list = [l[1].replace("-", "_") for l in langs]
         try:
-            return gettext.translation('boxes.py', localedir='locale', languages=langs)
+            return gettext.translation("boxes.py", localedir="locale", languages=lang_list)
         except OSError:
-            return gettext.translation('boxes.py', languages=langs, fallback=True)
+            return gettext.translation("boxes.py", languages=lang_list, fallback=True)
 
-    def arg2html(self, a, prefix, defaults={}, _=lambda s: s):
-        name = a.option_strings[0].replace("-", "")
-        if isinstance(a, argparse._HelpAction):
-            return ""
-        viewname = name
-        if prefix and name.startswith(prefix + '_'):
-            viewname = name[len(prefix) + 1:]
+    #  Static file serving
 
-        default = defaults.get(name, None)
-        help_html = "" if not a.help else markdown.markdown(_(a.help))
-        help_btn = (
-            f'<button type="button" class="stepper-btn help-btn"'
-            f' onclick="openHelpModal(\'{name}_description\')">?</button>'
-        ) if a.help else ""
-        row_head = (
-            f'<tr>'
-            f'<td id="{name}_id"><label for="{name}">{_(viewname)}</label></td>'
-            f'<td>'
-        )
-        row_tail = (
-            f'{help_btn}</td>'
-            f'<td id="{name}_description" style="display:none">{help_html}</td>'
-            f'</tr>\n'
-        )
-        if (isinstance(a, argparse._StoreAction) and
-                hasattr(a.type, "html")):
-            input = a.type.html(name, default or a.default, _)
-        elif a.type == str and "\n" in a.default:
-            val = (default or a.default).split("\n")
-            input = """<textarea name="%s" id="%s" aria-labeledby="%s %s" cols="%s" rows="%s">%s</textarea>""" % \
-                    (name, name, name + "_id", name + "_description", max(len(l) for l in val) + 10, len(val) + 1, default or a.default)
-        elif a.choices:
-            options = "\n".join(
-                """    <option value="%s"%s>%s</option>""" %
-                (e, ' selected="selected"' if (e == (default or a.default)) or (str(e) == str(default or a.default)) else "",
-                 _(e)) for e in a.choices)
-            input = """<select name="{}" id="{}" aria-labeledby="{} {}" size="1">\n{}</select>\n""".format(name, name, name + "_id", name + "_description", options)
-        else:
-            input = """<input name="%s" id="%s" aria-labeledby="%s %s" type="text" value="%s">""" % \
-                    (name, name, name + "_id", name + "_description", default or a.default)
-
-        return row_head + input + row_tail
-
-    def args2html_cached(self, name, box, lang, action="", defaults={}):
-        if defaults == {}:
-            key = (name, lang.info().get('language', None), action)
-            if key not in self._cache:
-                self._cache[key] = list(self.args2html(name, box, lang, action, defaults))
-            return self._cache[key]
-
-        return self.args2html(name, box, lang, action, defaults)
-
-    def args2html(self, name, box, lang, action="", defaults={}):
-        _ = lang.gettext
-        lang_name = lang.info().get('language', None)
-
-        langparam = ""
-        if lang_name:
-            langparam = "?language=" + lang_name
-
-        no_img_msg = _('There is no image yet. Please donate an image of your project on <a href=&quot;https://github.com/florianfesti/boxes/issues/628&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;>GitHub</a>!')
-        desc_html = (
-            markdown.markdown(_(box.description), extensions=["extra"])
-            .replace('src="static/', f'src="{self.static_url}/')
-        ) if box.description else ""
-
-        result = [f"""{self.genHTMLStart(lang)}
-<head>
-    <title>{_("%s - Boxes") % _(name)}</title>
-    {self.genHTMLMeta()}
-{self.genHTMLMetaLanguageLink()}
-    {self.genHTMLCSS()}
-    {self.genHTMLJS()}
-</head>
-<body onload="initArgsPage({len(box.argparser._action_groups) - 3})">
-
-<div class="argumentcontainer">
-<div style="float: left;">
-<a href="./{langparam}"><h1>{_("Boxes.py")}</h1></a>
-</div>
-<div style="width: 120px; float: right;">
-<img alt="self-Logo" src="{self.static_url}/boxes-logo.svg" width="120">
-</div>
-<div>
-<div class="clear"></div>
-<hr>
-<div class="linkbar">
-<ul>
-{self.genLinks(lang, True)}
-</ul>
-</div>
-<hr>
-
-<h2 style="margin: 0px 0px 0px 20px;">{_(name)}</h2>
-<p>{_(box.__doc__) if box.__doc__ else ""}</p>
-<div class="tabnav">
-  <button class="tabbtn active" onclick="switchTab(event,'description')">{_("Description")}</button>
-  <button class="tabbtn" onclick="switchTab(event,'configuration')">{_("Configuration")}</button>
-</div>
-
-<div id="tab-description" class="tab-panel">
-<div class="description">
-{desc_html}<div>
-<img style="width:100%;" src="{self.static_url}/samples/{box.__class__.__name__}.jpg" onerror="this.parentElement.innerHTML = '{no_img_msg}';" alt="Picture of box.">
-</div>
-</div>
-</div>
-
-<div id="tab-configuration" class="tab-panel" style="display:none">
-<div class="config-layout">
-<div class="config-form">
-<form id="arguments" action="{action}" method="GET" rel="nofollow">
-        """]
-        groupid = 0
-        for group in box.argparser._action_groups[3:] + box.argparser._action_groups[:3]:
-            if not group._group_actions:
-                continue
-            if len(group._group_actions) == 1 and isinstance(group._group_actions[0], argparse._HelpAction):
-                continue
-            prefix = getattr(group, "prefix", None)
-            result.append(f'''<h3 id="h-{groupid}" data-id="{groupid}" role="button" aria-expanded="true" tabindex="0" class="toggle open">{_(group.title)}</h3>\n<table role="presentation" id="{groupid}">\n''')
-
-            for a in group._group_actions:
-                if a.dest in ("input", "output"):
-                    continue
-                result.append(self.arg2html(a, prefix, defaults, _))
-            result.append("</table>")
-            groupid += 1
-
-        result.append(f"""
-<input type="hidden" name="language" id="language" value="{lang_name}">
-
-<p>
-    <button name="render" value="1" formtarget="_blank">{_("Generate")}</button>
-    <button name="render" value="2" formtarget="_self">{_("Download")}</button>
-    <button name="render" value="0" formtarget="_self">{_("Save to URL")}</button>
-    <button name="render" value="3" formtarget="_blank">{_("QR Code")}</button>
-</p>
-</form>
-</div>
-
-<div id="preview" class="config-preview">
-  <div id="preview_buttons">
-    {_("Zoom: ")}
-    <button type="button" onclick="preview_scale/=1.2; document.getElementById('preview_img').style.width = preview_scale + '%';">-</button>
-    <button type="button" onclick="preview_scale*= 1.2; document.getElementById('preview_img').style.width = preview_scale + '%';" >+</button>
-    <button type="button" onclick="preview_scale=100; document.getElementById('preview_img').style.width = preview_scale + '%';" >{_("Reset")}</button>
-  </div>
-<div style="overflow: auto;">
-<figure id="preview_figure">
-<img id="preview_img" style="width:100%" src="{self.static_url}/nothing.png">
-</figure>
-</div>
-</div>
-
-</div>
-</div>
-</div>
-<div class="clear"></div>
-<hr>
-</div>
-
-<!-- Help modal -->
-<div id="help-modal" class="help-modal-overlay" onclick="closeHelpModal()">
-  <div class="help-modal-box" onclick="event.stopPropagation()">
-    <div id="help-modal-content" class="help-modal-content"></div>
-    <button type="button" class="stepper-btn help-modal-close" onclick="closeHelpModal()">Close</button>
-  </div>
-</div>
-
-<!-- Image modal -->
-<div id="img-modal" class="img-modal-overlay" onclick="closeImgModal()">
-  <img id="img-modal-img" src="" alt="">
-</div>
-
-</body>
-</html>
-        """)
-        return (s.encode("utf-8") for s in result)
-
-    def genPageMenu(self, lang):
-        _ = lang.gettext
-        lang_name = lang.info().get('language', None)
-
-        langparam = ""
-        if lang_name:
-            langparam = "?language=" + lang_name
-
-        result = [f"""{self.genHTMLStart(lang)}
-<head>
-    <title>{_("Boxes.py")}</title>
-    {self.genHTMLMeta()}
-{self.genHTMLMetaLanguageLink()}
-    {self.genHTMLCSS()}
-    {self.genHTMLJS()}
-</head>
-<body onload="initPage()">
-<div class="container">
-<div style="width: 75%; float: left;">
-{self.genPagePartHeader(lang)}
-<div class="modenav">
-<span class="modebutton"><a href="Gallery">{_("Gallery")}</a></span>
-<span class="modebutton modeactive">{_("Menu")}</span>
-</div>
-<br>
-<div class="menu" style="width: 100%">
-<img style="width: 200px;" id="sample-preview" src="{self.static_url}/nothing.png" alt="">
-"""]
-        for nr, group in enumerate(self.groups):
-            result.append(f'''
-<h3 id="h-{nr}"
-    data-id="{nr}"
-    data-thumbnail="{self.static_url}/samples/{group.thumbnail}"
-    role="button"
-    aria-expanded="false"
-    class="toggle thumbnail open"
-    tabindex="0"
->
-    {_(group.title)}
-</h3>
-  <div id="{nr}">\n   <ul>\n''')
-            for box in group.generators:
-                name = box.__name__
-                docs = ""
-                if box.__doc__:
-                    docs = " - " + _(box.__doc__)
-                badges = self.tag_badges_html(box)
-                result.append(f"""     <li class="thumbnail" data-thumbnail="{self.static_url}/samples/{name}-thumb.jpg" id="search_id_{name}"><a href="{name}{langparam}">{_(name)}</a>{badges}{docs}</li>\n""")
-            result.append("   </ul>\n  </div>\n")
-        result.append(f"""
-</div>
-
-<div style="width: 5%; float: left;"></div>
-<div class="clear"></div>
-<hr>
-</div>
-</div>
-</body>
-</html>
-""")
-        return (s.encode("utf-8") for s in result)
-
-    def genHTMLStart(self, lang) -> str:
-        lang_attr = lang.info().get("language", "")
-
-        if lang_attr != "":
-            return f"""<!DOCTYPE html><html lang="{lang_attr.replace('_', '-')}">"""
-
-        return "<!DOCTYPE html><html>"
-
-    def genHTMLMeta(self) -> str:
-        return f'''
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/svg+xml" href="{self.static_url}/boxes-logo.svg" sizes="any">
-    <link rel="icon" type="image/x-icon" href="{self.static_url}/favicon.ico">
-'''
-
-    def genHTMLMetaLanguageLink(self) -> str:
-        """Generates meta language list for search engines."""
-        languages = self.getLanguages()
-
-        s = ""
-        for language in languages:
-            s += f'    <link rel="alternate" hreflang="{language.replace("_", "-")}" href="https://boxes.hackerspace-bamberg.de/?language={language}">\n'
-        return s
-
-    def genHTMLCSS(self) -> str:
-        return f'<link rel="stylesheet" href="{self.static_url}/self.css">'
-
-    def genHTMLJS(self) -> str:
-        return f'<script src="static/self.js"></script>'
-
-    def genHTMLLanguageSelection(self, lang) -> str:
-        """Generates a dropdown selection for the language change."""
-        current_language = lang.info().get('language', '')
-        languages = self.getLanguages()
-
-        if len(languages) < 2:
-            return "<!-- No other languages to select found. -->"
-
-        html_option = ""
-        for language in languages:
-            html_option += f"\t\t\t\t<option value='{language}'{' selected' if language == current_language else ''}>{language}</option>\n"
-
-        return """
-        <form>
-            <select name="language" onchange='if(this.value != \"""" + current_language + """\") { this.form.submit(); }'>
-""" + html_option + """
-            </select>
-        </form>
-"""
-
-    def genHTMLColsSelection(self) -> str:
-        """Generates zoom-out / zoom-in buttons that control gallery image height."""
-        return (
-            '<button onclick="galleryZoomOut()" title="Smaller thumbnails" '
-            'style="font-size:1em;padding:1px 7px;cursor:pointer;border:1px solid #999;'
-            'border-radius:4px;background:#EFE8DA;">🔍−</button>'
-            '<button onclick="galleryZoomIn()" title="Larger thumbnails" '
-            'style="font-size:1em;padding:1px 7px;cursor:pointer;border:1px solid #999;'
-            'border-radius:4px;background:#EFE8DA;">🔍+</button>'
-        )
-
-    def genPagePartHeader(self, lang) -> str:
-        _ = lang.gettext
-        lang_name = lang.info().get('language', None)
-
-        langparam = ""
-        if lang_name:
-            langparam = "?language=" + lang_name
-
-        return f"""
-<h1><a href="./{langparam}">{_("Boxes.py")}</a></h1>
-<p>{_("Create boxes and more with a laser cutter!")}</p>
-<p>
-{_('''
-        <a href="https://hackaday.io/project/10649-boxespy">Boxes.py</a> is an <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">Open Source</a> box generator written in <a href="https://www.python.org/">Python</a>. It features both finished parametrized generators as well as a Python API for writing your own. It features finger and (flat) dovetail joints, flex cuts, holes and slots for screws, hinges, gears, pulleys and much more.''')}
-</p>
-</div>
-
-<div style="width: 25%; float: left;">
-<img alt="self-Logo" src="{self.static_url}/boxes-logo.svg" width="250">
-</div>
-
-<div>
-
-<div class="clear"></div>
-<hr/>
-<div class="linkbar">
-<ul>
-{self.genLinks(lang)}
-  <li class="right">\U0001f50d <input autocomplete="off" type="search" oninput="filterSearchItems();" name="search" id="search" placeholder="Search"></li>
-</ul>
-</div>
-<hr/>
-"""
-
-    def genLinks(self, lang, preview=False):
-         _ = lang.gettext
-         links = [("https://florianfesti.github.io/boxes/html/usermanual.html", _("Help")),
-                  ("https://hackaday.io/project/10649-boxespy", _("Home Page")),
-                  ("https://florianfesti.github.io/boxes/html/index.html", _("Documentation")),
-                  ("https://github.com/florianfesti/boxes", _("Sources"))]
-         if self.legal_url:
-             links.append((self.legal_url, _("Legal")))
-         links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
-
-         # Build dropdown menu items
-         dropdown_items = [f'    <a href="{url}" target="_blank" rel="noopener">{txt}</a>\n' for url, txt in links]
-         dropdown_items.append(f'    <a href="settings">\U0001f3a8 {_("Color Settings")}</a>\n')
-         dropdown_html = "".join(dropdown_items)
-
-         result = [f'''  <li class="dropdown">
-    <button class="dropdown-btn" onclick="toggleDropdown(event)">\u2630 {_("Menu")}</button>
-    <div class="dropdown-content" id="main-dropdown">
-{dropdown_html}    </div>
-  </li>
-''']
-
-         if self.deploy_fingerprint:
-             tag = html.escape(self.deploy_fingerprint)
-             result.append(f'  <li class="right" title="Deployment fingerprint">Instance: {tag}</li>\n')
-         result.append(f'  <li class="right">{self.genHTMLLanguageSelection(lang)}  </li>\n')
-         result.append(f'  <li class="right">{self.genHTMLColsSelection()}  </li>\n')
-         return "".join(result)
-
-    def genPageError(self, name, e, lang) -> list[bytes]:
-        """Generates a error page."""
-        _ = lang.gettext
-
-        h = f"""{self.genHTMLStart(lang)}
-<head>
-  <title>{_("Error generating %s") % _(name)}</title>
-  {self.genHTMLMeta()}
-  <meta name="robots" content="noindex">
-</head>
-<body>
-<h1>{_("An error occurred!")}</h1>
-"""
-        for s in str(e).split("\n"):
-            h += f"<p>{html.escape(s)}</p>\n"
-        h += "</body></html>"
-        return [h.encode("utf-8")]
-
-    def genPageErrorSVG(self, name, e, lang) -> list[bytes]:
-        """Generates a error page."""
-        _ = lang.gettext
-
-        box = boxes.Boxes()
-        box.parseArgs(["--reference=0.0"])
-        box.open()
-        box.text(_("An error occurred!"))
-        box.text(str(e), y=-20, fontsize=7)
-        return box.close()
-
-    # ------------------------------------------------------------------
-    # Color-settings page
-    # ------------------------------------------------------------------
-
-    def serveSettings(self, environ, start_response, lang) -> list[bytes]:
-        """Render the /settings page with one color-select row per laser role."""
-        _ = lang.gettext
-        from boxes.Color import Color  # local import to get the live class
-
-        # Build the list of named colors available in the Color class.
-        named_colors: list[tuple[str, str]] = [
-            (name, Color.to_hex(getattr(Color, name)))
-            for name in ("BLACK", "BLUE", "GREEN", "RED", "CYAN",
-                         "YELLOW", "MAGENTA", "WHITE")
-        ]
-
-        rows = []
-        for role, (label, desc) in Color.ROLE_LABELS.items():
-            default_hex = Color.to_hex(getattr(Color, role))
-            options = "\n".join(
-                f'      <option value="{hex_val}"{" selected" if hex_val == default_hex else ""}>'
-                f'{name} ({hex_val})</option>'
-                for name, hex_val in named_colors
-            )
-            rows.append(f"""
-  <tr>
-    <td><label for="color_{role}">{label}</label></td>
-    <td>
-      <select id="color_{role}" data-role="{role}" onchange="onColorChange(this)">
-{options}
-      </select>
-    </td>
-    <td class="color-desc">{desc}</td>
-  </tr>""")
-
-        rows_html = "\n".join(rows)
-        page = f"""{self.genHTMLStart(lang)}
-<head>
-  <title>{_("Color Settings")} – {_("Boxes.py")}</title>
-  {self.genHTMLMeta()}
-  {self.genHTMLCSS()}
-  {self.genHTMLJS()}
-  <style>
-    .color-settings-table {{ border-collapse: collapse; width: 100%; max-width: 760px; }}
-    .color-settings-table td {{ padding: 8px 12px; vertical-align: middle; }}
-    .color-settings-table select {{ padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; }}
-    .color-swatch {{ display: inline-block; width: 18px; height: 18px; border-radius: 3px; border: 1px solid #888; vertical-align: middle; margin-left: 6px; }}
-    .color-desc {{ color: #555; font-size: 0.9em; }}
-    .settings-actions {{ margin-top: 16px; display: flex; gap: 12px; align-items: center; }}
-    #import-file {{ display: none; }}
-  </style>
-</head>
-<body onload="initColorSettingsPage()">
-<div class="container">
-<div style="width:75%; float:left;">
-{self.genPagePartHeader(lang)}
-<h2>{_("Color Settings")}</h2>
-<p>{_("Choose the SVG stroke color for each laser operation. Changes are saved instantly in your browser.")}</p>
-<table class="color-settings-table">
-  <thead><tr>
-    <th>{_("Role")}</th>
-    <th>{_("Color")}</th>
-    <th>{_("Description")}</th>
-  </tr></thead>
-  <tbody>
-{rows_html}
-  </tbody>
-</table>
-<div class="settings-actions">
-  <button onclick="exportColorSettings()">{_("Export JSON")}</button>
-  <button onclick="document.getElementById('import-file').click()">{_("Import JSON")}</button>
-  <input type="file" id="import-file" accept=".json,application/json" onchange="importColorSettings(this)">
-  <button onclick="resetColorSettings()">{_("Reset to defaults")}</button>
-  <span id="color-settings-status" style="color:green; display:none">{_("Saved.")}</span>
-</div>
-</div>
-<div style="width:5%; float:left;"></div>
-<div class="clear"></div><hr>
-</div>
-</body>
-</html>
-"""
-        start_response("200 OK", [('Content-type', 'text/html; charset=utf-8')])
-        return [page.encode("utf-8")]
-
-    def serveStatic(self, environ, start_response):
+    def serveStatic(self, environ: dict, start_response: Any) -> Any:
         filename = environ["PATH_INFO"][len("/static/"):]
 
         if filename.startswith("samples/"):
@@ -723,167 +270,161 @@ class BServer:
             if gen_path is not None and gen_path.exists():
                 path = str(gen_path)
             else:
-                # Fall back to static dir (extra/variant images, group thumbnails)
                 path = os.path.join(self.staticdir, filename)
                 if not os.path.exists(path):
                     if basename.endswith("-thumb.jpg"):
                         path = os.path.join(self.staticdir, "needs-image.png")
                     else:
-                        start_response("404 Not Found", [('Content-type', 'text/plain')])
+                        start_response("404 Not Found", [("Content-type", "text/plain")])
                         return [b"Not found"]
         else:
-            if (not re.match(r"[a-zA-Z0-9_/-]+\.[a-zA-Z0-9]+", filename) or
-                    not os.path.exists(os.path.join(self.staticdir, filename))):
-                start_response("404 Not Found", [('Content-type', 'text/plain')])
+            if not re.match(r"[a-zA-Z0-9_/-]+\.[a-zA-Z0-9]+", filename) or not os.path.exists(
+                os.path.join(self.staticdir, filename)
+            ):
+                start_response("404 Not Found", [("Content-type", "text/plain")])
                 return [b"Not found"]
             path = os.path.join(self.staticdir, filename)
 
         type_, encoding = mimetypes.guess_type(filename)
         if encoding is None:
             encoding = "utf-8"
-
-        # Images do not have charset. Just bytes. Except text based svg.
-        # Todo: fallback if type_ is None?
         if type_ is not None and "image" in type_ and type_ != "image/svg+xml":
-            start_response("200 OK", [('Content-type', "%s" % type_)])
+            start_response("200 OK", [("Content-type", type_)])
         else:
-            start_response("200 OK", [('Content-type', f"{type_}; charset={encoding}")])
+            start_response("200 OK", [("Content-type", f"{type_}; charset={encoding}")])
+        return environ["wsgi.file_wrapper"](open(path, "rb"), 512 * 1024)
 
-        f = open(path, 'rb')
-        return environ['wsgi.file_wrapper'](f, 512 * 1024)
-
-    def getURL(self, environ) -> str:
-        url = environ['wsgi.url_scheme'] + '://'
-
-        if environ.get('HTTP_HOST'):
-            url += environ['HTTP_HOST']
+    def getURL(self, environ: dict) -> str:
+        url = environ["wsgi.url_scheme"] + "://"
+        if environ.get("HTTP_HOST"):
+            url += environ["HTTP_HOST"]
         else:
-            url += environ['SERVER_NAME']
-
-            if environ['wsgi.url_scheme'] == 'https':
-                if environ['SERVER_PORT'] != '443':
-                    url += ':' + environ['SERVER_PORT']
-                else:
-                    if environ['SERVER_PORT'] != '80':
-                        url += ':' + environ['SERVER_PORT']
+            url += environ["SERVER_NAME"]
+            scheme = environ["wsgi.url_scheme"]
+            port = environ["SERVER_PORT"]
+            if (scheme == "https" and port != "443") or (scheme == "http" and port != "80"):
+                url += ":" + port
         url += quote(self.url_prefix)
-        url += quote(environ.get('SCRIPT_NAME', ''))
-        url += quote(environ.get('PATH_INFO', ''))
-        if environ.get('QUERY_STRING'):
-            url += '?' + environ['QUERY_STRING']
-
+        url += quote(environ.get("SCRIPT_NAME", ""))
+        url += quote(environ.get("PATH_INFO", ""))
+        if environ.get("QUERY_STRING"):
+            url += "?" + environ["QUERY_STRING"]
         return url
 
-    def serveGallery(self, environ, start_response, lang):
-        _ = lang.gettext
-        lang_name = lang.info().get('language', None)
+    def serveFonts(self, environ: dict, start_response: Any) -> Any:
+        """Serve font files from the boxes Python package fonts directory.
 
-        start_response("200 OK", [('Content-type', "text/html; charset=utf-8")])
+        fonts.css uses relative paths ``../boxes/fonts/…`` which browsers
+        resolve as ``/boxes/fonts/…``.  This handler maps those requests to
+        the actual ``boxes/fonts/`` directory inside the package.
+        """
+        rel = environ["PATH_INFO"][len("/boxes/fonts/"):]
+        # Safety: no path traversal
+        if not re.match(r"[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$", rel):
+            start_response("404 Not Found", [("Content-type", "text/plain")])
+            return [b"Not found"]
+        fonts_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fonts")
+        path = os.path.join(fonts_dir, rel)
+        if not os.path.isfile(path):
+            start_response("404 Not Found", [("Content-type", "text/plain")])
+            return [b"Not found"]
+        type_, encoding = mimetypes.guess_type(rel)
+        ct = type_ or "application/octet-stream"
+        start_response("200 OK", [
+            ("Content-type", ct),
+            ("Cache-Control", "public, max-age=86400"),
+        ])
+        return environ["wsgi.file_wrapper"](open(path, "rb"), 512 * 1024)
 
-        if ("Gallery", lang_name) in self._cache:
-            return self._cache[("Gallery", lang_name)]
+    #  Main WSGI dispatcher
 
-        langparam = ""
-        if lang_name:
-            langparam = "?language=" + lang_name
-
-        result = [f"""
-{self.genHTMLStart(lang)}
-<head>
-    <title>{_("Gallery")} - {_("Boxes.py")}</title>
-    {self.genHTMLMeta()}
-{self.genHTMLMetaLanguageLink()}
-    {self.genHTMLCSS()}
-    {self.genHTMLJS()}
-</head>
-<body onload="initPage()">
-<div class="container">
-<div style="width: 75%; float: left;">
-{self.genPagePartHeader(lang)}
-<div class="modenav">
-<span class="modebutton modeactive">{_("Gallery")}</span>
-<span class="modebutton"><a href="Menu">{_("Menu")}</a></span>
-</div>
-"""]
-        for nr, group in enumerate(self.groups):
-            result.append(f"<h2>{_(group.title)}</h2>\n")
-            for box in group.generators:
-                name = box.__name__
-                fn = f"samples/{name}-thumb.jpg"
-                thumbnail = f"{self.static_url}/{fn}"
-                alt = f"{_(name)}"
-                href = f"{name}{langparam}"
-                badges = self.tag_badges_html(box)
-                overlay = f'<span class="gallery-badges">{badges.strip()}</span>' if badges.strip() else ""
-                result.append(f"""  <span class="gallery" id="search_id_{name}"><a title="{_(name)} - {html.escape(_(box.__doc__))}" href="{href}"><span class="gallery-img-wrap"><img alt="{alt}" src="{thumbnail}">{overlay}</span><br>{_(name)}</a></span>\n""")
-
-        result.append(f"""
-</div><div style="width: 5%; float: left;"></div>
-        <div class="clear"></div><hr></div>
-</body>
-</html>
-"""
-                      )
-        self._cache[("Gallery", lang_name)] = [s.encode("utf-8") for s in result]
-        return self._cache[("Gallery", lang_name)]
-
-    def serve(self, environ, start_response):
-        # serve favicon from static for generated SVGs
+    def serve(self, environ: dict, start_response: Any) -> Any:
         if environ["PATH_INFO"] == "favicon.ico":
             environ["PATH_INFO"] = "/static/favicon.ico"
         if environ["PATH_INFO"].startswith("/static/"):
             return self.serveStatic(environ, start_response)
+        # fonts.css references ../boxes/fonts/… which browsers resolve as /boxes/fonts/…
+        if environ["PATH_INFO"].startswith("/boxes/fonts/"):
+            return self.serveFonts(environ, start_response)
 
-        status = '200 OK'
-        headers = [('Content-type', 'text/html; charset=utf-8'), ('X-XSS-Protection', '1; mode=block'), ('X-Content-Type-Options', 'nosniff'), ('x-frame-options', 'SAMEORIGIN'), ('Referrer-Policy', 'no-referrer')]
+        status = "200 OK"
+        headers = [
+            ("Content-type", "text/html; charset=utf-8"),
+            ("X-XSS-Protection", "1; mode=block"),
+            ("X-Content-Type-Options", "nosniff"),
+            ("x-frame-options", "SAMEORIGIN"),
+            ("Referrer-Policy", "no-referrer"),
+        ]
 
         name = environ["PATH_INFO"][1:]
-        args = [unquote_plus(arg) for arg in environ.get('QUERY_STRING', '').split("&")]
+        args = [unquote_plus(arg) for arg in environ.get("QUERY_STRING", "").split("&")]
         render = "0"
         for arg in args:
             if arg.startswith("render="):
                 render = arg[len("render="):]
 
         if not self.legal_url:
-            if (environ.get('HTTP_HOST', '') == "boxes.hackerspace-bamberg.de" or
-                environ.get('SERVER_NAME', '') == "boxes.hackerspace-bamberg.de"):
+            host = environ.get("HTTP_HOST", "") or environ.get("SERVER_NAME", "")
+            if host == "boxes.hackerspace-bamberg.de":
                 self.legal_url = "https://www.hackerspace-bamberg.de/Datenschutz"
 
         lang = self.getLanguage(args, environ.get("HTTP_ACCEPT_LANGUAGE", ""))
-        _ = lang.gettext
 
-        if not name or name == "Gallery":
+        #  Route: hub / gallery
+        if not name:
+            return self.serveTouchHub(environ, start_response, lang)
+
+        if name == "Gallery":
             return self.serveGallery(environ, start_response, lang)
 
-        if name == "settings":
-            return self.serveSettings(environ, start_response, lang)
+        if name == "TouchHub":
+            return self.serveTouchHub(environ, start_response, lang)
 
+        if name == "colors":
+            return self.serveColors(environ, start_response, lang)
+
+        if name == "categories":
+            return self.serveCategorySettings(environ, start_response, lang)
+
+        #  Route: unknown name → legacy menu
         box_cls = self.boxes.get(name, None)
         if not box_cls:
             start_response(status, headers)
-
-            lang_name = lang.info().get('language', None)
+            lang_name = lang.info().get("language", None)
             if lang_name not in self._cache:
                 self._cache[lang_name] = list(self.genPageMenu(lang))
             return self._cache[lang_name]
 
+        #  Route: generator page
         box = box_cls()
-
         box.translations = lang
 
         if render == "0":
-            defaults = {}
+            defaults: dict[str, str] = {}
             for a in args:
-                kv = a.split('=')
+                kv = a.split("=")
                 if len(kv) == 2:
                     k, v = kv
                     defaults[k] = html.escape(v, True)
             start_response(status, headers)
-            return self.args2html_cached(name, box, lang, "./" + name, defaults=defaults)
+            lang_name = lang.info().get("language", None)
+            langparam = f"?language={lang_name}" if lang_name else ""
+            referer = environ.get("HTTP_REFERER", "")
+            if "Gallery" in referer:
+                back_url = f"Gallery{langparam}"
+            elif "/categories" in referer:
+                back_url = f"categories{langparam}"
+            else:
+                back_url = f"TouchHub{langparam}"
+            return self.genTouchArgs(name, box, lang, "./" + name, defaults=defaults, back_url=back_url)
 
-        args = ["--" + arg for arg in args if not arg.startswith("render=") and not arg.startswith("color_")]
-        # Collect color overrides sent by the browser (color_ROLE=#rrggbb).
-        raw_args_full = [unquote_plus(arg) for arg in environ.get('QUERY_STRING', '').split("&")]
+        #  Render / download / QR
+        args = [
+            "--" + arg
+            for arg in args
+            if not arg.startswith("render=") and not arg.startswith("color_")
+        ]
+        raw_args_full = [unquote_plus(a) for a in environ.get("QUERY_STRING", "").split("&")]
         color_overrides: dict[str, str] = {}
         for arg in raw_args_full:
             if arg.startswith("color_"):
@@ -891,23 +432,24 @@ class BServer:
                 role = role.upper()
                 if role and hex_val:
                     color_overrides[role] = hex_val
+
         try:
             box.parseArgs(args)
         except ArgumentParserError as e:
             if render == "4":
                 start_response(status, box.formats.http_headers["svg"])
                 return self.genPageErrorSVG(name, e, lang)
-            else:
-                start_response(status, headers)
-                return self.genPageError(name, e, lang)
+            start_response(status, headers)
+            return self.genPageError(name, e, lang)
 
         try:
             box.metadata["url"] = self.getURL(environ)
-            box.metadata["url_short"] = filter_url(box.metadata["url"],
-                                                   box.non_default_args)
+            box.metadata["url_short"] = filter_url(
+                str(box.metadata["url"]), box.non_default_args
+            )
             box.open()
-            # Apply per-request color overrides, then restore class defaults.
             from boxes.Color import Color as _Color
+
             _saved_colors = {role: list(getattr(_Color, role)) for role in _Color.ROLE_LABELS}
             if color_overrides:
                 _Color.apply_overrides(color_overrides)
@@ -924,36 +466,30 @@ class BServer:
             if render == "4" and isinstance(e, ValueError):
                 start_response(status, box.formats.http_headers["svg"])
                 return self.genPageErrorSVG(name, e, lang)
-            else:
-                start_response("500 Internal Server Error", headers)
-                return self.genPageError(name, e, lang)
+            start_response("500 Internal Server Error", headers)
+            return self.genPageError(name, e, lang)
 
-        http_headers = box.formats.http_headers.get(box.format, [('Content-type', 'application/unknown; charset=utf-8')])[:]
-        # Prevent crawlers.
-        http_headers.append(('X-Robots-Tag', 'noindex,nofollow'))
+        box_format: str = getattr(box, "format", "svg")
+        http_headers = box.formats.http_headers.get(
+            box_format, [("Content-type", "application/unknown; charset=utf-8")]
+        )[:]
+        http_headers.append(("X-Robots-Tag", "noindex,nofollow"))
 
         if render == "3":
-            http_headers = [('Content-type', 'image/png')]
-            http_headers.append(('X-Robots-Tag', 'noindex,nofollow'))
-            qr_format = "png"
-            fn = box.__class__.__name__
-            start_response(status, http_headers)
-            qrcode = get_qrcode(box.metadata["url_short"], qr_format)
-            return (qrcode,)
+            start_response(status, [("Content-type", "image/png"), ("X-Robots-Tag", "noindex,nofollow")])
+            return (get_qrcode(str(box.metadata.get("url_short", "")), "png"),)
 
-        if box.format != "svg" or render == "2":
-            extension = box.format
-            if extension == "svg_Ponoko":
-                extension = "svg"
-            http_headers.append(('Content-Disposition', f'attachment; filename="{box.__class__.__name__}.{extension}"'))
+        if box_format != "svg" or render == "2":
+            ext = box_format if box_format != "svg_Ponoko" else "svg"
+            http_headers.append(
+                ("Content-Disposition", f'attachment; filename="{box.__class__.__name__}.{ext}"')
+            )
         start_response(status, http_headers)
-        return environ['wsgi.file_wrapper'](data, 512 * 1024)
+        return environ["wsgi.file_wrapper"](data, 512 * 1024)
 
 
-def get_qrcode(url, format):
-    if url is None:
-        url = "no url"
-    img = qrcode.make(url)
+def get_qrcode(url: str, format: str) -> bytes:
+    img = qrcode.make(url or "no url")
     image_bytes = io.BytesIO()
     img.save(image_bytes, format=format)
     return image_bytes.getvalue()
@@ -961,17 +497,19 @@ def get_qrcode(url, format):
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-
     parser.add_argument("--host", default="")
     parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--url_prefix", default="",
-                        help="URL path to Boxes.py instance")
-    parser.add_argument("--static_url", default="static",
-                        help="URL of static content")
-    parser.add_argument("--static_path", default="../static/",
-                        help="location of static content on disk")
-    parser.add_argument("--legal_url", default="",
-                        help="URL of legal web page")
+    parser.add_argument("--url_prefix", default="", help="URL path to Boxes.py instance")
+    parser.add_argument("--static_url", default="static", help="URL of static content")
+    parser.add_argument("--static_path", default="../static/", help="location of static content on disk")
+    parser.add_argument("--legal_url", default="", help="URL of legal web page")
+    parser.add_argument(
+        "--ui-mode",
+        dest="ui_mode",
+        default=os.environ.get("BOXES_UI_MODE", "legacy"),
+        choices=["legacy", "touch", "auto"],
+        help="UI mode: legacy (default), touch (tablet), auto",
+    )
     args = parser.parse_args()
 
     boxserver = BServer(
@@ -979,6 +517,7 @@ def main() -> None:
         static_url=args.static_url,
         static_path=args.static_path,
         deploy_fingerprint=os.environ.get("BOXES_DEPLOY_FINGERPRINT", ""),
+        ui_mode=args.ui_mode,
     )
 
     fc = FileChecker()
@@ -997,9 +536,10 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 else:
-    static_url = os.environ.get('STATIC_URL', 'https://florianfesti.github.io/boxes/static')
+    static_url = os.environ.get("STATIC_URL", "https://florianfesti.github.io/boxes/static")
     boxserver = BServer(
         static_url=static_url,
         deploy_fingerprint=os.environ.get("BOXES_DEPLOY_FINGERPRINT", ""),
+        ui_mode=os.environ.get("BOXES_UI_MODE", "legacy"),
     )
     application = boxserver.serve

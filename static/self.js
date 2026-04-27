@@ -169,6 +169,112 @@ function initColorInjection() {
     form.addEventListener('submit', () => injectColorHiddenFields(form));
 }
 
+/*** Category visibility *******************************/
+
+const HIDDEN_CATS_KEY = 'boxes-hidden-categories';
+
+function loadHiddenCategories() {
+    try { return new Set(JSON.parse(localStorage.getItem(HIDDEN_CATS_KEY) || '[]')); }
+    catch(_) { return new Set(); }
+}
+
+/** Menu page: hide h3 + its content div for hidden categories. */
+function applyHiddenCategoriesMenu() {
+    const hidden = loadHiddenCategories();
+    document.querySelectorAll('h3.toggle[data-id]').forEach(function(el) {
+        const id = el.getAttribute('data-id');
+        const div = document.getElementById(id);
+        const hide = hidden.has(id);
+        el.style.display = hide ? 'none' : '';
+        if (div) div.style.display = hide ? 'none' : '';
+    });
+}
+
+/** Gallery page: hide .gallery-group divs for hidden categories. */
+function applyHiddenCategoriesGallery() {
+    const hidden = loadHiddenCategories();
+    document.querySelectorAll('.gallery-group[data-group-id]').forEach(function(div) {
+        div.style.display = hidden.has(div.dataset.groupId) ? 'none' : '';
+    });
+}
+
+/** Apply hidden-category rules on whatever page is loaded. */
+function applyHiddenCategories() {
+    applyHiddenCategoriesMenu();
+    applyHiddenCategoriesGallery();
+}
+
+/** Categories page – explicit Save button. */
+function saveCategorySettingsExplicit() {
+    const hidden = new Set();
+    document.querySelectorAll('input[data-cat-id]').forEach(function(cb) {
+        if (!cb.checked) hidden.add(cb.dataset.catId);
+    });
+    try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hidden])); } catch(_) {}
+    // Navigate back via location.replace so the target page re-executes its
+    // onload (initPage → applyHiddenCategories) without needing F5.
+    // location.replace also removes the categories page from the history stack.
+    const ref = document.referrer;
+    try {
+        if (ref && new URL(ref).origin === window.location.origin) {
+            window.location.replace(ref);
+            return;
+        }
+    } catch (_) {}
+    window.history.back();
+}
+
+// Safety net: re-apply when the browser restores a page from bfcache.
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        applyHiddenCategories();
+        if (typeof applyHiddenCategoriesTouch === 'function') {
+            applyHiddenCategoriesTouch();
+        }
+    }
+});
+
+/** Color settings page – explicit Save button. */
+function saveColorSettingsExplicit() {
+    const overrides = loadColorSettings();
+    document.querySelectorAll('select[data-role]').forEach(function(sel) {
+        overrides[sel.dataset.role] = sel.value;
+    });
+    persistColorSettings(overrides);
+    window.history.back();
+}
+
+/** Categories page – init checkboxes from localStorage. */
+function initCategorySettingsPage() {
+    const hidden = loadHiddenCategories();
+    document.querySelectorAll('input[data-cat-id]').forEach(function(cb) {
+        cb.checked = !hidden.has(cb.dataset.catId);
+    });
+}
+
+/** Categories page – called by each checkbox onchange. */
+function onCategoryCheckboxChange(cb) {
+    const hidden = loadHiddenCategories();
+    if (cb.checked) {
+        hidden.delete(cb.dataset.catId);
+    } else {
+        hidden.add(cb.dataset.catId);
+    }
+    try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hidden])); } catch(_) {}
+    const status = document.getElementById('cat-settings-status');
+    if (status) {
+        status.style.display = 'inline';
+        clearTimeout(status._hideTimer);
+        status._hideTimer = setTimeout(function() { status.style.display = 'none'; }, 1500);
+    }
+}
+
+/** Categories page – restore all categories. */
+function resetCategorySettings() {
+    try { localStorage.removeItem(HIDDEN_CATS_KEY); } catch(_) {}
+    window.location.reload();
+}
+
 /*** Gallery image height zoom ****************************/
 
 const GALLERY_ZOOM_DEFAULT = 120;
@@ -294,6 +400,7 @@ function initPage(num_hide = null) {
     }
     const t = document.getElementsByClassName("thumbnail");
     for (let el of t) initThumbnail(el);
+    applyHiddenCategories();
 }
 
 function initArgsPage(num_hide = null) {
@@ -785,6 +892,7 @@ function filterSearchItems() {
     if (search.value.length == 0) {
         collapseAll();
         showAll()
+        applyHiddenCategories();
     } else {
         expandAll();
         showOnly(search.value)
