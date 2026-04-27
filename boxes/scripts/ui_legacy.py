@@ -4,6 +4,14 @@
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import argparse
@@ -67,7 +75,7 @@ class LegacyUIMixin:
         return f'<link rel="stylesheet" href="{self.static_url}/self.css">'
 
     def genHTMLJS(self) -> str:
-        return f'<script src="static/self.js"></script>'
+        return f'<script src="{self.static_url}/self.js"></script>'
 
     def genHTMLLanguageSelection(self, lang: object) -> str:
         """Generates a dropdown selection for language change."""
@@ -287,7 +295,7 @@ class LegacyUIMixin:
 <hr>
 
 <h2 style="margin: 0px 0px 0px 20px;">{_(name)}</h2>
-<p>{_(box.__doc__) if box.__doc__ else ""}</p>
+<p>{html.escape(_(box.__doc__)) if box.__doc__ else ""}</p>
 <div class="tabnav">
   <button class="tabbtn active" onclick="switchTab(event,'description')">{_("Description")}</button>
   <button class="tabbtn" onclick="switchTab(event,'configuration')">{_("Configuration")}</button>
@@ -296,7 +304,7 @@ class LegacyUIMixin:
 <div id="tab-description" class="tab-panel">
 <div class="description">
 {desc_html}<div>
-<img style="width:100%;" src="{self.static_url}/samples/{box.__class__.__name__}.jpg" onerror="this.parentElement.innerHTML = '{no_img_msg}';" alt="Picture of box.">
+<img style="width:100%;" src="{self.static_url}/samples/{box.__class__.__name__}.jpg" data-no-image-msg="{html.escape(no_img_msg, quote=True)}" onerror="var parent = this.parentElement; if (parent) parent.replaceChildren(document.createTextNode(this.getAttribute('data-no-image-msg') || ''));" alt="Picture of box.">
 </div>
 </div>
 </div>
@@ -363,7 +371,7 @@ class LegacyUIMixin:
 <div id="help-modal" class="help-modal-overlay" onclick="closeHelpModal()">
   <div class="help-modal-box" onclick="event.stopPropagation()">
     <div id="help-modal-content" class="help-modal-content"></div>
-    <button type="button" class="stepper-btn help-modal-close" onclick="closeHelpModal()">Close</button>
+    <button type="button" class="stepper-btn help-modal-close" onclick="closeHelpModal()">{_("Close")}</button>
   </div>
 </div>
 

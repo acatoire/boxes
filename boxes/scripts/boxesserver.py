@@ -33,7 +33,6 @@ from typing import Any, NoReturn
 from urllib.parse import quote, unquote_plus
 from wsgiref.simple_server import make_server
 
-pass
 import qrcode
 
 try:

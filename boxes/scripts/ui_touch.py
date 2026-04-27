@@ -4,6 +4,14 @@
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import argparse
@@ -50,7 +58,13 @@ class TouchUIMixin:
     def tag_badges_html(self, box: type) -> str:
         raise NotImplementedError
 
-    def arg2html(self, a: argparse.Action, prefix: str | None, defaults: dict = {}, _ = lambda s: s) -> str:
+    def arg2html(
+        self,
+        a: argparse.Action,
+        prefix: str | None,
+        defaults: dict | None = None,
+        _=lambda s: s,
+    ) -> str:
         raise NotImplementedError
 
     # â”€â”€ Touch-specific assets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
