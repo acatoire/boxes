@@ -63,18 +63,25 @@ class TouchUIMixin:
 
     # ── Shared header bar ─────────────────────────────────────────────
 
-    def _touch_header_html(self, lang: object, back_url: str = "") -> str:
+    def _touch_header_html(self, lang: object, back_url: str = "", back_icon_only: bool = False) -> str:
         """Sticky header bar rendered on every touch page."""
         _ = lang.gettext  # type: ignore[attr-defined]
         lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
         langparam = f"?language={lang_name}" if lang_name else ""
 
-        back_btn = (
-            f'<a class="th-mode-btn" href="{html.escape(back_url)}" '
-            f'aria-label="{_("Back")}">← {_("Back")}</a>'
-            if back_url
-            else ""
-        )
+        if back_url:
+            if back_icon_only:
+                back_btn = (
+                    f'<a class="th-mode-btn th-back-icon" href="{html.escape(back_url)}" '
+                    f'aria-label="{_("Back")}">←</a>'
+                )
+            else:
+                back_btn = (
+                    f'<a class="th-mode-btn" href="{html.escape(back_url)}" '
+                    f'aria-label="{_("Back")}">← {_("Back")}</a>'
+                )
+        else:
+            back_btn = ""
 
         # Build the ☰ dropdown menu (mirrors legacy genLinks dropdown)
         links: list[tuple[str, str]] = [
@@ -93,8 +100,8 @@ class TouchUIMixin:
         ]
         # Interface switcher (Touch is always the current interface here)
         dropdown_items.append("      " + gen_interface_select_html("TouchHub", _))
-        dropdown_items.append(f'      <a href="settings">\U0001f3a8 {_("Color Settings")}</a>')
-        dropdown_items.append(f'      <a href="categories">\U0001f4c2 {_("Category Settings")}</a>')
+        dropdown_items.append(f'      <a href="colors">\U0001f3a8 {_("Colors")}</a>')
+        dropdown_items.append(f'      <a href="categories">\U0001f4c2 {_("Categories")}</a>')
         # Language selection inside the dropdown
         lang_sel = self.genHTMLLanguageSelection(lang)
         if "select" in lang_sel:

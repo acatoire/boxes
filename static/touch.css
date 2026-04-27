@@ -124,6 +124,17 @@ body.touch-hub {
 .th-mode-btn:hover  { background: rgba(255,255,255,0.22); }
 .th-mode-btn:active { background: rgba(255,255,255,0.32); }
 
+/* Icon-only back button: square, centred arrow */
+.th-back-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3em;
+  padding: 0;
+  width: 44px;
+  min-width: 44px;
+}
+
 /* ── Touch header dropdown ──────────────────────────────────────── */
 .th-dropdown { position: relative; }
 

@@ -47,6 +47,8 @@ from boxes.scripts.ui_legacy import LegacyUIMixin
 from boxes.scripts.ui_menu import MenuUIMixin
 from boxes.scripts.ui_gallery import GalleryUIMixin
 from boxes.scripts.ui_touch import TouchUIMixin
+from boxes.scripts.pages.colors import ColorsUIMixin
+from boxes.scripts.pages.categories import CategoriesUIMixin
 
 
 class FileChecker(threading.Thread):
@@ -120,13 +122,15 @@ class ThrowingArgumentParser(argparse.ArgumentParser):
 boxes.ArgumentParser = ThrowingArgumentParser  # type: ignore
 
 
-class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin):
+class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUIMixin, CategoriesUIMixin):
     """WSGI application that serves the Boxes.py web UI.
 
-    HTML rendering is split across two mixins:
+    HTML rendering is split across mixins:
 
-    * :mod:`boxes.scripts.ui_legacy` – classic desktop/browser interface
-    * :mod:`boxes.scripts.ui_touch`  – tablet-optimised tabbed interface
+    * :mod:`boxes.scripts.ui_legacy`          – classic desktop/browser interface
+    * :mod:`boxes.scripts.ui_touch`           – tablet-optimised tabbed interface
+    * :mod:`boxes.scripts.pages.settings`     – /settings color page
+    * :mod:`boxes.scripts.pages.categories`   – /categories page
 
     The active interface is controlled by the ``--ui-mode`` CLI flag
     (``legacy`` | ``touch`` | ``auto``, default ``legacy``) or the
@@ -376,8 +380,8 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin):
         if name == "TouchHub":
             return self.serveTouchHub(environ, start_response, lang)
 
-        if name == "settings":
-            return self.serveSettings(environ, start_response, lang)
+        if name == "colors":
+            return self.serveColors(environ, start_response, lang)
 
         if name == "categories":
             return self.serveCategorySettings(environ, start_response, lang)

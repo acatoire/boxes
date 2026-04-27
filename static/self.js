@@ -204,7 +204,7 @@ function applyHiddenCategories() {
     applyHiddenCategoriesGallery();
 }
 
-/** Category settings page – explicit Save button. */
+/** Categories page – explicit Save button. */
 function saveCategorySettingsExplicit() {
     const hidden = new Set();
     document.querySelectorAll('input[data-cat-id]').forEach(function(cb) {
@@ -244,7 +244,7 @@ function saveColorSettingsExplicit() {
     window.history.back();
 }
 
-/** Category settings page – init checkboxes from localStorage. */
+/** Categories page – init checkboxes from localStorage. */
 function initCategorySettingsPage() {
     const hidden = loadHiddenCategories();
     document.querySelectorAll('input[data-cat-id]').forEach(function(cb) {
@@ -252,7 +252,7 @@ function initCategorySettingsPage() {
     });
 }
 
-/** Category settings page – called by each checkbox onchange. */
+/** Categories page – called by each checkbox onchange. */
 function onCategoryCheckboxChange(cb) {
     const hidden = loadHiddenCategories();
     if (cb.checked) {
@@ -269,7 +269,7 @@ function onCategoryCheckboxChange(cb) {
     }
 }
 
-/** Category settings page – restore all categories. */
+/** Categories page – restore all categories. */
 function resetCategorySettings() {
     try { localStorage.removeItem(HIDDEN_CATS_KEY); } catch(_) {}
     window.location.reload();

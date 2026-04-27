@@ -1,4 +1,4 @@
-# Copyright (C) 2016-2017 Florian Festi
+﻿# Copyright (C) 2016-2017 Florian Festi
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@ class LegacyUIMixin:
     """HTML generation for the classic (legacy) web interface.
 
     Designed as a mixin for BServer.  All methods use ``self`` attributes
-    set by BServer.__init__ (static_url, groups, _cache, …).
+    set by BServer.__init__ (static_url, groups, _cache, â€¦).
     """
 
-    # ── Stubs for attributes provided by BServer ─────────────────────
+    # â”€â”€ Stubs for attributes provided by BServer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     static_url: str
     groups: list
     groups_by_name: dict
@@ -32,12 +32,12 @@ class LegacyUIMixin:
     deploy_fingerprint: str
     ui_mode: str
 
-    # ── Shared helpers expected from BServer ─────────────────────────
+    # â”€â”€ Shared helpers expected from BServer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def getLanguages(self) -> list:
         raise NotImplementedError
 
     # genHTMLTouchCSS / genHTMLTouchJS / _touch_header_html are provided
-    # by TouchUIMixin at runtime – do NOT redefine them here.
+    # by TouchUIMixin at runtime â€“ do NOT redefine them here.
 
     def genHTMLStart(self, lang: object) -> str:
         lang_attr = lang.info().get("language", "")  # type: ignore[attr-defined]
@@ -93,10 +93,10 @@ class LegacyUIMixin:
         return (
             '<button onclick="galleryZoomOut()" title="Smaller thumbnails" '
             'style="font-size:1em;padding:1px 7px;cursor:pointer;border:1px solid #999;'
-            'border-radius:4px;background:#EFE8DA;">🔍−</button>'
+            'border-radius:4px;background:#EFE8DA;">ðŸ”âˆ’</button>'
             '<button onclick="galleryZoomIn()" title="Larger thumbnails" '
             'style="font-size:1em;padding:1px 7px;cursor:pointer;border:1px solid #999;'
-            'border-radius:4px;background:#EFE8DA;">🔍+</button>'
+            'border-radius:4px;background:#EFE8DA;">ðŸ”+</button>'
         )
 
     def genPagePartHeader(self, lang: object, current_interface: str = "") -> str:
@@ -145,8 +145,8 @@ class LegacyUIMixin:
         dropdown_items.append(
             "    " + gen_interface_select_html(current_interface, _) + "\n"
         )
-        dropdown_items.append(f'    <a href="settings">\U0001f3a8 {_("Color Settings")}</a>\n')
-        dropdown_items.append(f'    <a href="categories">\U0001f4c2 {_("Category Settings")}</a>\n')
+        dropdown_items.append(f'    <a href="colors">\U0001f3a8 {_("Colors")}</a>\n')
+        dropdown_items.append(f'    <a href="categories">\U0001f4c2 {_("Categories")}</a>\n')
         # Language selection inside the dropdown
         lang_sel = self.genHTMLLanguageSelection(lang)
         if "select" in lang_sel:
@@ -169,7 +169,7 @@ class LegacyUIMixin:
         result.append(f'  <li class="right">{self.genHTMLColsSelection()}  </li>\n')
         return "".join(result)
 
-    # ── Form argument rendering ──────────────────────────────────────
+    # â”€â”€ Form argument rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     def arg2html(self, a: argparse.Action, prefix: str | None, defaults: dict = {}, _=lambda s: s) -> str:
         name = a.option_strings[0].replace("-", "")
@@ -378,9 +378,11 @@ class LegacyUIMixin:
         """)
         return (s.encode("utf-8") for s in result)
 
-    # ── Page generators ──────────────────────────────────────────────
-    # genPageMenu  → ui_menu.py    (MenuUIMixin)
-    # serveGallery → ui_gallery.py (GalleryUIMixin)
+    # â”€â”€ Page generators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # genPageMenu          â†’ ui_menu.py              (MenuUIMixin)
+    # serveGallery         â†’ ui_gallery.py           (GalleryUIMixin)
+    # serveSettings        â†’ pages/settings.py       (SettingsUIMixin)
+    # serveCategorySettingsâ†’ pages/categories.py     (CategoriesUIMixin)
 
     def genPageError(self, name: str, e: Exception, lang: object) -> list[bytes]:
         """Generates an error page."""
@@ -409,290 +411,4 @@ class LegacyUIMixin:
         box.text(str(e), y=-20, fontsize=7)
         return box.close()
 
-    def serveSettings(self, environ: object, start_response: object, lang: object) -> list[bytes]:
-        """Render the /settings page (touch style)."""
-        _ = lang.gettext  # type: ignore[attr-defined]
-        lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
-        langparam = f"?language={lang_name}" if lang_name else ""
-        from boxes.Color import Color
-
-        named_colors: list[tuple[str, str]] = [
-            (cname, Color.to_hex(getattr(Color, cname)))
-            for cname in ("BLACK", "BLUE", "GREEN", "RED", "CYAN", "YELLOW", "MAGENTA", "WHITE")
-        ]
-        rows = []
-        for role, (label, desc) in Color.ROLE_LABELS.items():
-            default_hex = Color.to_hex(getattr(Color, role))
-            options = "\n".join(
-                f'        <option value="{hex_val}"{" selected" if hex_val == default_hex else ""}>'
-                f"{cname} ({hex_val})</option>"
-                for cname, hex_val in named_colors
-            )
-            rows.append(f"""  <div class="cs-row">
-    <div class="cs-label">
-      <label for="color_{role}">{label}</label>
-    </div>
-    <select class="cs-select" id="color_{role}" data-role="{role}" onchange="onColorChange(this)">
-{options}
-    </select>
-    <span class="cs-desc">{desc}</span>
-  </div>""")
-
-        rows_html = "\n".join(rows)
-        touch_css = self.genHTMLTouchCSS()  # type: ignore[attr-defined]
-        touch_js = self.genHTMLTouchJS()  # type: ignore[attr-defined]
-        touch_header = self._touch_header_html(lang, back_url=f"TouchHub{langparam}")  # type: ignore[attr-defined]
-        page = f"""{self.genHTMLStart(lang)}
-<head>
-  <title>{_("Color Settings")} \u2013 {_("Boxes.py")}</title>
-  {self.genHTMLMeta()}
-  {self.genHTMLCSS()}
-  {touch_css}
-  {self.genHTMLJS()}
-  {touch_js}
-  <style>
-    body.touch-settings {{
-      margin: 0; padding: 0;
-      min-height: 100dvh;
-      display: flex; flex-direction: column;
-      background: var(--th-page-bg);
-      font-size: 17px;
-    }}
-    .cs-body {{
-      flex: 1; padding: 20px 24px;
-      overflow-y: auto;
-    }}
-    .cs-body h2 {{ margin: 0 0 6px; color: #333; }}
-    .cs-body > p  {{ margin: 0 0 20px; color: #666; font-size: 0.9em; }}
-    .cs-grid {{
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
-    }}
-    .cs-row {{
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.09);
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }}
-    .cs-label {{
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: bold;
-      font-size: 0.95em;
-      color: #222;
-    }}
-    /* swatch injected by initColorSettingsPage() */
-    .touch-settings .color-swatch {{
-      display: inline-block;
-      width: 28px; height: 28px;
-      border-radius: 6px;
-      border: 2px solid rgba(0,0,0,0.15);
-      flex-shrink: 0;
-      vertical-align: middle;
-      margin-left: 8px;
-      transition: background 0.2s;
-    }}
-    .cs-select {{
-      height: 44px;
-      font-size: 0.95em;
-      padding: 0 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background: #fafafa;
-      cursor: pointer;
-      width: 100%;
-      box-sizing: border-box;
-    }}
-    .cs-desc {{
-      font-size: 0.82em;
-      color: #666;
-      line-height: 1.35;
-    }}
-    .cs-actions {{
-      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
-    }}
-    .cs-btn {{
-      background: var(--th-accent);
-      color: #fff; border: none; border-radius: 10px;
-      padding: 0 24px; min-height: 48px; font-size: 1em;
-      font-family: inherit; font-weight: bold;
-      cursor: pointer; transition: background 0.15s;
-    }}
-    .cs-btn:hover {{ background: var(--th-accent2); }}
-    .cs-btn.secondary {{ background: #666; }}
-    .cs-btn.secondary:hover {{ background: #444; }}
-    #color-settings-status {{ color: green; font-weight: bold; }}
-    #import-file {{ display: none; }}
-  </style>
-</head>
-<body class="touch-settings" onload="initColorSettingsPage()">
-
-{touch_header}
-
-<div class="cs-body">
-  <h2>{_("Color Settings")}</h2>
-  <p>{_("Choose the SVG stroke color for each laser operation. Changes are saved instantly in your browser.")}</p>
-  <div class="cs-grid">
-{rows_html}
-  </div>
-  <div class="cs-actions">
-    <button class="cs-btn" onclick="saveColorSettingsExplicit()">{_("Save")}</button>
-    <button class="cs-btn secondary" onclick="exportColorSettings()">{_("Export JSON")}</button>
-    <button class="cs-btn secondary" onclick="document.getElementById('import-file').click()">{_("Import JSON")}</button>
-    <input type="file" id="import-file" accept=".json,application/json" onchange="importColorSettings(this)">
-    <button class="cs-btn secondary" onclick="resetColorSettings()">{_("Reset to defaults")}</button>
-    <span id="color-settings-status" style="display:none">{_("Saved.")}</span>
-  </div>
-</div>
-
-</body>
-</html>
-"""
-        start_response("200 OK", [("Content-type", "text/html; charset=utf-8")])  # type: ignore[operator]
-        return [page.encode("utf-8")]
-
-    def serveCategorySettings(self, environ: object, start_response: object, lang: object) -> list[bytes]:
-        """Render the /categories page – checkbox per generator category (touch style)."""
-        _ = lang.gettext  # type: ignore[attr-defined]
-        lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
-        langparam = f"?language={lang_name}" if lang_name else ""
-
-        cards: list[str] = []
-        for nr, group in enumerate(self.groups):
-            gen_count = len(group.generators)
-            # Use the first generator's thumbnail as card background
-            first_thumb = (
-                f"{self.static_url}/samples/{group.generators[0].__name__}-thumb.jpg"
-                if group.generators else f"{self.static_url}/nothing.png"
-            )
-            cards.append(
-                f'  <label class="cat-card" for="cat_{nr}" '
-                f'style="background-image:url(\'{html.escape(first_thumb)}\')">\n'
-                f'    <div class="cat-card-overlay">\n'
-                f'      <input type="checkbox" id="cat_{nr}" data-cat-id="{nr}"\n'
-                f'             onchange="onCategoryCheckboxChange(this)" checked>\n'
-                f'      <span class="cat-card-title">{html.escape(_(group.title))}</span>\n'
-                f'      <span class="cat-card-count">{gen_count}</span>\n'
-                f'    </div>\n'
-                f'  </label>'
-            )
-
-        cards_html = "\n".join(cards)
-        touch_css = self.genHTMLTouchCSS()  # type: ignore[attr-defined]
-        touch_js = self.genHTMLTouchJS()  # type: ignore[attr-defined]
-        touch_header = self._touch_header_html(lang, back_url=f"TouchHub{langparam}")  # type: ignore[attr-defined]
-        page = f"""{self.genHTMLStart(lang)}
-<head>
-  <title>{_("Category Settings")} \u2013 {_("Boxes.py")}</title>
-  {self.genHTMLMeta()}
-  {self.genHTMLCSS()}
-  {touch_css}
-  {self.genHTMLJS()}
-  {touch_js}
-  <style>
-    body.touch-cat {{
-      margin: 0; padding: 0;
-      min-height: 100dvh;
-      display: flex; flex-direction: column;
-      background: var(--th-page-bg);
-      font-size: 17px;
-    }}
-    .cat-body {{
-      flex: 1; padding: 20px 24px;
-      overflow-y: auto;
-    }}
-    .cat-body h2 {{ margin: 0 0 6px; color: #333; }}
-    .cat-body p  {{ margin: 0 0 18px; color: #666; font-size: 0.9em; }}
-    .cat-grid {{
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
-    }}
-    /* Square card with background image */
-    .cat-card {{
-      position: relative;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-      cursor: pointer;
-      user-select: none;
-      overflow: hidden;
-      aspect-ratio: 1 / 1;
-      background-size: cover;
-      background-position: center;
-      background-color: #d8d0c0;
-      transition: transform 0.12s, box-shadow 0.12s;
-    }}
-    .cat-card:hover  {{ transform: scale(1.03); box-shadow: 0 6px 20px rgba(0,0,0,0.28); }}
-    .cat-card:active {{ transform: scale(0.97); }}
-    /* Dark gradient overlay at the bottom */
-    .cat-card-overlay {{
-      position: absolute; inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.72) 100%);
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 10px;
-      gap: 4px;
-    }}
-    .cat-card input[type="checkbox"] {{
-      position: absolute; top: 10px; right: 10px;
-      width: 24px; height: 24px; cursor: pointer;
-      accent-color: var(--th-accent);
-    }}
-    .cat-card-title {{
-      font-weight: bold; font-size: 0.92em;
-      color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-      line-height: 1.2;
-    }}
-    .cat-card-count {{
-      font-size: 0.75em;
-      color: rgba(255,255,255,0.80);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.7);
-    }}
-    .cat-actions {{
-      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
-    }}
-    .cat-btn {{
-      background: var(--th-accent);
-      color: #fff; border: none; border-radius: 10px;
-      padding: 0 24px; min-height: 48px; font-size: 1em;
-      font-family: inherit; font-weight: bold;
-      cursor: pointer; transition: background 0.15s;
-    }}
-    .cat-btn:hover {{ background: var(--th-accent2); }}
-    .cat-btn.secondary {{ background: #666; }}
-    .cat-btn.secondary:hover {{ background: #444; }}
-    #cat-settings-status {{ color: green; font-weight: bold; }}
-  </style>
-</head>
-<body class="touch-cat" onload="initCategorySettingsPage()">
-
-{touch_header}
-
-<div class="cat-body">
-  <h2>{_("Category Settings")}</h2>
-  <p>{_("Uncheck categories to hide them from the menu, gallery and touch interface.")}</p>
-  <div class="cat-grid">
-{cards_html}
-  </div>
-  <div class="cat-actions">
-    <button class="cat-btn" onclick="saveCategorySettingsExplicit()">{_("Save")}</button>
-    <button class="cat-btn secondary" onclick="resetCategorySettings()">{_("Show all categories")}</button>
-    <span id="cat-settings-status" style="display:none">{_("Saved.")}</span>
-  </div>
-</div>
-
-</body>
-</html>
-"""
-        start_response("200 OK", [("Content-type", "text/html; charset=utf-8")])  # type: ignore[operator]
-        return [page.encode("utf-8")]
-
-    # serveGallery → ui_gallery.py (GalleryUIMixin)
+    # serveGallery â†’ ui_gallery.py (GalleryUIMixin)
