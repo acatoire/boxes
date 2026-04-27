@@ -17,8 +17,6 @@ from __future__ import annotations
 import argparse
 import html
 
-pass
-
 from boxes.scripts.ui_shared import gen_interface_select_html
 
 
