@@ -643,8 +643,8 @@ function _clearSurfaceInfo() {
     _svgDims = null;
     const bar = document.getElementById('surface-info-bar');
     const fit = document.getElementById('fit-info-bar');
-    if (bar) bar.style.display = 'none';
-    if (fit) fit.style.display = 'none';
+    if (bar) bar.innerHTML = '';           // :empty CSS hides it
+    if (fit) { fit.className = 'fit-info'; fit.textContent = ''; }
 }
 
 function _updateFitInfo() {
@@ -663,7 +663,7 @@ function _updateFitInfo() {
         fit.className = 'fit-info fit-warn';
         fit.textContent = `\u26a0\ufe0f Needs ${total} sheet${total > 1 ? 's' : ''} (${sw}\u00d7${sh} grid) \u2013 machine: ${mw}\u00d7${mh} mm`;
     }
-    fit.style.display = 'block';
+    fit.style.display = 'flex';
 }
 
 
