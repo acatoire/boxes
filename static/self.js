@@ -211,8 +211,28 @@ function saveCategorySettingsExplicit() {
         if (!cb.checked) hidden.add(cb.dataset.catId);
     });
     try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hidden])); } catch(_) {}
+    // Navigate back via location.replace so the target page re-executes its
+    // onload (initPage → applyHiddenCategories) without needing F5.
+    // location.replace also removes the categories page from the history stack.
+    const ref = document.referrer;
+    try {
+        if (ref && new URL(ref).origin === window.location.origin) {
+            window.location.replace(ref);
+            return;
+        }
+    } catch (_) {}
     window.history.back();
 }
+
+// Safety net: re-apply when the browser restores a page from bfcache.
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        applyHiddenCategories();
+        if (typeof applyHiddenCategoriesTouch === 'function') {
+            applyHiddenCategoriesTouch();
+        }
+    }
+});
 
 /** Color settings page – explicit Save button. */
 function saveColorSettingsExplicit() {
