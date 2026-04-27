@@ -93,10 +93,10 @@ class LegacyUIMixin:
         return (
             '<button onclick="galleryZoomOut()" title="Smaller thumbnails" '
             'style="font-size:1em;padding:1px 7px;cursor:pointer;border:1px solid #999;'
-            'border-radius:4px;background:#EFE8DA;">ðŸ”âˆ’</button>'
+            'border-radius:4px;background:#EFE8DA;">\u2212</button>'
             '<button onclick="galleryZoomIn()" title="Larger thumbnails" '
             'style="font-size:1em;padding:1px 7px;cursor:pointer;border:1px solid #999;'
-            'border-radius:4px;background:#EFE8DA;">ðŸ”+</button>'
+            'border-radius:4px;background:#EFE8DA;">+</button>'
         )
 
     def genPagePartHeader(self, lang: object, current_interface: str = "") -> str:
@@ -122,7 +122,7 @@ class LegacyUIMixin:
 <div class="linkbar">
 <ul>
 {self.genLinks(lang, current_interface=current_interface)}
-  <li class="right">\U0001f50d <input autocomplete="off" type="search" oninput="filterSearchItems();" name="search" id="search" placeholder="Search"></li>
+  <li class="right"><input autocomplete="off" type="search" oninput="filterSearchItems();" name="search" id="search" placeholder="Search"></li>
 </ul>
 </div>
 <hr/>
@@ -166,7 +166,6 @@ class LegacyUIMixin:
         if self.deploy_fingerprint:
             tag = html.escape(self.deploy_fingerprint)
             result.append(f'  <li class="right" title="Deployment fingerprint">Instance: {tag}</li>\n')
-        result.append(f'  <li class="right">{self.genHTMLColsSelection()}  </li>\n')
         return "".join(result)
 
     # â”€â”€ Form argument rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

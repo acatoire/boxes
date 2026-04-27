@@ -40,6 +40,9 @@ class GalleryUIMixin:
     def genPagePartHeader(self, lang: object, current_interface: str = "") -> str:
         raise NotImplementedError
 
+    def genHTMLColsSelection(self) -> str:
+        raise NotImplementedError
+
     def tag_badges_html(self, box: type) -> str:
         raise NotImplementedError
 
@@ -73,6 +76,9 @@ class GalleryUIMixin:
 <div class="container">
 <div style="width: 75%; float: left;">
 {self.genPagePartHeader(lang, current_interface="Gallery")}
+<div style="margin-bottom:8px;">
+  {self.genHTMLColsSelection()}
+</div>
 """]
         for nr, group in enumerate(self.groups):
             result.append(f'<div class="gallery-group" data-group-id="{nr}">\n')
