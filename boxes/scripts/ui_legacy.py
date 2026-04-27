@@ -122,6 +122,7 @@ class LegacyUIMixin:
 <div class="linkbar">
 <ul>
 {self.genLinks(lang, current_interface=current_interface)}
+{"  <li class='right'>" + self.genHTMLColsSelection() + "</li>" if current_interface == "Gallery" else ""}
   <li class="right"><input autocomplete="off" type="search" oninput="filterSearchItems();" name="search" id="search" placeholder="Search"></li>
 </ul>
 </div>
@@ -141,32 +142,31 @@ class LegacyUIMixin:
         links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
 
         dropdown_items = [f'    <a href="{url}" target="_blank" rel="noopener">{txt}</a>\n' for url, txt in links]
-        # Interface switcher
-        dropdown_items.append(
-            "    " + gen_interface_select_html(current_interface, _) + "\n"
-        )
+        dropdown_items.append("    " + gen_interface_select_html(current_interface, _) + "\n")
         dropdown_items.append(f'    <a href="colors">\U0001f3a8 {_("Colors")}</a>\n')
         dropdown_items.append(f'    <a href="categories">\U0001f4c2 {_("Categories")}</a>\n')
-        # Language selection inside the dropdown
+        # Language selection
         lang_sel = self.genHTMLLanguageSelection(lang)
         if "select" in lang_sel:
             dropdown_items.append(
                 f'    <div class="dropdown-lang">\U0001f310 {_("Language:")} {lang_sel}</div>\n'
             )
+        # Instance fingerprint inside the dropdown (same as touch UI)
+        if self.deploy_fingerprint:
+            tag = html.escape(self.deploy_fingerprint)
+            dropdown_items.append(
+                f'    <span style="padding:6px 12px;color:#aaa;font-size:0.8em;">Instance: {tag}</span>\n'
+            )
         dropdown_html = "".join(dropdown_items)
 
-        result = [
-            f'  <li class="dropdown">\n'
+        # class="right" makes the button float to the far right of the linkbar
+        return (
+            f'  <li class="right dropdown">\n'
             f'    <button class="dropdown-btn" onclick="toggleDropdown(event)">\u2630 {_("Menu")}</button>\n'
             f'    <div class="dropdown-content" id="main-dropdown">\n'
             f'{dropdown_html}    </div>\n'
             f"  </li>\n"
-        ]
-
-        if self.deploy_fingerprint:
-            tag = html.escape(self.deploy_fingerprint)
-            result.append(f'  <li class="right" title="Deployment fingerprint">Instance: {tag}</li>\n')
-        return "".join(result)
+        )
 
     # â”€â”€ Form argument rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

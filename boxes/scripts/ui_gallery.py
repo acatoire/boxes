@@ -76,9 +76,6 @@ class GalleryUIMixin:
 <div class="container">
 <div style="width: 75%; float: left;">
 {self.genPagePartHeader(lang, current_interface="Gallery")}
-<div style="margin-bottom:8px;">
-  {self.genHTMLColsSelection()}
-</div>
 """]
         for nr, group in enumerate(self.groups):
             result.append(f'<div class="gallery-group" data-group-id="{nr}">\n')
