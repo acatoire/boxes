@@ -119,21 +119,7 @@ function applyHiddenCategoriesTouch() {
 /* ── Hub init ────────────────────────────────────────────────────── */
 
 function initTouchHub() {
-    const pref = getUIModePreference();
-
-    // Only auto-redirect to legacy when the server is in 'auto' mode AND the
-    // user has explicitly chosen legacy (e.g. after clicking "Classic view").
-    // If the user just clicked the "Touch mode" button the onclick already
-    // wrote 'touch' into localStorage, so this branch won't trigger.
-    // We also skip the redirect if the URL contains a forced 'touch' param.
-    const params = new URLSearchParams(window.location.search);
-    const forcedTouch = params.get('ui') === 'touch';
-    if (pref === 'legacy' && !forcedTouch) {
-        window.location.replace('Menu');
-        return;
-    }
-
-    // Record that we're (back) in touch mode.
+    // Record that we're in touch mode.
     setUIModePreference('touch');
 
     // Restore last active group.
