@@ -49,6 +49,7 @@ from boxes.scripts.ui_gallery import GalleryUIMixin
 from boxes.scripts.ui_touch import TouchUIMixin
 from boxes.scripts.pages.colors import ColorsUIMixin
 from boxes.scripts.pages.categories import CategoriesUIMixin
+from boxes.scripts.pages.generator import GeneratorUIMixin
 
 
 class FileChecker(threading.Thread):
@@ -122,7 +123,7 @@ class ThrowingArgumentParser(argparse.ArgumentParser):
 boxes.ArgumentParser = ThrowingArgumentParser  # type: ignore
 
 
-class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUIMixin, CategoriesUIMixin):
+class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUIMixin, CategoriesUIMixin, GeneratorUIMixin):
     """WSGI application that serves the Boxes.py web UI.
 
     HTML rendering is split across mixins:
@@ -407,9 +408,16 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
                     k, v = kv
                     defaults[k] = html.escape(v, True)
             start_response(status, headers)
-            if self.ui_mode == "touch":
-                return self.genTouchArgs(name, box, lang, "./" + name, defaults=defaults)
-            return self.args2html_cached(name, box, lang, "./" + name, defaults=defaults)
+            lang_name = lang.info().get("language", None)
+            langparam = f"?language={lang_name}" if lang_name else ""
+            referer = environ.get("HTTP_REFERER", "")
+            if "Gallery" in referer:
+                back_url = f"Gallery{langparam}"
+            elif "/categories" in referer:
+                back_url = f"categories{langparam}"
+            else:
+                back_url = f"TouchHub{langparam}"
+            return self.genTouchArgs(name, box, lang, "./" + name, defaults=defaults, back_url=back_url)
 
         # ── Render / download / QR ───────────────────────────────────
         args = [

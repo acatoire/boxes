@@ -144,6 +144,44 @@ function initTouchArgs(numHide) {
 
     // Wire up the sticky action bar buttons
     _bindTouchActionBar();
+
+    // Auto-size inputs/selects if field-sizing:content is unsupported (Firefox < 128)
+    if (!CSS.supports('field-sizing', 'content')) {
+        _autoSizeAllFields();
+    }
+}
+
+/* ── field-sizing fallback (Firefox / Safari) ────────────────────── */
+
+const _sizeCanvas = document.createElement('canvas');
+
+function _measureText(el, text) {
+    const ctx = _sizeCanvas.getContext('2d');
+    const cs  = getComputedStyle(el);
+    ctx.font  = cs.fontSize + ' ' + cs.fontFamily;
+    return ctx.measureText(text).width;
+}
+
+function _autoSizeField(el) {
+    const MIN = 70;
+    const PAD = el.tagName === 'SELECT' ? 44 : 24; // selects need extra room for native arrow
+    let text = '';
+    if (el.tagName === 'SELECT') {
+        text = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : '';
+    } else {
+        text = el.value || el.placeholder || '';
+    }
+    const w = Math.max(MIN, Math.ceil(_measureText(el, text)) + PAD);
+    el.style.width = w + 'px';
+}
+
+function _autoSizeAllFields() {
+    const sel = 'body.touch-args table input[type="text"], body.touch-args table select';
+    document.querySelectorAll(sel).forEach(el => {
+        _autoSizeField(el);
+        el.addEventListener('change', () => _autoSizeField(el));
+        el.addEventListener('input',  () => _autoSizeField(el));
+    });
 }
 
 function _bindTouchActionBar() {
