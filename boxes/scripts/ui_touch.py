@@ -89,14 +89,26 @@ class TouchUIMixin:
             f'      <a href="{url}" target="_blank" rel="noopener">{txt}</a>'
             for url, txt in links
         ]
+        dropdown_items.append(
+            f'      <a href="Gallery" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'legacy\')}}catch(e){{}}">'
+            f'\U0001f5bc\ufe0f {_("Gallery interface")}</a>'
+        )
+        dropdown_items.append(
+            f'      <a href="Menu" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'legacy\')}}catch(e){{}}">'
+            f'\U0001f4cb {_("Menu interface")}</a>'
+        )
+        dropdown_items.append(
+            f'      <a href="TouchHub" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'touch\')}}catch(e){{}}">'
+            f'\U0001f4f1 {_("Touch interface")}</a>'
+        )
         dropdown_items.append(f'      <a href="settings">\U0001f3a8 {_("Color Settings")}</a>')
         dropdown_items.append(f'      <a href="categories">\U0001f4c2 {_("Category Settings")}</a>')
-        dropdown_items.append(
-            f'      <a href="Menu" '
-            f"onclick=\"try{{localStorage.setItem('boxes-ui-mode','legacy')}}catch(e){{}}\" "
-            f'title="{_("Switch to classic desktop interface")}">'
-            f'\u2630 {_("Classic view")}</a>'
-        )
+        # Language selection inside the dropdown
+        lang_sel = self.genHTMLLanguageSelection(lang)
+        if "select" in lang_sel:
+            dropdown_items.append(
+                f'      <div class="dropdown-lang">\U0001f310 {_("Language:")} {lang_sel}</div>'
+            )
         if self.deploy_fingerprint:
             tag = html.escape(self.deploy_fingerprint)
             dropdown_items.append(
@@ -112,7 +124,6 @@ class TouchUIMixin:
       <span class="th-logo-text">{_("Boxes.py")}</span>
     </a>
     <div class="th-header-actions">
-      {self.genHTMLLanguageSelection(lang)}
       {back_btn}
       <div class="dropdown th-dropdown">
         <button class="th-mode-btn dropdown-btn" onclick="toggleDropdown(event)">\u2630 {_("Menu")}</button>

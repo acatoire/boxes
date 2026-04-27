@@ -137,15 +137,27 @@ class LegacyUIMixin:
         links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
 
         dropdown_items = [f'    <a href="{url}" target="_blank" rel="noopener">{txt}</a>\n' for url, txt in links]
+        # View switchers
+        dropdown_items.append(
+            f'    <a href="Gallery" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'legacy\')}}catch(e){{}}">'
+            f'\U0001f5bc\ufe0f {_("Gallery interface")}</a>\n'
+        )
+        dropdown_items.append(
+            f'    <a href="Menu" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'legacy\')}}catch(e){{}}">'
+            f'\U0001f4cb {_("Menu interface")}</a>\n'
+        )
+        dropdown_items.append(
+            f'    <a href="TouchHub" onclick="try{{localStorage.setItem(\'boxes-ui-mode\',\'touch\')}}catch(e){{}}">'
+            f'\U0001f4f1 {_("Touch interface")}</a>\n'
+        )
         dropdown_items.append(f'    <a href="settings">\U0001f3a8 {_("Color Settings")}</a>\n')
         dropdown_items.append(f'    <a href="categories">\U0001f4c2 {_("Category Settings")}</a>\n')
-        # Touch mode link inside the dropdown menu
-        dropdown_items.append(
-            f'    <a href="TouchHub" '
-            f"onclick=\"try{{localStorage.setItem('boxes-ui-mode','touch')}}catch(e){{}}\" "
-            f'title="{_("Switch to tablet-optimised interface")}">'
-            f"⬛ {_('Touch mode')}</a>\n"
-        )
+        # Language selection inside the dropdown
+        lang_sel = self.genHTMLLanguageSelection(lang)
+        if "select" in lang_sel:
+            dropdown_items.append(
+                f'    <div class="dropdown-lang">\U0001f310 {_("Language:")} {lang_sel}</div>\n'
+            )
         dropdown_html = "".join(dropdown_items)
 
         result = [
@@ -159,7 +171,6 @@ class LegacyUIMixin:
         if self.deploy_fingerprint:
             tag = html.escape(self.deploy_fingerprint)
             result.append(f'  <li class="right" title="Deployment fingerprint">Instance: {tag}</li>\n')
-        result.append(f'  <li class="right">{self.genHTMLLanguageSelection(lang)}  </li>\n')
         result.append(f'  <li class="right">{self.genHTMLColsSelection()}  </li>\n')
         return "".join(result)
 
@@ -373,68 +384,8 @@ class LegacyUIMixin:
         return (s.encode("utf-8") for s in result)
 
     # ── Page generators ──────────────────────────────────────────────
-
-    def genPageMenu(self, lang: object):
-        _ = lang.gettext  # type: ignore[attr-defined]
-        lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
-        langparam = f"?language={lang_name}" if lang_name else ""
-
-        result = [f"""{self.genHTMLStart(lang)}
-<head>
-    <title>{_("Boxes.py")}</title>
-    {self.genHTMLMeta()}
-{self.genHTMLMetaLanguageLink()}
-    {self.genHTMLCSS()}
-    {self.genHTMLJS()}
-</head>
-<body onload="initPage()">
-<div class="container">
-<div style="width: 75%; float: left;">
-{self.genPagePartHeader(lang)}
-<div class="modenav">
-<span class="modebutton"><a href="Gallery">{_("Gallery")}</a></span>
-<span class="modebutton modeactive">{_("Menu")}</span>
-</div>
-<br>
-<div class="menu" style="width: 100%">
-<img style="width: 200px;" id="sample-preview" src="{self.static_url}/nothing.png" alt="">
-"""]
-        for nr, group in enumerate(self.groups):
-            result.append(
-                f'\n<h3 id="h-{nr}"\n'
-                f'    data-id="{nr}"\n'
-                f'    data-thumbnail="{self.static_url}/samples/{group.thumbnail}"\n'
-                f'    role="button"\n'
-                f'    aria-expanded="false"\n'
-                f'    class="toggle thumbnail open"\n'
-                f'    tabindex="0"\n>\n'
-                f"    {_(group.title)}\n</h3>\n"
-                f'  <div id="{nr}">\n   <ul>\n'
-            )
-            for box in group.generators:
-                bname = box.__name__
-                docs = (" - " + _(box.__doc__)) if box.__doc__ else ""
-                badges = self.tag_badges_html(box)  # type: ignore[attr-defined]
-                result.append(
-                    f'     <li class="thumbnail" '
-                    f'data-thumbnail="{self.static_url}/samples/{bname}-thumb.jpg" '
-                    f'id="search_id_{bname}">'
-                    f'<a href="{bname}{langparam}">{_(bname)}</a>'
-                    f"{badges}{docs}</li>\n"
-                )
-            result.append("   </ul>\n  </div>\n")
-        result.append(f"""
-</div>
-
-<div style="width: 5%; float: left;"></div>
-<div class="clear"></div>
-<hr>
-</div>
-</div>
-</body>
-</html>
-""")
-        return (s.encode("utf-8") for s in result)
+    # genPageMenu  → ui_menu.py    (MenuUIMixin)
+    # serveGallery → ui_gallery.py (GalleryUIMixin)
 
     def genPageError(self, name: str, e: Exception, lang: object) -> list[bytes]:
         """Generates an error page."""
@@ -589,58 +540,4 @@ class LegacyUIMixin:
         start_response("200 OK", [("Content-type", "text/html; charset=utf-8")])  # type: ignore[operator]
         return [page.encode("utf-8")]
 
-    def serveGallery(self, environ: object, start_response: object, lang: object) -> list[bytes]:
-        _ = lang.gettext  # type: ignore[attr-defined]
-        lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
-
-        start_response("200 OK", [("Content-type", "text/html; charset=utf-8")])  # type: ignore[operator]
-
-        cache_key = ("Gallery", lang_name)
-        if cache_key in self._cache:
-            return self._cache[cache_key]
-
-        langparam = f"?language={lang_name}" if lang_name else ""
-
-        result = [f"""
-{self.genHTMLStart(lang)}
-<head>
-    <title>{_("Gallery")} - {_("Boxes.py")}</title>
-    {self.genHTMLMeta()}
-{self.genHTMLMetaLanguageLink()}
-    {self.genHTMLCSS()}
-    {self.genHTMLJS()}
-</head>
-<body onload="initPage()">
-<div class="container">
-<div style="width: 75%; float: left;">
-{self.genPagePartHeader(lang)}
-<div class="modenav">
-<span class="modebutton modeactive">{_("Gallery")}</span>
-<span class="modebutton"><a href="Menu">{_("Menu")}</a></span>
-</div>
-"""]
-        for nr, group in enumerate(self.groups):
-            result.append(f'<div class="gallery-group" data-group-id="{nr}">\n')
-            result.append(f"<h2>{_(group.title)}</h2>\n")
-            for box in group.generators:
-                bname = box.__name__
-                thumbnail = f"{self.static_url}/samples/{bname}-thumb.jpg"
-                href = f"{bname}{langparam}"
-                badges = self.tag_badges_html(box)  # type: ignore[attr-defined]
-                overlay = f'<span class="gallery-badges">{badges.strip()}</span>' if badges.strip() else ""
-                result.append(
-                    f'  <span class="gallery" id="search_id_{bname}">'
-                    f'<a title="{_(bname)} - {html.escape(_(box.__doc__))}" href="{href}">'
-                    f'<span class="gallery-img-wrap">'
-                    f'<img alt="{_(bname)}" src="{thumbnail}">{overlay}</span>'
-                    f"<br>{_(bname)}</a></span>\n"
-                )
-            result.append("</div>\n")  # close .gallery-group
-
-        result.append(
-            "\n</div><div style=\"width: 5%; float: left;\"></div>\n"
-            "        <div class=\"clear\"></div><hr></div>\n"
-            "</body>\n</html>\n"
-        )
-        self._cache[cache_key] = [s.encode("utf-8") for s in result]
-        return self._cache[cache_key]
+    # serveGallery → ui_gallery.py (GalleryUIMixin)

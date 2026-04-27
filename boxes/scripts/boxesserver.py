@@ -44,6 +44,8 @@ except ImportError:
 import boxes
 
 from boxes.scripts.ui_legacy import LegacyUIMixin
+from boxes.scripts.ui_menu import MenuUIMixin
+from boxes.scripts.ui_gallery import GalleryUIMixin
 from boxes.scripts.ui_touch import TouchUIMixin
 
 
@@ -118,7 +120,7 @@ class ThrowingArgumentParser(argparse.ArgumentParser):
 boxes.ArgumentParser = ThrowingArgumentParser  # type: ignore
 
 
-class BServer(LegacyUIMixin, TouchUIMixin):
+class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin):
     """WSGI application that serves the Boxes.py web UI.
 
     HTML rendering is split across two mixins:
@@ -365,9 +367,10 @@ class BServer(LegacyUIMixin, TouchUIMixin):
         lang = self.getLanguage(args, environ.get("HTTP_ACCEPT_LANGUAGE", ""))
 
         # ── Route: hub / gallery ─────────────────────────────────────
-        if not name or name == "Gallery":
-            if self.ui_mode == "touch":
-                return self.serveTouchHub(environ, start_response, lang)
+        if not name:
+            return self.serveTouchHub(environ, start_response, lang)
+
+        if name == "Gallery":
             return self.serveGallery(environ, start_response, lang)
 
         if name == "TouchHub":

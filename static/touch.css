@@ -132,7 +132,7 @@ body.touch-hub {
   top: calc(100% + 6px);
   right: 0;
   left: auto;
-  min-width: 220px;
+  min-width: 280px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0,0,0,0.25);
@@ -150,6 +150,27 @@ body.touch-hub {
   white-space: nowrap;
 }
 .th-dropdown-content a:hover { background: #f5f0e8; }
+
+/* Language row inside touch dropdown */
+.th-dropdown-content .dropdown-lang {
+  border-top: 1px solid #e8e0d0;
+  margin-top: 4px;
+  padding: 10px 16px;
+  color: #333;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
+.th-dropdown-content .dropdown-lang select {
+  background: #F8F4EE;
+  color: #333;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.95em;
+  cursor: pointer;
+}
+
 
 /* ── Category tab bar ───────────────────────────────────────────── */
 .th-tabbar {
