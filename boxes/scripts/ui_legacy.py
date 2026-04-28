@@ -87,13 +87,18 @@ class LegacyUIMixin:
         for language in languages:
             sel = " selected" if language == current_language else ""
             html_option += f"\t\t\t\t<option value='{language}'{sel}>{language}</option>\n"
+        # Navigate directly: keep current path, replace only the language param.
+        # Using window.location instead of form.submit() avoids issues with the
+        # select being embedded inside a complex dropdown/form DOM structure.
+        onchange = (
+            "var v=this.value;"
+            "var p=window.location.pathname;"
+            "window.location.href=p+(v?('?language='+encodeURIComponent(v)):'');"
+        )
         return (
-            "\n        <form>\n"
-            '            <select name="language" onchange=\'if(this.value != \\"'
-            + current_language
-            + '\\") { this.form.submit(); }\'>\n'
+            f'\n        <select name="language" onchange="{onchange}">\n'
             + html_option
-            + "            </select>\n        </form>\n"
+            + "        </select>\n"
         )
 
     def genHTMLColsSelection(self) -> str:
@@ -336,7 +341,7 @@ class LegacyUIMixin:
             groupid += 1
 
         result.append(f"""
-<input type="hidden" name="language" id="language" value="{lang_name}">
+<input type="hidden" name="language" id="language" value="{lang_name or ""}">
 
 <p>
     <button name="render" value="1" formtarget="_blank">{_("Generate")}</button>

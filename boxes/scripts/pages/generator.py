@@ -128,7 +128,7 @@ class GeneratorUIMixin:
             '      <div class="config-form">\n'
             f'        <form id="arguments" action="{action}" method="GET" rel="nofollow">\n'
             f'          {"".join(form_rows)}\n'
-            f'          <input type="hidden" name="language" id="language" value="{lang_name}">\n'
+            f'          <input type="hidden" name="language" id="language" value="{lang_name or ""}">\n'
             "        </form>\n"
             "      </div>\n"
             '      <div id="preview" class="config-preview">\n'

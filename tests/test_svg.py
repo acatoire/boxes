@@ -48,15 +48,30 @@ class TestSVG:
     avoidGenerator = notTestGenerators | brokenGenerators
 
     @staticmethod
+    def _gen_dir_and_stem(generator: type[boxes.Boxes]) -> tuple[Path, str]:
+        """Return (directory, stem) for the generator source file.
+
+        Handles both the legacy flat layout (``xxx.py``) and the new
+        per-generator folder layout where the source is ``xxx/__init__.py``.
+        """
+        gen_file = Path(inspect.getfile(generator))
+        if gen_file.name == "__init__.py":
+            # New layout: boxes/generators/<cat>/<stem>/__init__.py
+            return gen_file.parent, gen_file.parent.name
+        # Legacy flat layout: boxes/generators/<cat>/<stem>.py
+        return gen_file.parent, gen_file.stem
+
+    @staticmethod
     def _reference_svg(generator: type[boxes.Boxes]) -> Path:
-        """Reference SVG lives next to the generator source file (same stem, .svg)."""
-        return Path(inspect.getfile(generator)).with_suffix('.svg')
+        """Reference SVG lives in the generator folder (same stem, .svg)."""
+        gen_dir, stem = TestSVG._gen_dir_and_stem(generator)
+        return gen_dir / f"{stem}.svg"
 
     @staticmethod
     def _reference_svg_hashed(generator: type[boxes.Boxes], hash8: str) -> Path:
-        """Hash-suffixed reference SVG lives next to the generator source file."""
-        gen_file = Path(inspect.getfile(generator))
-        return gen_file.parent / f"{gen_file.stem}_{hash8}.svg"
+        """Hash-suffixed reference SVG lives in the generator folder."""
+        gen_dir, stem = TestSVG._gen_dir_and_stem(generator)
+        return gen_dir / f"{stem}_{hash8}.svg"
 
     def test_generators_available(self) -> None:
         assert len(self.all_generators) != 0
@@ -184,15 +199,16 @@ class TestSVG:
             generator = self.generators_by_name.get(boxType, None)
             if generator is None:
                 continue
-            gen_file = Path(inspect.getfile(generator))
+            gen_dir, stem = TestSVG._gen_dir_and_stem(generator)
             boxArgs, argsHash = TestSVG.get_additional_test_args_hash(generator_settings)
-            validTests.add((gen_file.stem, argsHash[0:8]))
+            validTests.add((stem, argsHash[0:8]))
 
         # Scan all generator source directories for hash-suffixed SVG files
         gen_dirs: set[Path] = set()
         for cls in self.generators_by_name.values():
             try:
-                gen_dirs.add(Path(inspect.getfile(cls)).parent)
+                gen_dir, _ = TestSVG._gen_dir_and_stem(cls)
+                gen_dirs.add(gen_dir)
             except TypeError:
                 pass
 
