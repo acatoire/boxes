@@ -243,6 +243,10 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
                 lang = arg[len("language="):]
                 del args[i]
                 break
+        # Ignore the literal string "None" that legacy forms could emit
+        # when lang_name was Python None and got rendered into the hidden input.
+        if lang == "None":
+            lang = None
         if lang:
             for localedir in ["locale", None]:
                 try:
