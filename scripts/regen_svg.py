@@ -44,6 +44,18 @@ if str(ROOT) not in sys.path:
 import boxes.generators  # noqa: E402  (after sys.path fix)
 
 
+def _svg_path(cls: type) -> Path:
+    """Return the reference SVG path for a generator class.
+
+    Handles both the legacy flat layout (``xxx.py``) and the new
+    per-generator folder layout where the source is ``xxx/__init__.py``.
+    """
+    gen_file = Path(inspect.getfile(cls))
+    if gen_file.name == "__init__.py":
+        return gen_file.parent / (gen_file.parent.name + ".svg")
+    return gen_file.with_suffix(".svg")
+
+
 def regen(name: str) -> bool:
     """Regenerate the reference SVG for generator *name*.
 
@@ -72,7 +84,7 @@ def regen(name: str) -> bool:
         print(f"  (skipped {name} – no SVG output)", flush=True)
         return False
 
-    out = Path(inspect.getfile(cls)).with_suffix('.svg')
+    out = _svg_path(cls)
     out.write_bytes(data.getvalue())
     print(str(out), flush=True)
     return True

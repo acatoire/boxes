@@ -192,10 +192,15 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
                 gen_file = Path(inspect.getfile(cls))
             except TypeError:
                 continue
-            self._samples_map[f"{cls_name}.jpg"] = gen_file.with_suffix(".jpg")
-            self._samples_map[f"{cls_name}-thumb.jpg"] = (
-                gen_file.parent / f"{gen_file.stem}-thumb.jpg"
-            )
+            # New layout: source is xxx/__init__.py → images use the folder name
+            if gen_file.name == "__init__.py":
+                stem = gen_file.parent.name
+                folder = gen_file.parent
+            else:
+                stem = gen_file.stem
+                folder = gen_file.parent
+            self._samples_map[f"{cls_name}.jpg"] = folder / f"{stem}.jpg"
+            self._samples_map[f"{cls_name}-thumb.jpg"] = folder / f"{stem}-thumb.jpg"
 
         if os.path.isabs(static_path):
             self.staticdir = static_path
@@ -238,6 +243,10 @@ class BServer(LegacyUIMixin, MenuUIMixin, GalleryUIMixin, TouchUIMixin, ColorsUI
                 lang = arg[len("language="):]
                 del args[i]
                 break
+        # Ignore the literal string "None" that legacy forms could emit
+        # when lang_name was Python None and got rendered into the hidden input.
+        if lang == "None":
+            lang = None
         if lang:
             for localedir in ["locale", None]:
                 try:

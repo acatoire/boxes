@@ -1,6 +1,5 @@
 *~
 *.plt
-*.svg
 !examples/*.svg
 *.dxf
 *.pyc

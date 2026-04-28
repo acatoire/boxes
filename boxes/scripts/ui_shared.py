@@ -26,7 +26,8 @@ _INTERFACES: list[tuple[str, str, str]] = [
 _ONCHANGE = (
     "var v=this.value;"
     "try{localStorage.setItem('boxes-ui-mode',v==='TouchHub'?'touch':'legacy')}catch(e){};"
-    "window.location.href=v"
+    "var _lg=(new URLSearchParams(window.location.search)).get('language');"
+    "window.location.href=_lg?(v+'?language='+encodeURIComponent(_lg)):v"
 )
 
 
