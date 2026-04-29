@@ -589,6 +589,27 @@ body.touch-args form > p:last-of-type { display: none; }
 .surf-sep  { color: #bbb; }
 .surf-area { color: #555; }
 
+/* Price estimate bar */
+.price-info-bar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: #f0f8f0;
+  border: 1px solid #c8e6c9;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.88em;
+  color: #2e7d32;
+  white-space: nowrap;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+.price-info-bar:not(:empty) { display: flex; }
+.surf-price-label { font-weight: bold; }
+.surf-price-value { color: #1b5e20; font-weight: bold; }
+.surf-price-margin { color: #555; font-size: 0.9em; }
+
 .fit-info {
   display: none;
   align-items: center;

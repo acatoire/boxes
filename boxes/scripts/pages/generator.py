@@ -141,6 +141,7 @@ class GeneratorUIMixin:
             f'            <button type="button" onclick="preview_scale=100; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">{_("Reset")}</button>\n'
             "          </div>\n"
             '          <div id="surface-info-bar" class="surface-info-bar"></div>\n'
+            '          <div id="price-info-bar" class="price-info-bar"></div>\n'
             '          <div id="fit-info-bar" class="fit-info"></div>\n'
             "        </div>\n"
             '        <div style="overflow:auto;">\n'

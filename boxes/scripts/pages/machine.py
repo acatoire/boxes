@@ -108,6 +108,12 @@ class MachineUIMixin:
             "    .ms-save-btn{background:var(--th-accent);color:#fff;border:none;border-radius:10px;padding:0 28px;min-height:48px;font-size:1em;font-family:inherit;font-weight:bold;cursor:pointer;transition:background .15s;}\n"
             "    .ms-save-btn:hover{background:var(--th-accent2);}\n"
             "    #ms-status{color:#2e7d32;font-weight:bold;}\n"
+            "    .ms-mat-table{width:100%;border-collapse:collapse;font-size:.93em;}\n"
+            "    .ms-mat-table td{padding:8px 10px;border-bottom:1px solid #f0ebe0;vertical-align:middle;}\n"
+            "    .ms-mat-table input[type=radio]{width:18px;height:18px;accent-color:var(--th-accent);cursor:pointer;}\n"
+            "    .ms-coef-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}\n"
+            "    .ms-coef-row label{font-size:.95em;color:#444;}\n"
+            "    .ms-coef-row input{height:44px;width:90px;font-size:1em;text-align:center;border:1px solid #bbb;border-radius:8px;padding:0 8px;box-sizing:border-box;}\n"
             "  </style>\n"
             "</head>\n"
             f'<body class="touch-machine" onload="initMachineSettingsPage()">\n'
@@ -132,17 +138,43 @@ class MachineUIMixin:
             f"{presets_html}"
             "    </table>\n"
             "  </div>\n"
+            '  <div class="ms-section">\n'
+            f"    <h3>\U0001F4B6 {_('Material pricing')}</h3>\n"
+            f"    <p style=\"font-size:.88em;color:#666;margin:0 0 10px\">{_('Select a material to get a cost estimate on the generator page.')}</p>\n"
+            '    <table class="ms-mat-table">\n'
+            '      <tr><td><input type="radio" name="ms-material" id="ms-mat-none" value=""><label for="ms-mat-none">\u2014 Aucun \u2014</label></td><td></td></tr>\n'
+            '      <tr><td><input type="radio" name="ms-material" id="ms-mat-tilleul3" value="tilleul3"><label for="ms-mat-tilleul3">3mm contreplaqué Tilleul</label></td><td>25 \u20ac/m\u00b2</td></tr>\n'
+            '      <tr><td><input type="radio" name="ms-material" id="ms-mat-noyer" value="noyer"><label for="ms-mat-noyer">contreplaqué Noyer</label></td><td>36 \u20ac/m\u00b2</td></tr>\n'
+            "    </table>\n"
+            "  </div>\n"
+            '  <div class="ms-section">\n'
+            f"    <h3>\U0001F4CA {_('Margin coefficient')}</h3>\n"
+            f"    <p style=\"font-size:.88em;color:#666;margin:0 0 10px\">{_('Multiply the material cost by this factor (e.g. 1.5 for a 50% margin). Default: 1.')}</p>\n"
+            '    <div class="ms-coef-row">\n'
+            f'      <label>{_("Coefficient")}<input type="number" id="machine-margin-coef" min="0.01" max="100" step="0.01" value="1"></label>\n'
+            "    </div>\n"
+            "  </div>\n"
             "</div>\n\n"
             "<script>\n"
             "function initMachineSettingsPage() {\n"
             "    const cfg = loadMachineConfig();\n"
             "    document.getElementById('machine-w').value = cfg.w;\n"
             "    document.getElementById('machine-h').value = cfg.h;\n"
+            "    const matVal = cfg.material || '';\n"
+            "    const radios = document.querySelectorAll('input[name=\"ms-material\"]');\n"
+            "    radios.forEach(r => { r.checked = (r.value === matVal); });\n"
+            "    if (!Array.from(radios).some(r => r.checked)) radios[0].checked = true;\n"
+            "    const coefEl = document.getElementById('machine-margin-coef');\n"
+            "    if (coefEl) coefEl.value = (cfg.margin_coef !== undefined ? cfg.margin_coef : 1);\n"
             "}\n"
             "function saveMachineSettingsPage() {\n"
             "    const w = parseFloat(document.getElementById('machine-w').value) || 300;\n"
             "    const h = parseFloat(document.getElementById('machine-h').value) || 300;\n"
-            "    saveMachineConfig(w, h);\n"
+            "    const matRadio = document.querySelector('input[name=\"ms-material\"]:checked');\n"
+            "    const mat = matRadio ? matRadio.value : '';\n"
+            "    const coefEl = document.getElementById('machine-margin-coef');\n"
+            "    const coef = coefEl ? (parseFloat(coefEl.value) || 1) : 1;\n"
+            "    saveMachineConfig(w, h, mat, coef);\n"
             "    const st = document.getElementById('ms-status');\n"
             "    if (st) { st.style.display='inline'; clearTimeout(st._t); st._t=setTimeout(()=>{st.style.display='none';},1500); }\n"
             "}\n"

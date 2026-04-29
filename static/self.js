@@ -534,14 +534,28 @@ const KNOWN_MACHINES = [
     { brand: 'xTool', model: 'M1 Ultra', w: 300, h: 300 },
 ];
 
+/** Available materials: { id, label, price_per_m2 } */
+const MATERIALS = [
+    { id: 'tilleul3',  label: '3mm contreplaqué Tilleul',  price_per_m2: 25 },
+    { id: 'noyer',     label: 'contreplaqué Noyer',         price_per_m2: 36 },
+];
+
+const MACHINE_DEFAULTS = { w: 300, h: 300, material: '', margin_coef: 1 };
+
 function loadMachineConfig() {
     try {
-        return JSON.parse(localStorage.getItem(MACHINE_STORAGE_KEY) || 'null') || { w: 300, h: 300 };
-    } catch(_) { return { w: 300, h: 300 }; }
+        const saved = JSON.parse(localStorage.getItem(MACHINE_STORAGE_KEY) || 'null');
+        return Object.assign({}, MACHINE_DEFAULTS, saved || {});
+    } catch(_) { return Object.assign({}, MACHINE_DEFAULTS); }
 }
 
-function saveMachineConfig(w, h) {
-    try { localStorage.setItem(MACHINE_STORAGE_KEY, JSON.stringify({ w, h })); } catch(_) {}
+function saveMachineConfig(w, h, material, margin_coef) {
+    const cfg = loadMachineConfig();
+    cfg.w = w;
+    cfg.h = h;
+    if (material !== undefined) cfg.material = material;
+    if (margin_coef !== undefined) cfg.margin_coef = margin_coef;
+    try { localStorage.setItem(MACHINE_STORAGE_KEY, JSON.stringify(cfg)); } catch(_) {}
 }
 
 function initMachineConfigPanel() {
@@ -574,6 +588,39 @@ function initMachineConfigPanel() {
     hInput.value = cfg.h;
     _syncMachinePreset(sel, cfg.w, cfg.h);
 
+    // Material selector
+    const matSel = document.getElementById('machine-material');
+    if (matSel) {
+        matSel.innerHTML = '<option value="">\u2014 Aucun \u2014</option>';
+        for (const mat of MATERIALS) {
+            const opt = document.createElement('option');
+            opt.value = mat.id;
+            opt.textContent = `${mat.label} (${mat.price_per_m2}\u20ac/m\u00b2)`;
+            matSel.appendChild(opt);
+        }
+        matSel.value = cfg.material || '';
+        matSel.addEventListener('change', function() {
+            const w = parseFloat(wInput.value) || 300;
+            const h = parseFloat(hInput.value) || 300;
+            const coef = parseFloat(document.getElementById('machine-margin-coef')?.value || '1') || 1;
+            saveMachineConfig(w, h, matSel.value, coef);
+            _updatePriceInfo();
+        });
+    }
+
+    // Margin coefficient
+    const coefInput = document.getElementById('machine-margin-coef');
+    if (coefInput) {
+        coefInput.value = cfg.margin_coef !== undefined ? cfg.margin_coef : 1;
+        coefInput.addEventListener('change', function() {
+            const w = parseFloat(wInput.value) || 300;
+            const h = parseFloat(hInput.value) || 300;
+            const mat = matSel ? matSel.value : '';
+            saveMachineConfig(w, h, mat, parseFloat(coefInput.value) || 1);
+            _updatePriceInfo();
+        });
+    }
+
     sel.addEventListener('change', function() {
         if (!sel.value) return;
         const parts = sel.value.split('x');
@@ -581,14 +628,18 @@ function initMachineConfigPanel() {
         const h = Number(parts[1]);
         wInput.value = w;
         hInput.value = h;
-        saveMachineConfig(w, h);
+        const mat = matSel ? matSel.value : '';
+        const coef = parseFloat(coefInput?.value || '1') || 1;
+        saveMachineConfig(w, h, mat, coef);
         _updateFitInfo();
     });
 
     const onDimChange = function() {
         const w = parseFloat(wInput.value) || 300;
         const h = parseFloat(hInput.value) || 300;
-        saveMachineConfig(w, h);
+        const mat = matSel ? matSel.value : '';
+        const coef = parseFloat(coefInput?.value || '1') || 1;
+        saveMachineConfig(w, h, mat, coef);
         _syncMachinePreset(sel, w, h);
         _updateFitInfo();
     };
@@ -617,13 +668,16 @@ async function updateSurfaceInfo(svgUrl) {
         const dims = _parseSvgMmDims(text);
         if (!dims) { _clearSurfaceInfo(); return; }
         _svgDims = dims;
-        const surface = Math.round(dims.w * dims.h);
+        const areaMm2 = dims.w * dims.h;
+        const areaM2  = areaMm2 / 1_000_000;
+        const areaStr = areaM2.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         bar.innerHTML =
             `<span class="surf-dims">\ud83d\udcd0 ${dims.w.toFixed(1)} \u00d7 ${dims.h.toFixed(1)} mm</span>`
             + `<span class="surf-sep">\u2022</span>`
-            + `<span class="surf-area">${surface.toLocaleString()} mm\u00b2</span>`;
+            + `<span class="surf-area">${areaStr} m\u00b2</span>`;
         bar.style.display = 'flex';
         _updateFitInfo();
+        _updatePriceInfo();
     } catch(_) { _clearSurfaceInfo(); }
 }
 
@@ -643,8 +697,29 @@ function _clearSurfaceInfo() {
     _svgDims = null;
     const bar = document.getElementById('surface-info-bar');
     const fit = document.getElementById('fit-info-bar');
+    const price = document.getElementById('price-info-bar');
     if (bar) bar.innerHTML = '';           // :empty CSS hides it
     if (fit) { fit.className = 'fit-info'; fit.textContent = ''; }
+    if (price) { price.innerHTML = ''; }
+}
+
+function _updatePriceInfo() {
+    const price = document.getElementById('price-info-bar');
+    if (!price || !_svgDims) return;
+    const cfg = loadMachineConfig();
+    const matId = cfg.material || '';
+    const margin = parseFloat(cfg.margin_coef) || 1;
+    const mat = MATERIALS.find(m => m.id === matId);
+    if (!mat) { price.innerHTML = ''; return; }
+    const areaM2 = (_svgDims.w * _svgDims.h) / 1_000_000;
+    const total = areaM2 * mat.price_per_m2 * margin;
+    const totalStr = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    price.innerHTML =
+        `<span class="surf-price-label">\ud83d\udcb6 ${mat.label}</span>`
+        + `<span class="surf-sep">\u2022</span>`
+        + `<span class="surf-price-value">${totalStr} \u20ac</span>`
+        + (margin !== 1 ? `<span class="surf-price-margin">(×${margin})</span>` : '');
+    price.style.display = 'flex';
 }
 
 function _updateFitInfo() {
@@ -664,6 +739,7 @@ function _updateFitInfo() {
         fit.textContent = `\u26a0\ufe0f Needs ${total} sheet${total > 1 ? 's' : ''} (${sw}\u00d7${sh} grid) \u2013 machine: ${mw}\u00d7${mh} mm`;
     }
     fit.style.display = 'flex';
+    _updatePriceInfo();
 }
 
 
