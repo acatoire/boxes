@@ -179,7 +179,7 @@ def text_to_svg_path(
     the SVG (Y-down).  The caller should apply the same transform matrix used
     for the original ``<text>`` element.
     """
-    fpath = resolve_font_path(font_name)
+    fpath = font_path(font_name)
     if fpath is None:
         return None
 
