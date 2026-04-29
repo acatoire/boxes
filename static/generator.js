@@ -91,7 +91,14 @@ function loadParamsFromJson(input) {
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
-            _applyParamsData(JSON.parse(e.target.result));
+            const data = JSON.parse(e.target.result);
+            // Show spinner immediately, suppress per-field refreshes,
+            // then fire a single refresh once all fields are set.
+            _showPreviewLoading();
+            window._suppressPreview = true;
+            _applyParamsData(data);
+            window._suppressPreview = false;
+            if (typeof refreshPreview === 'function') refreshPreview();
         } catch (_) {
             alert('Invalid JSON file.');
         }

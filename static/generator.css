@@ -69,7 +69,6 @@ body.touch-args .config-preview   { flex: 1 1 0; min-width: 260px; }
 
 /* Bigger form controls */
 body.touch-args table input[type="text"],
-body.touch-args table select,
 body.touch-args table textarea {
   field-sizing: content;  /* Chrome 123+, Firefox 128+ */
   height: 44px;
@@ -78,11 +77,22 @@ body.touch-args table textarea {
   border-radius: 6px;
   border: 1px solid #bbb;
   box-sizing: border-box;
-  min-width: 70px;
-  max-width: 100%;
+  min-width: 55px;
+  max-width: 55px;
   text-align: center;
 }
-body.touch-args table textarea    { height: auto; max-height: 70px; overflow-y: auto; padding: 8px 10px; width: 100%; min-width: 0; resize: vertical; }
+body.touch-args table select {
+  field-sizing: content;
+  height: 44px;
+  font-size: 1em;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  box-sizing: border-box;
+  min-width: 55px;
+  max-width: 200px;
+}
+body.touch-args table textarea    { height: auto; max-height: 70px; overflow-y: auto; padding: 8px 10px; width: 100%; min-width: 0; max-width: none; resize: vertical; }
 
 body.touch-args .stepper-input    { height: 44px; width: 4.5em; font-size: 1em; }
 body.touch-args .stepper-btn      { min-width: 44px; min-height: 44px; font-size: 1.2em; padding: 0 10px; }

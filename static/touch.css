@@ -232,8 +232,8 @@ body.touch-hub {
   font-family: inherit;
   cursor: pointer;
   flex: 1 1 auto;
-  min-width: 70px;
-  max-width: 170px;
+  min-width: 55px;
+  max-width: 55px;
   overflow: hidden;
   /* label + badge side by side; label will truncate */
   display: inline-flex;
