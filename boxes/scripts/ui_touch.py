@@ -70,6 +70,18 @@ class TouchUIMixin:
     def genHTMLTouchCSS(self) -> str:
         return f'<link rel="stylesheet" href="{self.static_url}/touch.css">'
 
+    def genHTMLGeneratorCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/generator.css">'
+
+    def genHTMLCategoriesCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/categories.css">'
+
+    def genHTMLColorsCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/colors.css">'
+
+    def genHTMLMachineCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/machine.css">'
+
     def genHTMLTouchJS(self) -> str:
         return f'<script src="{self.static_url}/touch.js"></script>'
 

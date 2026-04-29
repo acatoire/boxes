@@ -22,6 +22,8 @@ class GeneratorUIMixin:
         raise NotImplementedError
     def genHTMLTouchCSS(self) -> str:
         raise NotImplementedError
+    def genHTMLGeneratorCSS(self) -> str:
+        raise NotImplementedError
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
     def _touch_header_html(
@@ -107,6 +109,7 @@ class GeneratorUIMixin:
             f"{self.genHTMLMetaLanguageLink()}\n"
             f"  {self.genHTMLCSS()}\n"
             f"  {self.genHTMLTouchCSS()}\n"
+            f"  {self.genHTMLGeneratorCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
             f'  <script src="{self.static_url}/generator.js"></script>\n'

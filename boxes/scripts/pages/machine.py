@@ -38,6 +38,9 @@ class MachineUIMixin:
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
 
+    def genHTMLMachineCSS(self) -> str:
+        raise NotImplementedError
+
     def _touch_header_html(self, lang: object, back_url: str = "", back_icon_only: bool = False) -> str:
         raise NotImplementedError
 
@@ -86,35 +89,9 @@ class MachineUIMixin:
             f"  {self.genHTMLMeta()}\n"
             f"  {self.genHTMLCSS()}\n"
             f"  {self.genHTMLTouchCSS()}\n"
+            f"  {self.genHTMLMachineCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
-            "  <style>\n"
-            "    body.touch-machine{margin:0;padding:0;min-height:100dvh;display:flex;flex-direction:column;background:var(--th-page-bg);font-size:17px;}\n"
-            "    .ms-body{flex:1;padding:20px 24px;overflow-y:auto;max-width:700px;}\n"
-            "    .ms-body h2{margin:0 0 6px;color:#333;}\n"
-            "    .ms-body>p{margin:0 0 20px;color:#666;font-size:.9em;}\n"
-            "    .ms-section{background:#fff;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.09);padding:18px 20px;margin-bottom:20px;}\n"
-            "    .ms-section h3{margin:0 0 14px;font-size:1em;color:#333;}\n"
-            "    .ms-dims{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}\n"
-            "    .ms-dims label{font-size:.95em;color:#444;display:flex;align-items:center;gap:8px;}\n"
-            "    .ms-dims input{height:44px;width:90px;font-size:1em;text-align:center;border:1px solid #bbb;border-radius:8px;padding:0 8px;box-sizing:border-box;}\n"
-            "    .ms-table{width:100%;border-collapse:collapse;font-size:.93em;}\n"
-            "    .ms-table td{padding:8px 10px;border-bottom:1px solid #f0ebe0;vertical-align:middle;}\n"
-            "    .ms-brand-row td{background:#f5f0e8;font-weight:bold;color:#555;padding:6px 10px;}\n"
-            "    .ms-btn{border:none;border-radius:8px;padding:0 16px;height:36px;font-size:.9em;font-family:inherit;cursor:pointer;transition:background .15s;}\n"
-            "    .ms-btn-use{background:var(--th-accent);color:#fff;font-weight:bold;}\n"
-            "    .ms-btn-use:hover{background:var(--th-accent2);}\n"
-            "    .ms-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px;}\n"
-            "    .ms-save-btn{background:var(--th-accent);color:#fff;border:none;border-radius:10px;padding:0 28px;min-height:48px;font-size:1em;font-family:inherit;font-weight:bold;cursor:pointer;transition:background .15s;}\n"
-            "    .ms-save-btn:hover{background:var(--th-accent2);}\n"
-            "    #ms-status{color:#2e7d32;font-weight:bold;}\n"
-            "    .ms-mat-table{width:100%;border-collapse:collapse;font-size:.93em;}\n"
-            "    .ms-mat-table td{padding:8px 10px;border-bottom:1px solid #f0ebe0;vertical-align:middle;}\n"
-            "    .ms-mat-table input[type=radio]{width:18px;height:18px;accent-color:var(--th-accent);cursor:pointer;}\n"
-            "    .ms-coef-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}\n"
-            "    .ms-coef-row label{font-size:.95em;color:#444;}\n"
-            "    .ms-coef-row input{height:44px;width:90px;font-size:1em;text-align:center;border:1px solid #bbb;border-radius:8px;padding:0 8px;box-sizing:border-box;}\n"
-            "  </style>\n"
             "</head>\n"
             f'<body class="touch-machine" onload="initMachineSettingsPage()">\n'
             f"\n{touch_header}\n\n"
