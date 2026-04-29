@@ -82,11 +82,19 @@ class GeneratorUIMixin:
             ):
                 continue
             prefix = getattr(group, "prefix", None)
+            # Default Settings (prefix="") starts collapsed – rarely needs changes
+            is_default = prefix == ""
+            h3_cls      = "toggle" if is_default else "toggle open"
+            h3_expanded = "false" if is_default else "true"
+            tbl_style   = ' style="display:none"' if is_default else ""
+            # Prefix IDs with "g" to avoid collision with numeric category IDs
+            # that applyHiddenCategoriesMenu() reads from localStorage.
+            sid = f"g{groupid}"
             form_rows.append(
-                f'<h3 id="h-{groupid}" data-id="{groupid}" role="button" '
-                f'aria-expanded="true" tabindex="0" class="toggle open">'
+                f'<h3 id="h-{sid}" data-id="{sid}" role="button" '
+                f'aria-expanded="{h3_expanded}" tabindex="0" class="{h3_cls}">'
                 f"{_(group.title)}</h3>\n"
-                f'<table role="presentation" id="{groupid}">\n'
+                f'<table role="presentation" id="{sid}"{tbl_style}>\n'
             )
             for a in group._group_actions:
                 if a.dest in ("input", "output", "language"):
@@ -94,7 +102,7 @@ class GeneratorUIMixin:
                 form_rows.append(self.arg2html(a, prefix, defaults, _))
             form_rows.append("</table>")
             groupid += 1
-        num_hide = len(box.argparser._action_groups) - 3  # type: ignore[attr-defined]
+        num_hide = 0  # all groups start expanded; users can collapse what they don't need
         # Discover JSON template files next to the generator source
         templates: list[tuple[str, dict]] = []
         try:
