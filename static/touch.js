@@ -143,25 +143,6 @@ function initTouchHub() {
     applyHiddenCategoriesTouch();
 }
 
-/* Touch args page init */
-
-/**
- * Called from the touch args page onload.
- * numHide mirrors the same argument as initArgsPage().
- */
-function initTouchArgs(numHide) {
-    // Reuse the existing initArgsPage from self.js
-    if (typeof initArgsPage === 'function') initArgsPage(numHide);
-
-    // Wire up the sticky action bar buttons
-    _bindTouchActionBar();
-
-    // Auto-size inputs/selects if field-sizing:content is unsupported (Firefox < 128)
-    if (!CSS.supports('field-sizing', 'content')) {
-        _autoSizeAllFields();
-    }
-}
-
 /* field-sizing fallback (Firefox / Safari) */
 
 const _sizeCanvas = document.createElement('canvas');
@@ -192,36 +173,5 @@ function _autoSizeAllFields() {
         _autoSizeField(el);
         el.addEventListener('change', () => _autoSizeField(el));
         el.addEventListener('input',  () => _autoSizeField(el));
-    });
-}
-
-function _bindTouchActionBar() {
-    // Buttons in .touch-action-bar have data-render attribute
-    document.querySelectorAll('.touch-action-btn[data-render]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const renderVal = this.dataset.render;
-            const target    = this.dataset.target || '_blank';
-            const form = document.querySelector('#arguments');
-            if (!form) return;
-
-            // Temporarily set render + formtarget on a hidden input and submit
-            let ri = form.querySelector('input[name="render"][data-touch]');
-            if (!ri) {
-                ri = document.createElement('input');
-                ri.type = 'hidden';
-                ri.name = 'render';
-                ri.setAttribute('data-touch', '1');
-                form.appendChild(ri);
-            }
-            ri.value = renderVal;
-            const prevTarget = form.target;
-            form.target = target;
-
-            // Inject color overrides (from self.js)
-            if (typeof injectColorHiddenFields === 'function') injectColorHiddenFields(form);
-
-            form.submit();
-            form.target = prevTarget;
-        });
     });
 }

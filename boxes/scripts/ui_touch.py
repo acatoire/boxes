@@ -70,6 +70,18 @@ class TouchUIMixin:
     def genHTMLTouchCSS(self) -> str:
         return f'<link rel="stylesheet" href="{self.static_url}/touch.css">'
 
+    def genHTMLGeneratorCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/generator.css">'
+
+    def genHTMLCategoriesCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/categories.css">'
+
+    def genHTMLColorsCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/colors.css">'
+
+    def genHTMLMachineCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/machine.css">'
+
     def genHTMLTouchJS(self) -> str:
         return f'<script src="{self.static_url}/touch.js"></script>'
 
@@ -115,6 +127,7 @@ class TouchUIMixin:
         # Interface switcher (Touch is always the current interface here)
         dropdown_items.append("      " + gen_interface_select_html("TouchHub", _))
         dropdown_items.append(f'      <a href="colors">\U0001f3a8 {_("Colors")}</a>')
+        dropdown_items.append(f'      <a href="machine">\u2699 {_("Machine")}</a>')
         dropdown_items.append(f'      <a href="categories">\U0001f4c2 {_("Categories")}</a>')
         # Language selection inside the dropdown
         lang_sel = self.genHTMLLanguageSelection(lang)

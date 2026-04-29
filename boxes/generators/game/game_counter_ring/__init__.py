@@ -72,6 +72,7 @@ cut in a single laser pass with minimal material waste.
     font_font: str = "sans-serif"
     font_bold: bool = False
     font_italic: bool = False
+    font_font_as_path: bool = True
     pointer_size: float = 6.0
     pointer_style: str = "triangle"
     crenel_enabled: bool = False
@@ -133,7 +134,8 @@ cut in a single laser pass with minimal material waste.
             return
         angle_step_rad = 2.0 * math.pi / n
 
-        ctx.set_font(self.font_font, bold=self.font_bold, italic=self.font_italic)
+        ctx.set_font(self.font_font, bold=self.font_bold, italic=self.font_italic,
+                     as_path=self.font_font_as_path)
         self.set_source_color(Color.ETCHING)
         for i, score in enumerate(range(self.score_min, self.score_max + 1)):
             # Match crenel tooth centres: start at LEFT (π), go clockwise on screen

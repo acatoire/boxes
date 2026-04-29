@@ -6,6 +6,10 @@
 #   (at your option) any later version.
 from __future__ import annotations
 import argparse
+import inspect
+import json
+from pathlib import Path
+
 import markdown
 class GeneratorUIMixin:
     """Mixin that renders the touch-mode generator configuration page (/GeneratorName)."""
@@ -21,6 +25,8 @@ class GeneratorUIMixin:
     def genHTMLJS(self) -> str:
         raise NotImplementedError
     def genHTMLTouchCSS(self) -> str:
+        raise NotImplementedError
+    def genHTMLGeneratorCSS(self) -> str:
         raise NotImplementedError
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
@@ -76,11 +82,19 @@ class GeneratorUIMixin:
             ):
                 continue
             prefix = getattr(group, "prefix", None)
+            # Default Settings (prefix="") starts collapsed – rarely needs changes
+            is_default = prefix == ""
+            h3_cls      = "toggle" if is_default else "toggle open"
+            h3_expanded = "false" if is_default else "true"
+            tbl_style   = ' style="display:none"' if is_default else ""
+            # Prefix IDs with "g" to avoid collision with numeric category IDs
+            # that applyHiddenCategoriesMenu() reads from localStorage.
+            sid = f"g{groupid}"
             form_rows.append(
-                f'<h3 id="h-{groupid}" data-id="{groupid}" role="button" '
-                f'aria-expanded="true" tabindex="0" class="toggle open">'
+                f'<h3 id="h-{sid}" data-id="{sid}" role="button" '
+                f'aria-expanded="{h3_expanded}" tabindex="0" class="{h3_cls}">'
                 f"{_(group.title)}</h3>\n"
-                f'<table role="presentation" id="{groupid}">\n'
+                f'<table role="presentation" id="{sid}"{tbl_style}>\n'
             )
             for a in group._group_actions:
                 if a.dest in ("input", "output", "language"):
@@ -88,7 +102,47 @@ class GeneratorUIMixin:
                 form_rows.append(self.arg2html(a, prefix, defaults, _))
             form_rows.append("</table>")
             groupid += 1
-        num_hide = len(box.argparser._action_groups) - 3  # type: ignore[attr-defined]
+        num_hide = 0  # all groups start expanded; users can collapse what they don't need
+        # Discover JSON template files next to the generator source
+        templates: list[tuple[str, dict]] = []
+        try:
+            gen_file = Path(inspect.getfile(type(box)))
+            for jf in sorted(gen_file.parent.glob("*.json")):
+                try:
+                    templates.append((jf.stem, json.loads(jf.read_text(encoding="utf-8"))))
+                except (ValueError, OSError):
+                    pass
+        except (TypeError, OSError):
+            pass
+        templates_js = json.dumps([{"name": n, "data": d} for n, d in templates], separators=(",", ":"))
+        templates_script = f'<script>var GENERATOR_TEMPLATES={templates_js};</script>' if templates else ""
+        # Build the unified controls bar (template dropdown + zoom + info slots)
+        template_section = ""
+        if templates:
+            opts = "\n".join(
+                f'<option value="{i}">{t[0]}</option>'
+                for i, t in enumerate(templates)
+            )
+            template_section = (
+                f'<select id="template-select" class="template-select" onchange="applyTemplatePreset(this.value)">'
+                f'<option value="">{_("Load template")}\u2026</option>{opts}'
+                f'</select>\n'
+                f'  <span class="controls-bar-sep"></span>\n'
+            )
+        controls_bar_html = (
+            f'<div class="controls-bar">\n'
+            f'  {template_section}'
+            f'  <div id="preview_buttons" class="preview-ctrl-card">\n'
+            f'    {_("Zoom: ")}\n'
+            f'    <button type="button" onclick="preview_scale/=1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">\u2212</button>\n'
+            f'    <button type="button" onclick="preview_scale*= 1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">+</button>\n'
+            f'    <button type="button" onclick="preview_scale=100; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">{_("Reset")}</button>\n'
+            f'  </div>\n'
+            f'  <div id="surface-info-bar" class="surface-info-bar"></div>\n'
+            f'  <div id="price-info-bar" class="price-info-bar"></div>\n'
+            f'  <div id="fit-info-bar" class="fit-info"></div>\n'
+            f'</div>\n'
+        )
         # Tab buttons go in the header center
         tabs_html = (
             f'<button class="tabbtn th-tab-btn active" onclick="switchTab(event,\'description\')">'
@@ -107,8 +161,11 @@ class GeneratorUIMixin:
             f"{self.genHTMLMetaLanguageLink()}\n"
             f"  {self.genHTMLCSS()}\n"
             f"  {self.genHTMLTouchCSS()}\n"
+            f"  {self.genHTMLGeneratorCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f"  {templates_script}\n"
+            f'  <script src="{self.static_url}/generator.js"></script>\n'
             "</head>\n"
             f'<body class="touch-args" onload="initTouchArgs({num_hide})">\n'
             f"\n{header_html}\n\n"
@@ -124,6 +181,7 @@ class GeneratorUIMixin:
             "    </div>\n"
             "  </div>\n"
             '\n  <div id="tab-configuration" class="tab-panel" style="display:none">\n'
+            f"{controls_bar_html}"
             '    <div class="config-layout">\n'
             '      <div class="config-form">\n'
             f'        <form id="arguments" action="{action}" method="GET" rel="nofollow">\n'
@@ -132,13 +190,8 @@ class GeneratorUIMixin:
             "        </form>\n"
             "      </div>\n"
             '      <div id="preview" class="config-preview">\n'
-            '        <div id="preview_buttons">\n'
-            f'          {_("Zoom: ")}\n'
-            '          <button type="button" onclick="preview_scale/=1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">\u2212</button>\n'
-            '          <button type="button" onclick="preview_scale*= 1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">+</button>\n'
-            f'          <button type="button" onclick="preview_scale=100; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">{_("Reset")}</button>\n'
-            "        </div>\n"
-            '        <div style="overflow:auto;">\n'
+            '        <div id="preview-container" class="preview-container">\n'
+            '          <div id="preview-loading" class="preview-loading" role="status" aria-label="Loading\u2026"></div>\n'
             '          <figure id="preview_figure">\n'
             f'            <img id="preview_img" style="width:100%" src="{self.static_url}/nothing.png">\n'
             "          </figure>\n"
@@ -151,8 +204,11 @@ class GeneratorUIMixin:
             '<div class="touch-action-bar">\n'
             f'  <button class="touch-action-btn" data-render="1" data-target="_blank">{_("Generate")}</button>\n'
             f'  <button class="touch-action-btn secondary" data-render="2" data-target="_self">{_("Download")}</button>\n'
-            f'  <button class="touch-action-btn secondary" data-render="0" data-target="_self">{_("Save URL")}</button>\n'
-            f'  <button class="touch-action-btn secondary" data-render="3" data-target="_blank">{_("QR Code")}</button>\n'
+            f'  <button class="touch-action-btn secondary" data-render="0" data-target="_self">{_("URL")}</button>\n'
+            f'  <button class="touch-action-btn secondary" data-render="3" data-target="_blank">{_("QR")}</button>\n'
+            f'  <button class="touch-action-btn secondary" type="button" onclick="saveParamsAsJson()">{_("Save")}</button>\n'
+            f'  <label class="touch-action-btn secondary" style="cursor:pointer;">{_("Import")}'
+            f'<input type="file" accept=".json" style="display:none" onchange="loadParamsFromJson(this)"></label>\n'
             "</div>\n"
             "\n<!-- Help modal -->\n"
             '<div id="help-modal" class="help-modal-overlay" onclick="closeHelpModal()">\n'
