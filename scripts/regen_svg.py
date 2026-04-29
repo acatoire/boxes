@@ -21,6 +21,7 @@ Usage::
     python scripts/regen_svg.py GameCounterRing
     python scripts/regen_svg.py GameCounterRing ABox ClosedBox
     python scripts/regen_svg.py --all
+    python scripts/regen_svg.py --examples   # also regenerate hash-suffixed SVGs from examples.yml
 
 The script writes the SVG next to the generator source file (same stem,
 ``.svg`` extension) and prints one line per file so you can pipe it straight
@@ -30,11 +31,14 @@ into ``git add``.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import inspect
 import io
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
+
+import yaml
 
 # Allow running from the repo root without installing the package.
 ROOT = Path(__file__).resolve().parent.parent
@@ -125,6 +129,62 @@ def interactive_select() -> list[str]:
     return selected
 
 
+def regen_examples() -> None:
+    """Regenerate hash-suffixed SVGs for all entries in examples.yml."""
+    examples_file = ROOT / "examples.yml"
+    if not examples_file.is_file():
+        print("examples.yml not found – skipping.", flush=True)
+        return
+
+    with examples_file.open() as f:
+        config = yaml.safe_load(f)
+
+    all_generators = boxes.generators.getAllBoxGenerators()
+    by_name = {v.__name__: v for v in all_generators.values()}
+
+    ok = skipped = failed = 0
+    for entry in config.get("Boxes", []):
+        gen_name = entry.get("box_type")
+        if not gen_name or gen_name == "__ALL__":
+            continue
+        args_dict: dict = entry.get("args", {})
+        cls = by_name.get(gen_name)
+        if cls is None:
+            print(f"  SKIP {gen_name}: not found", flush=True)
+            skipped += 1
+            continue
+
+        box_args = [f"--{k}={v}" for k, v in args_dict.items()]
+        args_hash = hashlib.sha1(" ".join(sorted(box_args)).encode()).hexdigest()
+
+        gen_file = Path(inspect.getfile(cls))
+        stem = gen_file.parent.name if gen_file.name == "__init__.py" else gen_file.stem
+        gen_dir = gen_file.parent
+        out = gen_dir / f"{stem}_{args_hash[:8]}.svg"
+
+        try:
+            b = cls()
+            b.parseArgs(box_args)
+            b.metadata["reproducible"] = True
+            b.metadata["args_hash"] = args_hash
+            with redirect_stdout(io.StringIO()):
+                b.open()
+                b.render()
+                data = b.close()
+            if data is None:
+                print(f"  SKIP {gen_name}: no SVG output", flush=True)
+                skipped += 1
+                continue
+            out.write_bytes(data.getvalue())
+            print(str(out), flush=True)
+            ok += 1
+        except Exception as exc:
+            print(f"  ERROR {gen_name}: {exc}", flush=True)
+            failed += 1
+
+    print(f"\nExamples done: {ok} regenerated, {skipped} skipped, {failed} failed.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -132,7 +192,13 @@ def main() -> None:
                         help="One or more generator class names.")
     parser.add_argument("--all", action="store_true",
                         help="Regenerate SVGs for all generators.")
+    parser.add_argument("--examples", action="store_true",
+                        help="Also regenerate hash-suffixed SVGs from examples.yml.")
     args = parser.parse_args()
+
+    if args.examples and not args.all and not args.generators:
+        regen_examples()
+        return
 
     if args.all:
         names = sorted({v.__name__ for v in boxes.generators.getAllBoxGenerators().values()})
@@ -154,6 +220,9 @@ def main() -> None:
 
     if len(names) > 1:
         print(f"\nDone: {ok} regenerated, {skipped} skipped, {failed} failed.")
+
+    if args.examples:
+        regen_examples()
 
 
 if __name__ == "__main__":

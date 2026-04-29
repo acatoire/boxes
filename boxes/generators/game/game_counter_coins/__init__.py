@@ -57,6 +57,7 @@ Assembly: insert magnet into both pieces → stack face-to-face → enjoy!
     font_font: str = "sans-serif"
     font_bold: bool = False
     font_italic: bool = False
+    font_font_as_path: bool = True
     notch_width: float = 15.0
     notch_depth: float | None = None
     notch_style: str = "oval"
@@ -161,7 +162,8 @@ Assembly: insert magnet into both pieces → stack face-to-face → enjoy!
             else r - offset_label_radius
         )
 
-        ctx.set_font(self.font_font, bold=self.font_bold, italic=self.font_italic)
+        ctx.set_font(self.font_font, bold=self.font_bold, italic=self.font_italic,
+                     as_path=self.font_font_as_path)
         self.set_source_color(Color.ETCHING)
         for i, (label, extra_angle) in enumerate(labels):
             angle_deg = i * angle_step
