@@ -12,6 +12,16 @@ function initTouchArgs(numHide) {
     // Reuse the existing initArgsPage from self.js
     if (typeof initArgsPage === 'function') initArgsPage(numHide);
 
+    // Wrap the global refreshPreview so bulk template loading can suppress it.
+    _wrapRefreshPreview();
+
+    // Wire preview_img load/error to remove the loading spinner.
+    const img = document.getElementById('preview_img');
+    if (img) {
+        img.addEventListener('load',  _hidePreviewLoading);
+        img.addEventListener('error', _hidePreviewLoading);
+    }
+
     // Wire up the sticky action bar buttons
     _bindTouchActionBar();
 
@@ -22,6 +32,35 @@ function initTouchArgs(numHide) {
     if (!CSS.supports('field-sizing', 'content')) {
         _autoSizeAllFields();
     }
+}
+
+/* ----------------------------------------------------------------
+   Preview loading state
+   ---------------------------------------------------------------- */
+
+/** Wrap the global refreshPreview once so a suppress flag can mute it. */
+function _wrapRefreshPreview() {
+    if (window._refreshPreviewWrapped) return;
+    const orig = window.refreshPreview;
+    if (typeof orig !== 'function') return;
+    window.refreshPreview = function () {
+        if (window._suppressPreview) return;
+        _showPreviewLoading();
+        orig.call(this);
+    };
+    window._refreshPreviewWrapped = true;
+}
+
+/** Add the loading spinner overlay to the preview area. */
+function _showPreviewLoading() {
+    const preview = document.getElementById('preview');
+    if (preview) preview.classList.add('is-loading');
+}
+
+/** Remove the loading spinner (called on img load or error). */
+function _hidePreviewLoading() {
+    const preview = document.getElementById('preview');
+    if (preview) preview.classList.remove('is-loading');
 }
 
 /* Generator params JSON export / import */
@@ -52,25 +91,50 @@ function loadParamsFromJson(input) {
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
-            const data = JSON.parse(e.target.result);
-            const form = document.querySelector('#arguments');
-            if (!form) return;
-            for (const [key, value] of Object.entries(data)) {
-                const el = form.querySelector(`[name="${CSS.escape(key)}"]`);
-                if (!el) continue;
-                if (el.type === 'checkbox') {
-                    el.checked = (value === true || value === 'true' || value === '1' || value === 'on');
-                } else {
-                    el.value = value;
-                }
-                el.dispatchEvent(new Event('change'));
-            }
+            _applyParamsData(JSON.parse(e.target.result));
         } catch (_) {
             alert('Invalid JSON file.');
         }
     };
     reader.readAsText(file);
     input.value = '';
+}
+
+/** Apply a plain {key: value} object to the #arguments form. */
+function _applyParamsData(data) {
+    const form = document.querySelector('#arguments');
+    if (!form) return;
+    for (const [key, value] of Object.entries(data)) {
+        const el = form.querySelector(`[name="${CSS.escape(key)}"]`);
+        if (!el) continue;
+        if (el.type === 'checkbox') {
+            el.checked = (value === true || value === 'true' || value === '1' || value === 'on');
+        } else {
+            el.value = value;
+        }
+        el.dispatchEvent(new Event('change'));
+    }
+}
+
+/**
+ * Load a template preset by index from the server-inlined GENERATOR_TEMPLATES array.
+ * Suppresses per-field refreshPreview calls, shows the spinner, then fires one refresh.
+ */
+function applyTemplatePreset(idx) {
+    if (idx === '' || idx === null || idx === undefined) return;
+    const tpl = (typeof GENERATOR_TEMPLATES !== 'undefined') && GENERATOR_TEMPLATES[parseInt(idx, 10)];
+    if (!tpl) return;
+
+    // Show spinner immediately
+    _showPreviewLoading();
+
+    // Suppress the per-field change→refreshPreview calls during bulk apply
+    window._suppressPreview = true;
+    _applyParamsData(tpl.data);
+    window._suppressPreview = false;
+
+    // Single refresh now that all fields are set
+    if (typeof refreshPreview === 'function') refreshPreview();
 }
 
 function _bindTouchActionBar() {

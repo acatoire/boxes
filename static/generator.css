@@ -193,24 +193,19 @@ body.touch-args form > p:last-of-type { display: none; }
    ================================================================ */
 /* Surface info bar */
 .preview-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;   /* all cards same height */
-  gap: 8px;
-  margin-top: 10px;
-  margin-bottom: 6px;
+  display: none; /* merged into .controls-bar – kept for legacy compat */
 }
 
 .preview-ctrl-card,
 .surface-info-bar,
 .fit-info {
   display: flex;
-  align-items: center;    /* content vertically centred inside */
+  align-items: center;
   gap: 8px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 2px 4px;
   font-size: 0.88em;
   color: #333;
   white-space: nowrap;
@@ -218,63 +213,126 @@ body.touch-args form > p:last-of-type { display: none; }
   box-sizing: border-box;
 }
 
-/* Override colours for fit states (keep base card shape) */
-.fit-ok   { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
-.fit-warn { background: #fff3e0; color: #e65100; border-color: #ffe0b2; }
+/* Give surface/fit/price a subtle card look inside the unified bar */
+.surface-info-bar,
+.fit-info,
+.price-info-bar {
+  background: rgba(0,0,0,0.04);
+  border-radius: 6px;
+  padding: 3px 10px;
+}
 
-/* When not yet populated, surface-info-bar is hidden */
+/* Override colours for fit states */
+.fit-ok   { background: #e8f5e9; color: #2e7d32; }
+.fit-warn { background: #fff3e0; color: #e65100; }
+
+/* When not yet populated, surface/price/fit items are hidden */
 .surface-info-bar:empty,
+.price-info-bar:empty,
 .fit-info:not(.fit-ok):not(.fit-warn) { display: none; }
 
+/* Show price and fit bars when populated */
+.price-info-bar:not(:empty) { display: flex; color: #2e7d32; }
+.fit-ok,
+.fit-warn { display: flex; font-weight: 500; }
+
 .preview-ctrl-card button {
-  height: 28px;
+  height: 26px;
   line-height: 1;
   vertical-align: middle;
-  padding: 0 10px;
+  padding: 0 8px;
   box-sizing: border-box;
 }
 .surf-dims { font-weight: bold; }
 .surf-sep  { color: #bbb; }
 .surf-area { color: #555; }
-
-/* Price estimate bar */
-.price-info-bar {
-  display: none;
-  align-items: center;
-  gap: 8px;
-  background: #f0f8f0;
-  border: 1px solid #c8e6c9;
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 0.88em;
-  color: #2e7d32;
-  white-space: nowrap;
-  line-height: 1;
-  box-sizing: border-box;
-}
-
-.price-info-bar:not(:empty) { display: flex; }
 .surf-price-label { font-weight: bold; }
-.surf-price-value { color: #1b5e20; font-weight: bold; }
-.surf-price-margin { color: #555; font-size: 0.9em; }
-
-.fit-info {
-  display: none;
-  align-items: center;
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 0.88em;
-  font-weight: 500;
-  line-height: 1.4;
-  white-space: nowrap;
-}
-.fit-ok   { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-.fit-warn { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+.surf-price-value { font-weight: bold; }
+.surf-price-margin { font-size: 0.9em; }
 
 /* Machine config inputs */
 #machine-cfg input[type="number"] {
   width: 90px;
   text-align: center;
+}
+
+/* ================================================================
+   PREVIEW LOADING SPINNER
+   Shown by adding .is-loading to #preview while SVG is generating.
+   ================================================================ */
+
+/* Fixed 500×500 initial preview zone – grows on zoom, no inner scrollbars */
+.preview-container {
+  width: 500px;
+  min-height: 500px;
+  overflow: visible;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.preview-loading {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.preview-loading::after {
+  content: '';
+  width: 52px;
+  height: 52px;
+  border: 5px solid #e8e0d0;
+  border-top-color: var(--th-accent);
+  border-radius: 50%;
+  animation: preview-spin 0.75s linear infinite;
+}
+
+@keyframes preview-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Active loading state */
+.config-preview.is-loading .preview-loading { display: flex; }
+.config-preview.is-loading #preview_img     { opacity: 0.25; transition: opacity 0.15s; }
+
+/* Unified controls bar: template selector + zoom + surface/price/fit info */
+.controls-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #fff8ea;
+  border: 1px solid #d8cdb0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-bottom: 12px;
+}
+
+/* Vertical separator between template section and zoom controls */
+.controls-bar-sep {
+  display: block;
+  width: 1px;
+  align-self: stretch;
+  background: #d8cdb0;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Template dropdown (first option acts as the label) */
+.template-select {
+  height: 32px;
+  font-size: 0.95em;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  background: #fff;
+  cursor: pointer;
+  min-width: 180px;
 }
 
 /* Responsive overrides for touch-args */

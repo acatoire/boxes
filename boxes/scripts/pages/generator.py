@@ -6,6 +6,10 @@
 #   (at your option) any later version.
 from __future__ import annotations
 import argparse
+import inspect
+import json
+from pathlib import Path
+
 import markdown
 class GeneratorUIMixin:
     """Mixin that renders the touch-mode generator configuration page (/GeneratorName)."""
@@ -91,6 +95,46 @@ class GeneratorUIMixin:
             form_rows.append("</table>")
             groupid += 1
         num_hide = len(box.argparser._action_groups) - 3  # type: ignore[attr-defined]
+        # Discover JSON template files next to the generator source
+        templates: list[tuple[str, dict]] = []
+        try:
+            gen_file = Path(inspect.getfile(type(box)))
+            for jf in sorted(gen_file.parent.glob("*.json")):
+                try:
+                    templates.append((jf.stem, json.loads(jf.read_text(encoding="utf-8"))))
+                except (ValueError, OSError):
+                    pass
+        except (TypeError, OSError):
+            pass
+        templates_js = json.dumps([{"name": n, "data": d} for n, d in templates], separators=(",", ":"))
+        templates_script = f'<script>var GENERATOR_TEMPLATES={templates_js};</script>' if templates else ""
+        # Build the unified controls bar (template dropdown + zoom + info slots)
+        template_section = ""
+        if templates:
+            opts = "\n".join(
+                f'<option value="{i}">{t[0]}</option>'
+                for i, t in enumerate(templates)
+            )
+            template_section = (
+                f'<select id="template-select" class="template-select" onchange="applyTemplatePreset(this.value)">'
+                f'<option value="">{_("Load template")}\u2026</option>{opts}'
+                f'</select>\n'
+                f'  <span class="controls-bar-sep"></span>\n'
+            )
+        controls_bar_html = (
+            f'<div class="controls-bar">\n'
+            f'  {template_section}'
+            f'  <div id="preview_buttons" class="preview-ctrl-card">\n'
+            f'    {_("Zoom: ")}\n'
+            f'    <button type="button" onclick="preview_scale/=1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">\u2212</button>\n'
+            f'    <button type="button" onclick="preview_scale*= 1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">+</button>\n'
+            f'    <button type="button" onclick="preview_scale=100; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">{_("Reset")}</button>\n'
+            f'  </div>\n'
+            f'  <div id="surface-info-bar" class="surface-info-bar"></div>\n'
+            f'  <div id="price-info-bar" class="price-info-bar"></div>\n'
+            f'  <div id="fit-info-bar" class="fit-info"></div>\n'
+            f'</div>\n'
+        )
         # Tab buttons go in the header center
         tabs_html = (
             f'<button class="tabbtn th-tab-btn active" onclick="switchTab(event,\'description\')">'
@@ -112,6 +156,7 @@ class GeneratorUIMixin:
             f"  {self.genHTMLGeneratorCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f"  {templates_script}\n"
             f'  <script src="{self.static_url}/generator.js"></script>\n'
             "</head>\n"
             f'<body class="touch-args" onload="initTouchArgs({num_hide})">\n'
@@ -128,6 +173,7 @@ class GeneratorUIMixin:
             "    </div>\n"
             "  </div>\n"
             '\n  <div id="tab-configuration" class="tab-panel" style="display:none">\n'
+            f"{controls_bar_html}"
             '    <div class="config-layout">\n'
             '      <div class="config-form">\n'
             f'        <form id="arguments" action="{action}" method="GET" rel="nofollow">\n'
@@ -136,18 +182,8 @@ class GeneratorUIMixin:
             "        </form>\n"
             "      </div>\n"
             '      <div id="preview" class="config-preview">\n'
-            '        <div class="preview-controls">\n'
-            '          <div id="preview_buttons" class="preview-ctrl-card">\n'
-            f'            {_("Zoom: ")}\n'
-            '            <button type="button" onclick="preview_scale/=1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">\u2212</button>\n'
-            '            <button type="button" onclick="preview_scale*= 1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">+</button>\n'
-            f'            <button type="button" onclick="preview_scale=100; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">{_("Reset")}</button>\n'
-            "          </div>\n"
-            '          <div id="surface-info-bar" class="surface-info-bar"></div>\n'
-            '          <div id="price-info-bar" class="price-info-bar"></div>\n'
-            '          <div id="fit-info-bar" class="fit-info"></div>\n'
-            "        </div>\n"
-            '        <div style="overflow:auto;">\n'
+            '        <div id="preview-container" class="preview-container">\n'
+            '          <div id="preview-loading" class="preview-loading" role="status" aria-label="Loading\u2026"></div>\n'
             '          <figure id="preview_figure">\n'
             f'            <img id="preview_img" style="width:100%" src="{self.static_url}/nothing.png">\n'
             "          </figure>\n"

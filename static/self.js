@@ -717,8 +717,7 @@ function _updatePriceInfo() {
     price.innerHTML =
         `<span class="surf-price-label">\ud83d\udcb6 ${mat.label}</span>`
         + `<span class="surf-sep">\u2022</span>`
-        + `<span class="surf-price-value">${totalStr} \u20ac</span>`
-        + (margin !== 1 ? `<span class="surf-price-margin">(×${margin})</span>` : '');
+        + `<span class="surf-price-value">${totalStr} \u20ac</span>`;
     price.style.display = 'flex';
 }
 
