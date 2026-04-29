@@ -228,5 +228,3 @@ def text_to_svg_path(
         x_cursor += glyph.width * scale
 
     return " ".join(parts) if parts else None
-
-
