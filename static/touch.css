@@ -512,6 +512,9 @@ body.touch-args table td:has(input[type="checkbox"]) {
 }
 
 .touch-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--th-accent);
   color: #fff;
   border: none;
@@ -524,6 +527,7 @@ body.touch-args table td:has(input[type="checkbox"]) {
   min-height: var(--th-tap-min);
   transition: background 0.15s, transform 0.1s;
   white-space: nowrap;
+  text-decoration: none;
 }
 .touch-action-btn:hover  { background: var(--th-accent2); }
 .touch-action-btn:active { transform: scale(0.96); }

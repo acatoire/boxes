@@ -109,6 +109,7 @@ class GeneratorUIMixin:
             f"  {self.genHTMLTouchCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f'  <script src="{self.static_url}/generator.js"></script>\n'
             "</head>\n"
             f'<body class="touch-args" onload="initTouchArgs({num_hide})">\n'
             f"\n{header_html}\n\n"
@@ -155,8 +156,11 @@ class GeneratorUIMixin:
             '<div class="touch-action-bar">\n'
             f'  <button class="touch-action-btn" data-render="1" data-target="_blank">{_("Generate")}</button>\n'
             f'  <button class="touch-action-btn secondary" data-render="2" data-target="_self">{_("Download")}</button>\n'
-            f'  <button class="touch-action-btn secondary" data-render="0" data-target="_self">{_("Save URL")}</button>\n'
-            f'  <button class="touch-action-btn secondary" data-render="3" data-target="_blank">{_("QR Code")}</button>\n'
+            f'  <button class="touch-action-btn secondary" data-render="0" data-target="_self">{_("URL")}</button>\n'
+            f'  <button class="touch-action-btn secondary" data-render="3" data-target="_blank">{_("QR")}</button>\n'
+            f'  <button class="touch-action-btn secondary" type="button" onclick="saveParamsAsJson()">{_("Save")}</button>\n'
+            f'  <label class="touch-action-btn secondary" style="cursor:pointer;">{_("Import")}'
+            f'<input type="file" accept=".json" style="display:none" onchange="loadParamsFromJson(this)"></label>\n'
             "</div>\n"
             "\n<!-- Help modal -->\n"
             '<div id="help-modal" class="help-modal-overlay" onclick="closeHelpModal()">\n'
