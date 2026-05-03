@@ -5,6 +5,7 @@
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
 from __future__ import annotations
+
 import argparse
 import html as _html
 import inspect
@@ -12,26 +13,39 @@ import json
 from pathlib import Path
 
 import markdown
+
 from boxes.generators import ui_groups_by_name
+
+
 class GeneratorUIMixin:
     """Mixin that renders the touch-mode generator configuration page (/GeneratorName)."""
+
     static_url: str
+
     def genHTMLStart(self, lang: object) -> str:
         raise NotImplementedError
+
     def genHTMLMeta(self) -> str:
         raise NotImplementedError
+
     def genHTMLMetaLanguageLink(self) -> str:
         raise NotImplementedError
+
     def genHTMLCSS(self) -> str:
         raise NotImplementedError
+
     def genHTMLJS(self) -> str:
         raise NotImplementedError
+
     def genHTMLTouchCSS(self) -> str:
         raise NotImplementedError
+
     def genHTMLGeneratorCSS(self) -> str:
         raise NotImplementedError
+
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
+
     def _touch_header_html(
         self,
         lang: object,
@@ -40,6 +54,7 @@ class GeneratorUIMixin:
         center_html: str = "",
     ) -> str:
         raise NotImplementedError
+
     def arg2html(
         self,
         a: argparse.Action,
@@ -48,6 +63,7 @@ class GeneratorUIMixin:
         _=lambda s: s,
     ) -> str:
         raise NotImplementedError
+
     def tag_badges_html(self, box: type) -> str:
         raise NotImplementedError
 

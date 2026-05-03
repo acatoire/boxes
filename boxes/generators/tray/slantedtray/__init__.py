@@ -89,8 +89,10 @@ class SlantedTray(Boxes):
 
         offset = h - front_height
         for i in range(len(sx) + 1):
-            if i > 0:
+            if i%2 :
+                # move up to save space
                 self.moveTo(0, offset)
+
             move = "down" if i % 2 else "mirror upsidedown down"
             self.trapezoidWall(y, h, front_height, "ffef",
                                move=move,
