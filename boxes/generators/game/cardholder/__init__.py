@@ -20,6 +20,7 @@ class CardHolder(Boxes):
     """Shelf for holding (multiple) piles of playing cards / notes"""
 
     ui_group = "Game"
+    tags = ["tcg"]
 
     def __init__(self) -> None:
         Boxes.__init__(self)

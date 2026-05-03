@@ -472,7 +472,65 @@ Rules:
 
 ---
 
-## 12. Shell & Terminal Rules
+## 12. Adding or Updating Custom Fonts
+
+### ⚠️ TTF/OTF is mandatory
+
+Every font in `boxes/fonts/` **must** have a `.ttf` or `.otf` file.
+`fontmanager.text_to_svg_path` uses fontTools to convert text to SVG paths;
+fontTools can only read `.woff2` when the optional `brotli` package is
+installed. Without a TTF/OTF the generator silently outputs a `<text>` element
+that most laser-cutter apps cannot engrave.
+
+The path engine automatically prefers `.ttf` over `.woff2` when both exist, so
+you can keep the `.woff2` (used for browser `@font-face` embedding) alongside
+the `.ttf`.
+
+### Convert a single woff2 → ttf
+
+```powershell
+python -c "
+from fontTools.ttLib import TTFont
+f = TTFont('boxes/fonts/myfont/my-font.woff2')
+f.flavor = None   # strip woff2 wrapper, keep outlines
+f.save('boxes/fonts/myfont/my-font.ttf')
+print('Done')
+"
+```
+
+### Batch-convert every woff/woff2 that has no ttf yet
+
+```powershell
+python -c "
+from pathlib import Path
+from fontTools.ttLib import TTFont
+
+for src in Path('boxes/fonts').rglob('*.woff*'):
+    ttf = src.with_suffix('.ttf')
+    if not ttf.exists():
+        try:
+            f = TTFont(str(src))
+            f.flavor = None
+            f.save(str(ttf))
+            print(f'Converted: {ttf}')
+        except Exception as e:
+            print(f'FAILED {src}: {e}')
+"
+```
+
+### Recommended folder layout
+
+```
+boxes/fonts/
+    myfont/
+        my-font.ttf      ← required for text-to-path
+        my-font.woff2    ← optional, used for browser embedding
+        OFL.txt          ← licence file (required)
+```
+
+---
+
+## 13. Shell & Terminal Rules
 
 The developer's shell is **Windows PowerShell**. Always generate commands for it.
 
@@ -483,7 +541,7 @@ The developer's shell is **Windows PowerShell**. Always generate commands for it
 
 ---
 
-## 13. Communication Style
+## 14. Communication Style
 
 - **KISS – Keep It Short and Simple.**
 - No bullet-point walls. One short sentence per item max.
@@ -492,7 +550,7 @@ The developer's shell is **Windows PowerShell**. Always generate commands for it
 
 ---
 
-## 14. Project-specific Conventions
+## 15. Project-specific Conventions
 
 - **No `print()` or `logging.warn()`** in generator code – pre-commit blocks both.
   Use `logging.warning()` if needed (also blocked in generators – tests assert

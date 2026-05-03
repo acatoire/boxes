@@ -14,8 +14,23 @@ body.touch-cat {
 }
 
 .cat-body { flex: 1; padding: 20px 24px; overflow-y: auto; }
-.cat-body h2 { margin: 0 0 6px; color: #333; }
+.cat-body h2 { margin: 0; color: #333; }
 .cat-body p { margin: 0 0 18px; color: #666; font-size: .9em; }
+
+.cat-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.cat-title-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
 
 .cat-grid {
   display: grid;
@@ -75,28 +90,21 @@ body.touch-cat {
   text-shadow: 0 1px 2px rgba(0,0,0,.7);
 }
 
-.cat-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-}
+#cat-settings-status { color: green; font-weight: bold; }
 
 .cat-btn {
   background: var(--th-accent);
   color: #fff;
   border: none;
-  border-radius: 10px;
-  padding: 0 24px;
-  min-height: 48px;
-  font-size: 1em;
+  border-radius: 8px;
+  padding: 0 18px;
+  min-height: 38px;
+  font-size: .9em;
   font-family: inherit;
   font-weight: bold;
   cursor: pointer;
   transition: background .15s;
 }
 .cat-btn:hover          { background: var(--th-accent2); }
-.cat-btn.secondary      { background: #666; }
+.cat-btn.secondary      { background: #666; font-weight: normal; }
 .cat-btn.secondary:hover { background: #444; }
-
-#cat-settings-status { color: green; font-weight: bold; }

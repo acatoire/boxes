@@ -211,17 +211,12 @@ function saveCategorySettingsExplicit() {
         if (!cb.checked) hidden.add(cb.dataset.catId);
     });
     try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify([...hidden])); } catch(_) {}
-    // Navigate back via location.replace so the target page re-executes its
-    // onload (initPage → applyHiddenCategories) without needing F5.
-    // location.replace also removes the categories page from the history stack.
-    const ref = document.referrer;
-    try {
-        if (ref && new URL(ref).origin === window.location.origin) {
-            window.location.replace(ref);
-            return;
-        }
-    } catch (_) {}
-    window.history.back();
+    const home = (typeof CAT_HOME_URL !== 'undefined') ? CAT_HOME_URL : null;
+    if (home) {
+        window.location.href = home;
+    } else {
+        window.history.back();
+    }
 }
 
 // Safety net: re-apply when the browser restores a page from bfcache.
@@ -591,7 +586,7 @@ function initMachineConfigPanel() {
     // Material selector
     const matSel = document.getElementById('machine-material');
     if (matSel) {
-        matSel.innerHTML = '<option value="">\u2014 Aucun \u2014</option>';
+        matSel.innerHTML = '<option value="">— Turn off material calculation —</option>';
         for (const mat of MATERIALS) {
             const opt = document.createElement('option');
             opt.value = mat.id;

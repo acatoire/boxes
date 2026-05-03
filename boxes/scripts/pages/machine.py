@@ -96,17 +96,19 @@ class MachineUIMixin:
             f'<body class="touch-machine" onload="initMachineSettingsPage()">\n'
             f"\n{touch_header}\n\n"
             '<div class="ms-body">\n'
-            f"  <h2>\u2699 {_('Machine')}</h2>\n"
+            '  <div class="ms-title-row">\n'
+            f"    <h2>\u2699 {_('Machine')}</h2>\n"
+            '    <div class="ms-title-actions">\n'
+            f'      <button class="ms-reset-btn" onclick="resetMachineSettingsPage()">{_("Reset to default")}</button>\n'
+            f'      <button class="ms-save-btn" onclick="saveMachineSettingsPage()">{_("Save")}</button>\n'
+            "    </div>\n"
+            "  </div>\n"
             f"  <p>{_('Set your laser engraving zone size. Used on the generator page to check if the design fits.')}</p>\n"
             '  <div class="ms-section">\n'
             f"    <h3>{_('Custom size')}</h3>\n"
             '    <div class="ms-dims">\n'
             f'      <label>{_("Width (mm)")}<input type="number" id="machine-w" min="1" max="9999" step="1" value="300"></label>\n'
             f'      <label>{_("Height (mm)")}<input type="number" id="machine-h" min="1" max="9999" step="1" value="300"></label>\n'
-            "    </div>\n"
-            '    <div class="ms-actions">\n'
-            f'      <button class="ms-save-btn" onclick="saveMachineSettingsPage()">{_("Save")}</button>\n'
-            f'      <span id="ms-status" style="display:none">{_("Saved.")}</span>\n'
             "    </div>\n"
             "  </div>\n"
             '  <div class="ms-section">\n'
@@ -119,7 +121,7 @@ class MachineUIMixin:
             f"    <h3>\U0001F4B6 {_('Material pricing')}</h3>\n"
             f"    <p style=\"font-size:.88em;color:#666;margin:0 0 10px\">{_('Select a material to get a cost estimate on the generator page.')}</p>\n"
             '    <table class="ms-mat-table">\n'
-            '      <tr><td><input type="radio" name="ms-material" id="ms-mat-none" value=""><label for="ms-mat-none">\u2014 Aucun \u2014</label></td><td></td></tr>\n'
+            '      <tr><td><input type="radio" name="ms-material" id="ms-mat-none" value=""><label for="ms-mat-none">\u2014 Turn off material calculation \u2014</label></td><td></td></tr>\n'
             '      <tr><td><input type="radio" name="ms-material" id="ms-mat-tilleul3" value="tilleul3"><label for="ms-mat-tilleul3">3mm contreplaqué Tilleul</label></td><td>25 \u20ac/m\u00b2</td></tr>\n'
             '      <tr><td><input type="radio" name="ms-material" id="ms-mat-noyer" value="noyer"><label for="ms-mat-noyer">contreplaqué Noyer</label></td><td>36 \u20ac/m\u00b2</td></tr>\n'
             "    </table>\n"
@@ -128,23 +130,24 @@ class MachineUIMixin:
             f"    <h3>\U0001F4CA {_('Margin coefficient')}</h3>\n"
             f"    <p style=\"font-size:.88em;color:#666;margin:0 0 10px\">{_('Multiply the material cost by this factor (e.g. 1.5 for a 50% margin). Default: 1.')}</p>\n"
             '    <div class="ms-coef-row">\n'
-            f'      <label>{_("Coefficient")}<input type="number" id="machine-margin-coef" min="0.01" max="100" step="0.01" value="1"></label>\n'
+            f'      <label>{_("Coefficient")}<input type="number" id="machine-margin-coef" min="0.01" max="100" step="0.01" value="2"></label>\n'
             "    </div>\n"
             "  </div>\n"
             "</div>\n\n"
             "<script>\n"
+            f"const MS_HOME_URL = 'TouchHub{langparam}';\n"
             "function initMachineSettingsPage() {\n"
             "    const cfg = loadMachineConfig();\n"
             "    document.getElementById('machine-w').value = cfg.w;\n"
             "    document.getElementById('machine-h').value = cfg.h;\n"
-            "    const matVal = cfg.material || '';\n"
+            "    const matVal = cfg.material || 'tilleul3';\n"
             "    const radios = document.querySelectorAll('input[name=\"ms-material\"]');\n"
             "    radios.forEach(r => { r.checked = (r.value === matVal); });\n"
             "    if (!Array.from(radios).some(r => r.checked)) radios[0].checked = true;\n"
             "    const coefEl = document.getElementById('machine-margin-coef');\n"
-            "    if (coefEl) coefEl.value = (cfg.margin_coef !== undefined ? cfg.margin_coef : 1);\n"
+            "    if (coefEl) coefEl.value = (cfg.margin_coef !== undefined ? cfg.margin_coef : 2);\n"
             "}\n"
-            "function saveMachineSettingsPage() {\n"
+            "function _persistMachineSettings() {\n"
             "    const w = parseFloat(document.getElementById('machine-w').value) || 300;\n"
             "    const h = parseFloat(document.getElementById('machine-h').value) || 300;\n"
             "    const matRadio = document.querySelector('input[name=\"ms-material\"]:checked');\n"
@@ -152,13 +155,27 @@ class MachineUIMixin:
             "    const coefEl = document.getElementById('machine-margin-coef');\n"
             "    const coef = coefEl ? (parseFloat(coefEl.value) || 1) : 1;\n"
             "    saveMachineConfig(w, h, mat, coef);\n"
-            "    const st = document.getElementById('ms-status');\n"
-            "    if (st) { st.style.display='inline'; clearTimeout(st._t); st._t=setTimeout(()=>{st.style.display='none';},1500); }\n"
+            "}\n"
+            "function saveMachineSettingsPage() {\n"
+            "    _persistMachineSettings();\n"
+            "    window.location.href = MS_HOME_URL;\n"
             "}\n"
             "function machineUsePreset(w, h) {\n"
             "    document.getElementById('machine-w').value = w;\n"
             "    document.getElementById('machine-h').value = h;\n"
             "    saveMachineSettingsPage();\n"
+            "}\n"
+            "function resetMachineSettingsPage() {\n"
+            "    localStorage.removeItem('boxes-machine-config');\n"
+            "    document.getElementById('machine-w').value = 300;\n"
+            "    document.getElementById('machine-h').value = 300;\n"
+            "    const radios = document.querySelectorAll('input[name=\"ms-material\"]');\n"
+            "    radios.forEach(r => { r.checked = (r.value === 'tilleul3'); });\n"
+            "    const coefEl = document.getElementById('machine-margin-coef');\n"
+            "    if (coefEl) coefEl.value = 2;\n"
+            "    _persistMachineSettings();\n"
+            "    const btn = document.querySelector('.ms-reset-btn');\n"
+            "    if (btn) { const t = btn.textContent; btn.textContent = '\u2713'; setTimeout(() => { btn.textContent = t; }, 1200); }\n"
             "}\n"
             "</script>\n"
             "</body>\n</html>\n"

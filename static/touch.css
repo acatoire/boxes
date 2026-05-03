@@ -149,7 +149,7 @@ body.touch-hub {
 .th-tab-btn:hover  { background: rgba(255,255,255,0.22); color: #fff; }
 .th-tab-btn.active { background: var(--th-accent); color: #fff; border-color: var(--th-accent); font-weight: bold; }
 
-/* Icon-only back button: square, centred arrow */
+/* Icon-only back / home button: square, centred glyph */
 .th-back-icon {
   display: flex;
   align-items: center;
@@ -158,6 +158,7 @@ body.touch-hub {
   padding: 0;
   width: 44px;
   min-width: 44px;
+  text-decoration: none;
 }
 
 /* Touch header dropdown */

@@ -67,16 +67,18 @@ class CategoriesUIMixin:
             f'<body class="touch-cat" onload="initCategorySettingsPage()">\n'
             f"\n{touch_header}\n\n"
             '<div class="cat-body">\n'
-            f"  <h2>{_('Categories')}</h2>\n"
+            '  <div class="cat-title-row">\n'
+            f"    <h2>{_('Categories')}</h2>\n"
+            '    <div class="cat-title-actions">\n'
+            f'      <button class="cat-btn secondary" onclick="resetCategorySettings()">{_("Show all categories")}</button>\n'
+            f'      <button class="cat-btn" onclick="saveCategorySettingsExplicit()">{_("Save")}</button>\n'
+            "    </div>\n"
+            "  </div>\n"
             f"  <p>{_('Uncheck categories to hide them from the menu, gallery and touch interface.')}</p>\n"
             '  <div class="cat-grid">\n'
             f"{cards_html}\n"
             "  </div>\n"
-            '  <div class="cat-actions">\n'
-            f'    <button class="cat-btn" onclick="saveCategorySettingsExplicit()">{_("Save")}</button>\n'
-            f'    <button class="cat-btn secondary" onclick="resetCategorySettings()">{_("Show all categories")}</button>\n'
-            f'    <span id="cat-settings-status" style="display:none">{_("Saved.")}</span>\n'
-            "  </div>\n"
+            f"<script>const CAT_HOME_URL = 'TouchHub{langparam}';</script>\n"
             "</div>\n\n</body>\n</html>\n"
         )
         start_response("200 OK", [("Content-type", "text/html; charset=utf-8")])  # type: ignore[operator]

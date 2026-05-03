@@ -152,8 +152,9 @@ class TouchUIMixin:
     {center_section}
     <div class="th-header-actions">
       {back_btn}
+      {f'<a class="th-mode-btn th-back-icon" href="TouchHub{langparam}" aria-label="Home">&#127968;</a>' if back_url else ""}
       <div class="dropdown th-dropdown">
-        <button class="th-mode-btn dropdown-btn" onclick="toggleDropdown(event)">\u2630 {_("Menu")}</button>
+        <button class="th-mode-btn th-back-icon dropdown-btn" onclick="toggleDropdown(event)" aria-label="Menu">&#9776;</button>
         <div class="dropdown-content th-dropdown-content" id="main-dropdown">
 {dropdown_html}
         </div>

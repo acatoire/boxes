@@ -80,11 +80,17 @@ def font_path(name: str) -> pathlib.Path | None:
     if not FONTS_DIR.is_dir():
         return None
     norm = _normalize(name)
-    for p in FONTS_DIR.rglob("*"):
-        if p.is_file() and p.suffix.lower() in _FONT_EXTENSIONS:
-            if p.stem == name or _normalize(p.stem) == norm:
-                return p
-    return None
+    # Prefer vector-outline formats (ttf/otf) that fontTools can load directly;
+    # fall back to woff formats only when no ttf/otf is available.
+    _PREFER_ORDER: list[str] = [".ttf", ".otf", ".woff", ".woff2"]
+    candidates: list[pathlib.Path] = [
+        p for p in FONTS_DIR.rglob("*")
+        if p.is_file() and p.suffix.lower() in _FONT_EXTENSIONS
+        and (p.stem == name or _normalize(p.stem) == norm)
+    ]
+    candidates.sort(key=lambda p: _PREFER_ORDER.index(p.suffix.lower())
+                    if p.suffix.lower() in _PREFER_ORDER else len(_PREFER_ORDER))
+    return candidates[0] if candidates else None
 
 
 def font_as_data_uri(name: str) -> str | None:
@@ -193,7 +199,7 @@ def text_to_svg_path(
     try:
         font = TTFont(str(fpath))
     except Exception:
-        # e.g. woff2 without brotli, corrupt file, etc. – fall back to <text>
+        # e.g. corrupt file, unsupported format – fall back to <text>
         return None
     glyph_set = font.getGlyphSet()
     cmap: dict[int, str] = font.getBestCmap() or {}

@@ -28,7 +28,7 @@ class GameCounterCoins(Boxes):
     """Coin-stack game point counter – top disc notch reads score off bottom coin"""
 
     ui_group = "Game"
-    tags = ["new"]
+    tags = ["new", "tcg"]
 
     description = """
 A two-piece stacked coin counter for board games.
