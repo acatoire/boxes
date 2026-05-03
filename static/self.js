@@ -183,6 +183,9 @@ function applyHiddenCategoriesMenu() {
     const hidden = loadHiddenCategories();
     document.querySelectorAll('h3.toggle[data-id]').forEach(function(el) {
         const id = el.getAttribute('data-id');
+        // Only process numeric category IDs; skip settings-group IDs (e.g. "g0", "g1")
+        // to avoid overwriting the inline display:none we set for collapsed groups.
+        if (!/^\d+$/.test(id)) return;
         const div = document.getElementById(id);
         const hide = hidden.has(id);
         el.style.display = hide ? 'none' : '';

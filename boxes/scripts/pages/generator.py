@@ -118,11 +118,12 @@ class GeneratorUIMixin:
             ):
                 continue
             prefix = getattr(group, "prefix", None)
-            # Default Settings (prefix="") starts collapsed – rarely needs changes
-            is_default = prefix == ""
-            h3_cls      = "toggle" if is_default else "toggle open"
-            h3_expanded = "false" if is_default else "true"
-            tbl_style   = ' style="display:none"' if is_default else ""
+            # Groups added via addSettingsArgs (prefix is not None) start collapsed;
+            # only the generator's own params group (prefix=None) starts expanded.
+            start_collapsed = prefix is not None
+            h3_cls      = "toggle" if start_collapsed else "toggle open"
+            h3_expanded = "false" if start_collapsed else "true"
+            tbl_style   = ' style="display:none"' if start_collapsed else ""
             # Prefix IDs with "g" to avoid collision with numeric category IDs
             # that applyHiddenCategoriesMenu() reads from localStorage.
             sid = f"g{groupid}"

@@ -116,7 +116,7 @@ body.touch-args table textarea {
   border: 1px solid #bbb;
   box-sizing: border-box;
   min-width: 55px;
-  max-width: 55px;
+  max-width: 70px;
   text-align: center;
 }
 body.touch-args table select {
