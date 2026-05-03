@@ -6,11 +6,13 @@
 #   (at your option) any later version.
 from __future__ import annotations
 import argparse
+import html as _html
 import inspect
 import json
 from pathlib import Path
 
 import markdown
+from boxes.generators import ui_groups_by_name
 class GeneratorUIMixin:
     """Mixin that renders the touch-mode generator configuration page (/GeneratorName)."""
     static_url: str
@@ -48,6 +50,24 @@ class GeneratorUIMixin:
         raise NotImplementedError
     def tag_badges_html(self, box: type) -> str:
         raise NotImplementedError
+
+    def _gen_breadcrumb_html(self, box: object, name: str, _=lambda s: s) -> str:
+        """Return the «Category › GeneratorName» breadcrumb HTML."""
+        ui_group_name: str = getattr(box, "ui_group", "")
+        group = ui_groups_by_name.get(ui_group_name)
+        category_title: str = group.title if group else ui_group_name
+        if not category_title:
+            return ""
+        cat = _html.escape(_(category_title))
+        gen = _html.escape(name)
+        return (
+            f'<div class="gen-category-breadcrumb">'
+            f'<span class="gen-bc-cat">{cat}</span>'
+            f'<span class="gen-bc-sep"> › </span>'
+            f'<span class="gen-bc-name">{gen}</span>'
+            f'</div>'
+        )
+
     # Generator config page
     def genTouchArgs(
         self,
@@ -170,7 +190,10 @@ class GeneratorUIMixin:
             f'<body class="touch-args" onload="initTouchArgs({num_hide})">\n'
             f"\n{header_html}\n\n"
             '<div class="touch-args-body">\n'
-            f'  <p class="touch-gen-doc">{_(box.__doc__) if box.__doc__ else ""}</p>\n'
+            f'  <div class="gen-doc-row">\n'
+            f'    {self._gen_breadcrumb_html(box, name, _)}\n'
+            f'    <p class="touch-gen-doc">{_(box.__doc__) if box.__doc__ else ""}</p>\n'
+            f'  </div>\n'
             f'  <div id="tab-description" class="tab-panel">\n'
             "    <div class=\"description\">\n"
             f"      {desc_html}\n"

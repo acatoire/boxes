@@ -52,6 +52,44 @@ body.touch-args .th-header {
   margin: 4px 0 2px;
   color: #333;
 }
+
+/* Category › Name breadcrumb row */
+.gen-doc-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 14px;
+  margin-bottom: 10px;
+}
+.gen-doc-row .touch-gen-doc {
+  margin-bottom: 0;
+  flex: 1 1 auto;
+}
+.gen-category-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.gen-bc-cat {
+  font-weight: 600;
+  color: var(--th-accent);
+  font-size: 0.88em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gen-bc-sep {
+  color: #aaa;
+  font-size: 0.88em;
+  padding: 0 2px;
+}
+.gen-bc-name {
+  font-weight: 600;
+  color: #444;
+  font-size: 0.88em;
+}
+
 .touch-gen-doc {
   color: #666;
   font-size: 0.9em;
