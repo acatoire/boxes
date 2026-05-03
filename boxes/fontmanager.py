@@ -190,7 +190,11 @@ def text_to_svg_path(
     except ImportError:
         return None
 
-    font = TTFont(str(fpath))
+    try:
+        font = TTFont(str(fpath))
+    except Exception:
+        # e.g. woff2 without brotli, corrupt file, etc. – fall back to <text>
+        return None
     glyph_set = font.getGlyphSet()
     cmap: dict[int, str] = font.getBestCmap() or {}
     upm: int = font["head"].unitsPerEm

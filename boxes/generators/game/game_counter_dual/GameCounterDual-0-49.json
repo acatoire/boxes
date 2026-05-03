@@ -2,12 +2,12 @@
   "score1_min": "0",
   "score1_max": "4",
   "score1_radius": "auto",
-  "score1_angle": "+90",
+  "score1_angle": "-90",
   "score1_values": "",
   "score2_min": "0",
   "score2_max": "9",
   "score2_radius": "auto",
-  "score2_angle": "-90.0",
+  "score2_angle": "90.0",
   "score2_values": "",
   "font_font": "ouroboros",
   "font_size": "5.5",
@@ -41,7 +41,5 @@
   "qr_code": "false",
   "inner_corners": "loop",
   "spacing": "0.5",
-  "debug": "false",
-  "color_outer_cut": "#000000",
-  "color_annotations": "#ffff00"
+  "debug": "false"
 }

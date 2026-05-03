@@ -54,6 +54,10 @@ function thSwitchTab(groupId) {
         p.style.display = isActive ? 'block' : 'none';
     });
 
+    // Sync dropdown select
+    const sel = document.getElementById('th-tab-select');
+    if (sel) sel.value = groupId;
+
     try { localStorage.setItem(TH_GROUP_KEY, groupId); } catch(_) {}
 
     // Re-apply current search filter to newly visible panel
@@ -125,6 +129,55 @@ function applyHiddenCategoriesTouch() {
         const first = document.querySelector('.th-tab[data-group]:not([style*="none"])');
         if (first) thSwitchTab(first.dataset.group);
     }
+
+    thCheckTabbarOverflow();
+}
+
+/**
+ * Rebuild the <select> options from currently-visible .th-tab buttons,
+ * then check whether the tabs overflow a single row and switch to dropdown mode.
+ */
+function thCheckTabbarOverflow() {
+    const bar = document.querySelector('.th-tabbar');
+    const sel = document.getElementById('th-tab-select');
+    if (!bar || !sel) return;
+
+    // Rebuild select options from visible tabs
+    const currentVal = sel.value;
+    sel.innerHTML = '';
+    document.querySelectorAll('.th-tab[data-group]').forEach(tab => {
+        if (tab.style.display === 'none') return;
+        const opt = document.createElement('option');
+        opt.value = tab.dataset.group;
+        const label = tab.querySelector('.th-tab-label');
+        const count = tab.querySelector('.th-tab-count');
+        opt.textContent = (label ? label.textContent : tab.title)
+            + (count ? ' (' + count.textContent + ')' : '');
+        if (tab.classList.contains('active')) opt.selected = true;
+        sel.appendChild(opt);
+    });
+    // Restore previous value if still present
+    if (currentVal && sel.querySelector(`option[value="${currentVal}"]`)) {
+        sel.value = currentVal;
+    }
+
+    // Temporarily remove max-height + overflow to measure real scroll height
+    const savedMax   = bar.style.maxHeight;
+    const savedOvfl  = bar.style.overflow;
+    bar.style.maxHeight = 'none';
+    bar.style.overflow  = 'visible';
+    // Remove dropdown class so tabs are visible for measurement
+    bar.classList.remove('th-tabbar--dropdown');
+
+    const tapMin = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--th-tap-min')
+    ) || 52;
+    const overflows = bar.scrollHeight > tapMin + 4;
+
+    bar.style.maxHeight = savedMax;
+    bar.style.overflow  = savedOvfl;
+
+    bar.classList.toggle('th-tabbar--dropdown', overflows);
 }
 
 /* Hub init */
@@ -141,6 +194,14 @@ function initTouchHub() {
     }
 
     applyHiddenCategoriesTouch();
+
+    // Re-check tab overflow when window is resized
+    if (typeof ResizeObserver !== 'undefined') {
+        const bar = document.querySelector('.th-tabbar');
+        if (bar) new ResizeObserver(thCheckTabbarOverflow).observe(bar);
+    } else {
+        window.addEventListener('resize', thCheckTabbarOverflow);
+    }
 }
 
 /* field-sizing fallback (Firefox / Safari) */

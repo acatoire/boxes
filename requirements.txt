@@ -1,4 +1,6 @@
 affine>=2.0
+brotli
+brotlicffi
 fonttools>=4.0
 lxml
 markdown

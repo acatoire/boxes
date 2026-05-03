@@ -170,6 +170,7 @@ class TouchUIMixin:
         langparam = f"?language={lang_name}" if lang_name else ""
 
         tabs_html: list[str] = []
+        options_html: list[str] = []
         panels_html: list[str] = []
 
         for nr, group in enumerate(self.groups):
@@ -184,6 +185,12 @@ class TouchUIMixin:
                 f'<span class="th-tab-label">{html.escape(_(group.title))}</span>'
                 f'<span class="th-tab-count">{gen_count}</span>'
                 f"</button>"
+            )
+            selected_attr = " selected" if is_first else ""
+            options_html.append(
+                f'<option value="{nr}"{selected_attr}>'
+                f'{html.escape(_(group.title))} ({gen_count})'
+                f"</option>"
             )
 
             cards: list[str] = []
@@ -228,6 +235,9 @@ class TouchUIMixin:
 {self._touch_header_html(lang)}
 
   <nav class="th-tabbar" role="tablist" aria-label="{_("Generator categories")}">
+    <select id="th-tab-select" onchange="thSwitchTab(this.value)">
+      {"".join(options_html)}
+    </select>
     {"".join(tabs_html)}
   </nav>
 

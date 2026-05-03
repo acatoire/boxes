@@ -220,20 +220,46 @@ body.touch-hub {
   overflow: hidden;         /* clip if somehow more than 2 rows */
 }
 
+/* Dropdown select – hidden by default, shown when tabs overflow one row */
+#th-tab-select {
+  display: none;
+  margin: auto 12px;
+  height: 40px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 1em;
+  font-family: inherit;
+  cursor: pointer;
+  max-width: calc(100% - 24px);
+}
+#th-tab-select option { color: #333; background: #fff; }
+
+/* Overflow mode: hide tab buttons, show select, single-row bar */
+.th-tabbar--dropdown {
+  flex-wrap: nowrap;
+  max-height: var(--th-tap-min);
+  align-items: center;
+}
+.th-tabbar--dropdown .th-tab { display: none !important; }
+.th-tabbar--dropdown #th-tab-select { display: block; }
+
 .th-tab {
   background: transparent;
   color: rgba(255,255,255,0.65);
   border: none;
   border-bottom: 3px solid transparent;
   margin-bottom: -3px;
-  padding: 0 10px;
+  padding: 0 12px;
   height: var(--th-tap-min);
   font-size: 0.9em;
   font-family: inherit;
   cursor: pointer;
   flex: 1 1 auto;
-  min-width: 55px;
-  max-width: 55px;
+  min-width: 80px;
+  max-width: 160px;
   overflow: hidden;
   /* label + badge side by side; label will truncate */
   display: inline-flex;

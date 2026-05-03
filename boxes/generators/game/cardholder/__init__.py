@@ -19,7 +19,7 @@ from boxes import *
 class CardHolder(Boxes):
     """Shelf for holding (multiple) piles of playing cards / notes"""
 
-    ui_group = "Shelf"
+    ui_group = "Game"
 
     def __init__(self) -> None:
         Boxes.__init__(self)
