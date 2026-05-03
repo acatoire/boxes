@@ -190,6 +190,8 @@ class LegacyUIMixin:
         viewname = name
         if prefix and name.startswith(prefix + "_"):
             viewname = name[len(prefix) + 1:]
+        # Use explicit display name if the generator author provided one.
+        viewname = getattr(a, "display_name", None) or viewname
 
         _defaults = defaults or {}
         default = _defaults.get(name, None)

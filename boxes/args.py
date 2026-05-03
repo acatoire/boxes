@@ -33,10 +33,31 @@ All four are re-exported through ``boxes.__init__`` so generators that do
 """
 from __future__ import annotations
 
+import argparse
 from typing import Any
 from xml.sax.saxutils import quoteattr
 
 from . import edges as _edges
+
+
+class BoxesArgumentParser(argparse.ArgumentParser):
+    """ArgumentParser that accepts an extra ``name`` keyword on ``add_argument``.
+
+    ``name`` sets a human-readable display label used only in HTML rendering.
+    It is stored as ``display_name`` on the returned action and is otherwise
+    invisible to argparse::
+
+        self.argparser.add_argument(
+            "--coin_diameter", type=FloatStepper(0.1), default=50.0,
+            name="Diameter", help="Outer diameter [mm]")
+    """
+
+    def add_argument(self, *args: Any, **kwargs: Any) -> argparse.Action:
+        display_name: str | None = kwargs.pop("name", None)
+        action = super().add_argument(*args, **kwargs)
+        if display_name is not None:
+            action.display_name = display_name  # type: ignore[attr-defined]
+        return action
 
 
 class ArgparseEdgeType:

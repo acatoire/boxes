@@ -24,7 +24,7 @@ import math
 import random
 import re
 import sys
-from argparse import ArgumentParser
+from boxes.args import ArgparseEdgeType, boolarg, BoxesArgumentParser as ArgumentParser
 from contextlib import contextmanager
 from functools import wraps
 from shlex import quote

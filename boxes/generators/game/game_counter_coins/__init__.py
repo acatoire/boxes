@@ -44,7 +44,6 @@ Assembly: insert magnet into both pieces → stack face-to-face → enjoy!
 
     # Dummy declarations for mypy – overwritten by argparse at runtime.
     burn: float = 0.1
-    play: float = 0.2
     # Generators parameters
     coin_diameter: float = 50.0
     magnet_diameter: float = 4.0
@@ -77,30 +76,33 @@ Assembly: insert magnet into both pieces → stack face-to-face → enjoy!
 
         self.argparser.add_argument(
             "--coin_diameter", action="store", type=FloatStepper(0.1), default=self.coin_diameter,
+            name="Diameter",
             help="Outer diameter of both discs [mm]")
         self.argparser.add_argument(
             "--magnet_diameter", action="store", type=FloatStepper(0.1), default=self.magnet_diameter,
+            name="Magnet",
             help="Diameter of the central cylindrical magnet [mm]")
         self.argparser.add_argument(
             "--notch_width", action="store", type=FloatStepper(0.1), default=self.notch_width,
+            name="Notch-w",
             help="Width of the reading notch on Piece B [mm]")
         _auto_notch_d = round(self.notch_width / 2)
         self.argparser.add_argument(
             "--notch_depth", action="store",
             type=FloatStepper(1.0, auto_default=float(_auto_notch_d), auto=True),
             default=self.notch_depth,
+            name="Notch-d",
             help=f"Depth of the reading notch on Piece B [mm]. "
                  f"auto = notch_width / 2 (≈{_auto_notch_d} mm)")
         self.argparser.add_argument(
             "--notch_style", action="store", type=str, default=self.notch_style,
             choices=["circular", "triangular", "oval", "trapezoid"],
+            name="Notch Style",
             help="Shape of the reading notch on Piece B")
         self.argparser.add_argument(
             "--notch_count", action="store", type=IntStepper(1), default=self.notch_count,
+            name="Notch #",
             help="Number of reading notches equally spaced around Piece B (≥ 1)")
-        self.argparser.add_argument(
-            "--play", action="store", type=float, default=self.play,
-            help="Radial play between the two discs [mm]")
 
     # ------------------------------------------------------------------
     # Score label helper
@@ -323,7 +325,7 @@ Assembly: insert magnet into both pieces → stack face-to-face → enjoy!
 
     def top_disc(self, move: str = "") -> None:
         """Top disc: closed outline with reading notch(es) + central magnet hole."""
-        r = self.coin_diameter / 2 - self.play
+        r = self.coin_diameter / 2
         md = self.magnet_diameter
         notch_count = max(1, self.notch_count)
         notch_r = min(self.notch_width / 2.0, r * 0.35)
