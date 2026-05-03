@@ -44,6 +44,8 @@ Assembly: insert magnet into both pieces → stack face-to-face → enjoy!
 
     # Dummy declarations for mypy – overwritten by argparse at runtime.
     burn: float = 0.1
+    play: float = 0.2
+    # Generators parameters
     coin_diameter: float = 50.0
     magnet_diameter: float = 4.0
     # Score Settings stubs
@@ -58,11 +60,11 @@ Assembly: insert magnet into both pieces → stack face-to-face → enjoy!
     font_bold: bool = False
     font_italic: bool = False
     font_font_as_path: bool = True
+    # Notch Settings stubs
     notch_width: float = 15.0
     notch_depth: float | None = None
     notch_style: str = "oval"
     notch_count: int = 1
-    play: float = 0.2
 
     def __init__(self) -> None:
         Boxes.__init__(self)
