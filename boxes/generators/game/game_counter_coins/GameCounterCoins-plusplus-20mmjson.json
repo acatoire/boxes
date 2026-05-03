@@ -12,7 +12,7 @@
   "coin_diameter": "20",
   "magnet_diameter": "3",
   "notch_width": "13",
-  "notch_depth": "7",
+  "notch_depth": "5",
   "notch_style": "trapezoid",
   "notch_count": "2",
   "play": "0.2",

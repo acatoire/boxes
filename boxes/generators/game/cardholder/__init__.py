@@ -54,7 +54,7 @@ class CardHolder(Boxes):
                 self.fingerHolesAt(px, posy, length, 90)
         return CB
 
-    def middleWall(self, move=None):
+    def middleWall(self, move=None, label=""):
         y, h = self.y , self.h
         a = self.angle
         t = self.thickness
@@ -71,7 +71,7 @@ class CardHolder(Boxes):
                       y*math.cos(math.radians(a)), 90)
         self.edges["f"](h-t)
 
-        self.move(tw, th, move)
+        self.move(tw, th, move, label=label)
 
     def render(self):
         sx, y = self.sx, self.y
@@ -89,10 +89,12 @@ class CardHolder(Boxes):
 
         self.rectangularWall(y, h, [bottom, "F", top, "e"],
                              ignore_widths=[1, 6],
-                             callback=[self.side], move="up")
+                             callback=[self.side], move="up",
+                             label="side left")
         self.rectangularWall(y, h, [bottom, "F", top, "e"],
                              ignore_widths=[1, 6],
-                             callback=[self.side], move="up mirror")
+                             callback=[self.side], move="up mirror",
+                             label="side right")
 
         nx = len(sx)
         f_lengths = []
@@ -105,9 +107,11 @@ class CardHolder(Boxes):
             self, "e".join("z" * nx), f_lengths)
 
         self.rectangularWall(x, y, [frontedge, "f", "e", "f"],
-                             callback=[self.fingerHoleCB(y)], move="up")
+                             callback=[self.fingerHoleCB(y)], move="up",
+                             label="front")
         self.rectangularWall(x, h, bottom + "f"  + top + "f",
                              ignore_widths=[1, 6],
-                             callback=[self.fingerHoleCB(h-t, t)], move="up")
+                             callback=[self.fingerHoleCB(h-t, t)], move="up",
+                             label="back")
         for i in range(nx-1):
-            self.middleWall(move="right")
+            self.middleWall(move="right", label=f"divider {i + 1}")
