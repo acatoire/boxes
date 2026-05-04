@@ -268,7 +268,7 @@ body.touch-args form > p:last-of-type { display: none; }
 
 .preview-ctrl-card,
 .surface-info-bar,
-.fit-info {
+.fit-info-bar {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -285,7 +285,7 @@ body.touch-args form > p:last-of-type { display: none; }
 
 /* Give surface/fit/price a subtle card look inside the unified bar */
 .surface-info-bar,
-.fit-info,
+.fit-info-bar,
 .price-info-bar {
   background: rgba(0,0,0,0.04);
   border-radius: 6px;
@@ -299,7 +299,7 @@ body.touch-args form > p:last-of-type { display: none; }
 /* When not yet populated, surface/price/fit items are hidden */
 .surface-info-bar:empty,
 .price-info-bar:empty,
-.fit-info:not(.fit-ok):not(.fit-warn) { display: none; }
+.fit-info-bar:not(.fit-ok):not(.fit-warn) { display: none; }
 
 /* Show price and fit bars when populated */
 .price-info-bar:not(:empty) { display: flex; color: #2e7d32; }

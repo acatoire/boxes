@@ -169,15 +169,14 @@ class GeneratorUIMixin:
         controls_bar_html = (
             f'<div class="controls-bar">\n'
             f'  {template_section}'
-            f'  <div id="preview_buttons" class="preview-ctrl-card">\n'
-            f'    {_("Zoom: ")}\n'
-            f'    <button type="button" onclick="preview_scale/=1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">\u2212</button>\n'
-            f'    <button type="button" onclick="preview_scale*= 1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">+</button>\n'
-            f'    <button type="button" onclick="preview_scale=100; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">{_("Reset")}</button>\n'
+            f'  <div id="preview-ctrl-card" class="preview-ctrl-card">\n'
+            f'    <button type="button" title="{_("Zoom out")}" onclick="preview_scale/=1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">🔍➖</button>\n'
+            f'    <button type="button" title="{_("Zoom in")}" onclick="preview_scale*= 1.2; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">🔍➕</button>\n'
+            f'    <button type="button" title="{_("Reset zoom")}" onclick="preview_scale=100; document.getElementById(\'preview_img\').style.width = preview_scale + \'%\';">↺</button>\n'
             f'  </div>\n'
             f'  <div id="surface-info-bar" class="surface-info-bar"></div>\n'
             f'  <div id="price-info-bar" class="price-info-bar"></div>\n'
-            f'  <div id="fit-info-bar" class="fit-info"></div>\n'
+            f'  <div id="fit-info-bar" class="fit-info-bar"></div>\n'
             f'</div>\n'
         )
         # Tab buttons go in the header center

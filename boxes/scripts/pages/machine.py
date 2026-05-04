@@ -52,36 +52,6 @@ class MachineUIMixin:
 
         touch_header = self._touch_header_html(lang, back_url=f"TouchHub{langparam}", back_icon_only=True)
 
-        # Known machines: (brand, model, width_mm, height_mm)
-        known_machines: list[tuple[str, str, int, int]] = [
-            ("Ortur", "Master 3",  400, 380),
-            ("Ortur", "H20 40W",   410, 275),
-            ("xTool", "M1 Ultra",  300, 300),
-        ]
-
-        # Group by brand (already sorted)
-        brands: dict[str, list[tuple[str, int, int]]] = {}
-        for brand, model, w, h in known_machines:
-            brands.setdefault(brand, []).append((model, w, h))
-
-        preset_rows: list[str] = []
-        for brand in sorted(brands):
-            preset_rows.append(
-                f'    <tr class="ms-brand-row"><td colspan="3">'
-                f'<strong>{brand}</strong></td></tr>\n'
-            )
-            for model, w, h in brands[brand]:
-                preset_rows.append(
-                    f'    <tr class="ms-preset-row">'
-                    f'<td>{model}</td>'
-                    f'<td>{w} \u00d7 {h} mm</td>'
-                    f'<td><button class="ms-btn ms-btn-use" '
-                    f'onclick="machineUsePreset({w},{h})">{_("Use")}</button></td>'
-                    f'</tr>\n'
-                )
-
-        presets_html = "".join(preset_rows)
-
         page = (
             self.genHTMLStart(lang) + "\n"
             "<head>\n"
@@ -93,7 +63,7 @@ class MachineUIMixin:
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
             "</head>\n"
-            f'<body class="touch-machine" onload="initMachineSettingsPage()">\n'
+            f'<body class="touch-machine" onload="initMachineConfigPanel()">\n'
             f"\n{touch_header}\n\n"
             '<div class="ms-body">\n'
             '  <div class="ms-title-row">\n'
@@ -113,67 +83,29 @@ class MachineUIMixin:
             "  </div>\n"
             '  <div class="ms-section">\n'
             f"    <h3>{_('Machine presets')}</h3>\n"
-            '    <table class="ms-table">\n'
-            f"{presets_html}"
-            "    </table>\n"
+            f'    <select id="machine-preset" class="ms-preset-select"></select>\n'
             "  </div>\n"
             '  <div class="ms-section">\n'
             f"    <h3>\U0001F4B6 {_('Material pricing')}</h3>\n"
             f"    <p style=\"font-size:.88em;color:#666;margin:0 0 10px\">{_('Select a material to get a cost estimate on the generator page.')}</p>\n"
-            '    <table class="ms-mat-table">\n'
-            '      <tr><td><input type="radio" name="ms-material" id="ms-mat-none" value=""><label for="ms-mat-none">\u2014 Turn off material calculation \u2014</label></td><td></td></tr>\n'
-            '      <tr><td><input type="radio" name="ms-material" id="ms-mat-tilleul3" value="tilleul3"><label for="ms-mat-tilleul3">3mm contreplaqué Tilleul</label></td><td>25 \u20ac/m\u00b2</td></tr>\n'
-            '      <tr><td><input type="radio" name="ms-material" id="ms-mat-noyer" value="noyer"><label for="ms-mat-noyer">contreplaqué Noyer</label></td><td>36 \u20ac/m\u00b2</td></tr>\n'
-            "    </table>\n"
+            f'    <select id="machine-material" class="ms-mat-select"></select>\n'
             "  </div>\n"
             '  <div class="ms-section">\n'
             f"    <h3>\U0001F4CA {_('Margin coefficient')}</h3>\n"
-            f"    <p style=\"font-size:.88em;color:#666;margin:0 0 10px\">{_('Multiply the material cost by this factor (e.g. 1.5 for a 50% margin). Default: 1.')}</p>\n"
+            f"    <p style=\"font-size:.88em;color:#666;margin:0 0 10px\">{_('Multiply the material cost by this factor (e.g. 1.5 for a 50% margin).')}</p>\n"
             '    <div class="ms-coef-row">\n'
-            f'      <label>{_("Coefficient")}<input type="number" id="machine-margin-coef" min="0.01" max="100" step="0.01" value="2"></label>\n'
+            f'      <label>{_("Coefficient")} : <input type="number" id="machine-margin-coef" min="1" max="100" step="0.1" value="2.0"></label>\n'
             "    </div>\n"
             "  </div>\n"
             "</div>\n\n"
             "<script>\n"
             f"const MS_HOME_URL = 'TouchHub{langparam}';\n"
-            "function initMachineSettingsPage() {\n"
-            "    const cfg = loadMachineConfig();\n"
-            "    document.getElementById('machine-w').value = cfg.w;\n"
-            "    document.getElementById('machine-h').value = cfg.h;\n"
-            "    const matVal = cfg.material || 'tilleul3';\n"
-            "    const radios = document.querySelectorAll('input[name=\"ms-material\"]');\n"
-            "    radios.forEach(r => { r.checked = (r.value === matVal); });\n"
-            "    if (!Array.from(radios).some(r => r.checked)) radios[0].checked = true;\n"
-            "    const coefEl = document.getElementById('machine-margin-coef');\n"
-            "    if (coefEl) coefEl.value = (cfg.margin_coef !== undefined ? cfg.margin_coef : 2);\n"
-            "}\n"
-            "function _persistMachineSettings() {\n"
-            "    const w = parseFloat(document.getElementById('machine-w').value) || 300;\n"
-            "    const h = parseFloat(document.getElementById('machine-h').value) || 300;\n"
-            "    const matRadio = document.querySelector('input[name=\"ms-material\"]:checked');\n"
-            "    const mat = matRadio ? matRadio.value : '';\n"
-            "    const coefEl = document.getElementById('machine-margin-coef');\n"
-            "    const coef = coefEl ? (parseFloat(coefEl.value) || 1) : 1;\n"
-            "    saveMachineConfig(w, h, mat, coef);\n"
-            "}\n"
             "function saveMachineSettingsPage() {\n"
-            "    _persistMachineSettings();\n"
             "    window.location.href = MS_HOME_URL;\n"
-            "}\n"
-            "function machineUsePreset(w, h) {\n"
-            "    document.getElementById('machine-w').value = w;\n"
-            "    document.getElementById('machine-h').value = h;\n"
-            "    saveMachineSettingsPage();\n"
             "}\n"
             "function resetMachineSettingsPage() {\n"
             "    localStorage.removeItem('boxes-machine-config');\n"
-            "    document.getElementById('machine-w').value = 300;\n"
-            "    document.getElementById('machine-h').value = 300;\n"
-            "    const radios = document.querySelectorAll('input[name=\"ms-material\"]');\n"
-            "    radios.forEach(r => { r.checked = (r.value === 'tilleul3'); });\n"
-            "    const coefEl = document.getElementById('machine-margin-coef');\n"
-            "    if (coefEl) coefEl.value = 2;\n"
-            "    _persistMachineSettings();\n"
+            "    initMachineConfigPanel();\n"
             "    const btn = document.querySelector('.ms-reset-btn');\n"
             "    if (btn) { const t = btn.textContent; btn.textContent = '\u2713'; setTimeout(() => { btn.textContent = t; }, 1200); }\n"
             "}\n"

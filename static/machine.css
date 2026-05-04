@@ -39,7 +39,16 @@ body.touch-machine {
   padding: 18px 20px;
   margin-bottom: 20px;
 }
-.ms-section h3 { margin: 0 0 14px; font-size: 1em; color: #333; }
+.ms-section h3 {
+  margin: 0 0 14px;
+  font-size: 1em;
+  color: #333;
+  width: auto;
+  padding: 0;
+  cursor: default;
+}
+.ms-section h3::before { content: none; }
+.ms-section h3:hover { background: none; color: #333; border-radius: 0; }
 
 .ms-dims {
   display: flex;
