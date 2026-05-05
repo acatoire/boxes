@@ -430,12 +430,7 @@ function initArgsPage(num_hide = null) {
     for (let el of i) {
         el.addEventListener("change", refreshPreview);
     }
-    // Restore last active tab from localStorage.
-    try {
-        const savedTab = localStorage.getItem(TAB_STORAGE_KEY);
-        if (savedTab) activateTab(savedTab);
-    } catch (_) {
-    }
+    // Always start on the description tab (do not restore from localStorage).
     refreshPreview();
 }
 
