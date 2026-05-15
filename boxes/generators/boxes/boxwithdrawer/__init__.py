@@ -80,12 +80,22 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             drawer_h -= 2 * t
 
         drawer_h = max(t, min(drawer_h, hi))
-        inner_front_h = max(t, hi - drawer_h - p) if self.drawer_opening else hi
         shelf_h = drawer_h if self.drawer_opening else 0
+        drawer_x = max(t, x - (2 * t + 2 * p))
+        drawer_y = max(t, y - (2 * t + 2 * p))
 
-        def shelf_holes_cb(yd: float) -> None:
+        def shelf_holes_cb(length: float) -> None:
             self.set_source_color(Color.INNER_CUT)
-            self.fingerHolesAt(0, shelf_h + t / 2, yd, angle=0)
+            self.fingerHolesAt(0, shelf_h + t / 2, length, angle=0)
+
+        def inner_front_slot_cb(wall_w: float) -> None:
+            self.set_source_color(Color.INNER_CUT)
+            self.rectangularHole(
+                wall_w / 2,
+                (drawer_h + p) / 2,
+                drawer_x,
+                drawer_h + p,
+            )
 
         # Make the second shell slightly bigger so it slips over the first one.
         self.edges["f"].settings.setValues(
@@ -100,17 +110,21 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             height = hi if i == 0 else h
             with self.saved_context():
                 if i == 0 and self.drawer_opening:
-                    self.rectangularWall(x + d, inner_front_h, "FFEF",
-                                         label=f"{shell_name} front", move="right")
+                    self.rectangularWall(
+                        x + d, height, "fFeF",
+                        label=f"{shell_name} front",
+                        callback=[lambda wd=x + d: inner_front_slot_cb(wd)],
+                        move="right",
+                    )
                 else:
-                    self.rectangularWall(x + d, height, "FFEF", label=f"{shell_name} front", move="right")
+                    self.rectangularWall(x + d, height, "fFeF", label=f"{shell_name} front", move="right")
                 if i == 0 and self.drawer_opening:
-                    self.rectangularWall(y + d, height, "FFEF",
+                    self.rectangularWall(y + d, height, "ffef",
                                          label=f"{shell_name} right",
                                          callback=[lambda yd=y + d: shelf_holes_cb(yd)],
                                          move="right")
                 else:
-                    self.rectangularWall(y + d, height, "FFEF", label=f"{shell_name} right", move="right")
+                    self.rectangularWall(y + d, height, "ffef", label=f"{shell_name} right", move="right")
                 if i == 0 and self.drawer_opening:
                     self.rectangularWall(x + d, height, "fFeF",
                                          label=f"{shell_name} back",
@@ -119,24 +133,21 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
                 else:
                     self.rectangularWall(x + d, height, "fFeF", label=f"{shell_name} back", move="right")
                 if i == 0 and self.drawer_opening:
-                    self.rectangularWall(y + d, height, "FFEF",
+                    self.rectangularWall(y + d, height, "ffef",
                                          label=f"{shell_name} left",
                                          callback=[lambda yd=y + d: shelf_holes_cb(yd)],
                                          move="right")
                 else:
-                    self.rectangularWall(y + d, height, "FFEF", label=f"{shell_name} left", move="right")
-            self.rectangularWall(y, height, "FFEF", move="up only")
+                    self.rectangularWall(y + d, height, "ffef", label=f"{shell_name} left", move="right")
+            self.rectangularWall(y, height, "ffef", move="up only")
 
         self.rectangularWall(x, y, "hhhh", label="inner bottom", bedBolts=None, move="right")
         self.rectangularWall(x + d, y + d, "FFFF", label="outer top", bedBolts=None, move="right")
         if self.drawer_opening:
-            self.rectangularWall(x, y, "FFEF", label="inner shelf bottom", bedBolts=None, move="right")
+            self.rectangularWall(x, y, "ffff", label="inner shelf bottom", bedBolts=None, move="right")
 
-        drawer_x = max(t, x - (2 * t + 2 * p))
-        drawer_y = max(t, y - (2 * t + 2 * p))
-
-        self.rectangularWall(drawer_x, drawer_h, "FFEF", label="drawer front", move="right")
-        self.rectangularWall(drawer_y, drawer_h, "FFEF", label="drawer right", move="right")
-        self.rectangularWall(drawer_x, drawer_h, "FFEF", label="drawer back", move="right")
-        self.rectangularWall(drawer_y, drawer_h, "FFEF", label="drawer left", move="right")
-        self.rectangularWall(drawer_x, drawer_y, "FFFF", label="drawer bottom", move="right")
+        self.rectangularWall(drawer_x, drawer_h, "FFeF", label="drawer front", move="right")
+        self.rectangularWall(drawer_y, drawer_h, "ffef", label="drawer right", move="right")
+        self.rectangularWall(drawer_x, drawer_h, "FFeF", label="drawer back", move="right")
+        self.rectangularWall(drawer_y, drawer_h, "ffef", label="drawer left", move="right")
+        self.rectangularWall(drawer_x, drawer_y, "FfFf", label="drawer bottom", move="right")
