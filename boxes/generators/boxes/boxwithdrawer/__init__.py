@@ -88,14 +88,7 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             self.set_source_color(Color.INNER_CUT)
             self.fingerHolesAt(0, shelf_h + t / 2, length, angle=0)
 
-        def inner_front_slot_cb(wall_w: float) -> None:
-            self.set_source_color(Color.INNER_CUT)
-            self.rectangularHole(
-                wall_w / 2,
-                (drawer_h + p) / 2,
-                drawer_x,
-                drawer_h + p,
-            )
+        inner_front_h = max(t, hi - drawer_h - p)
 
         # Make the second shell slightly bigger so it slips over the first one.
         self.edges["f"].settings.setValues(
@@ -110,14 +103,13 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             height = hi if i == 0 else h
             with self.saved_context():
                 if i == 0 and self.drawer_opening:
-                    self.rectangularWall(
-                        x + d, height, "fFeF",
-                        label=f"{shell_name} front",
-                        callback=[lambda wd=x + d: inner_front_slot_cb(wd)],
-                        move="right",
-                    )
+                    self.rectangularWall(x + d, height, "fFeF",
+                                         label=f"{shell_name} back",
+                                         callback=[lambda xd=x + d: shelf_holes_cb(xd)],
+                                         move="right")
                 else:
                     self.rectangularWall(x + d, height, "fFeF", label=f"{shell_name} front", move="right")
+
                 if i == 0 and self.drawer_opening:
                     self.rectangularWall(y + d, height, "ffef",
                                          label=f"{shell_name} right",
@@ -125,6 +117,7 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
                                          move="right")
                 else:
                     self.rectangularWall(y + d, height, "ffef", label=f"{shell_name} right", move="right")
+
                 if i == 0 and self.drawer_opening:
                     self.rectangularWall(x + d, height, "fFeF",
                                          label=f"{shell_name} back",
@@ -132,6 +125,7 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
                                          move="right")
                 else:
                     self.rectangularWall(x + d, height, "fFeF", label=f"{shell_name} back", move="right")
+
                 if i == 0 and self.drawer_opening:
                     self.rectangularWall(y + d, height, "ffef",
                                          label=f"{shell_name} left",
