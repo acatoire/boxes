@@ -104,7 +104,7 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             with self.saved_context():
                 if i == 0 and self.drawer_opening:
                     self.rectangularWall(x + d, height, "fFeF",
-                                         label=f"{shell_name} back",
+                                         label=f"{shell_name} front",
                                          callback=[lambda xd=x + d: shelf_holes_cb(xd)],
                                          move="right")
                 else:
