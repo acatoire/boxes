@@ -41,52 +41,105 @@ class BoxWithDrawer(Boxes):
     """Two-piece outer box with a separate-height sliding drawer."""
 
     ui_group = "Box"
+    tags: list[str] = ["unstable", "tcg"]
 
     description = """
 A two-piece box where the inner volume can be filled with a dedicated drawer.
 Use *drawer_h* to control drawer height independently from *h* / *hi*.
 """
 
-    x: float = 100.0
-    y: float = 100.0
-    box_h: float = 100.0
+    x: float = 40.0
+    y: float = 20.0
+    h: float = 30.0
     hi: float = 0.0
     outside: bool = False
     play: float = 0.15
-    drawer_h: float = 25.0
-    drawer_opening: bool = False
+    drawer_h: float = 20.0
+    drawer_opening: bool = True
+    magnet_nb: int = 1
+    magnet_diameter: float = 6.0
+    magnet_distance: float = 0.0
 
     def __init__(self) -> None:
         Boxes.__init__(self)
-        self.buildArgParser("x", "y", "h", "hi", "outside")
+        self.buildArgParser(x=self.x, y=self.y, h=self.h, hi=self.hi, outside=self.outside)
         self.addSettingsArgs(edges.FingerJointSettings, finger=2.0, space=2.0)
         self.argparser.add_argument(
             "--play",
             action="store",
             type=float,
-            default=0.15,
+            default=self.play,
             help="play between fitting parts as multiple of the wall thickness",
         )
         self.argparser.add_argument(
             "--drawer_h",
             action="store",
             type=float,
-            default=25.0,
+            default=self.drawer_h,
             help="height of the inner drawer [mm]",
         )
         self.argparser.add_argument(
             "--drawer_opening",
             action="store",
             type=boolarg,
-            default=False,
+            default=self.drawer_opening,
             help="reduce inner front wall to let drawer slide under it",
         )
+        self.argparser.add_argument(
+            "--magnet_nb",
+            action="store",
+            type=int,
+            default=self.magnet_nb,
+            help="number of magnets on the front walls (0 = none)",
+        )
+        self.argparser.add_argument(
+            "--magnet_diameter",
+            action="store",
+            type=float,
+            default=self.magnet_diameter,
+            help="diameter of each magnet hole [mm]",
+        )
+        self.argparser.add_argument(
+            "--magnet_distance",
+            action="store",
+            type=float,
+            default=self.magnet_distance,
+            help="centre-to-centre spacing between magnets (0 = auto, evenly distributed) [mm]",
+        )
+
+    def _magnet_holes_cb(self, wall_width: float, wall_height: float, near_top: bool = True) -> None:
+        """Drill magnet holes near the opening edge of a front wall.
+
+        near_top=True  → holes near the drawing top    (inner walls, opening at top)
+        near_top=False → holes near the drawing bottom (outer walls, rotated 180°, opening at bottom)
+        """
+        n = self.magnet_nb
+        d = self.magnet_diameter
+        t = self.thickness
+        if n <= 0 or d <= 0:
+            return
+        if self.magnet_distance == 0.0:
+            spacing = wall_width / (n + 1)
+            start_x = spacing
+        else:
+            spacing = self.magnet_distance
+            start_x = wall_width / 2 - (n - 1) / 2 * spacing
+        y_pos = (wall_height - t - d / 2) if near_top else (t + d / 2)
+        with self.saved_context():
+            self.set_source_color(Color.INNER_CUT)
+            for i in range(n):
+                self.hole(start_x + i * spacing, y_pos, d=d)
 
     def render(self) -> None:
+
+        h = self.h + self.drawer_h
+
         x = self.x
         y = self.y
-        h = self.box_h
-        hi = self.hi or self.box_h
+        if self.hi > 0:
+            hi = self.hi + self.drawer_h
+        else:
+            hi = self.h + self.drawer_h
         drawer_h = self.drawer_h
         t = self.thickness
         p = self.play * t
@@ -100,8 +153,6 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
 
         drawer_h = max(t, min(drawer_h, hi))
         drawer_x = max(t, x - (2 * t + 2 * p))
-        # In drawer_opening mode the drawer slides in from the front (under the split wall),
-        # so its depth equals the full inner depth y – no front-wall reduction needed.
         drawer_y = y if self.drawer_opening else max(t, y - (2 * t + 2 * p))
 
         def wall_cb(length: float, line_color: list[float]) -> None:
@@ -114,7 +165,7 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
                 self.moveTo(0, drawer_h)
                 self.edge(length)
                 ctx = cast(Context, self.ctx)
-                ctx.stroke()  # commit path NOW with line_color, before restore()
+                ctx.stroke()
 
         # Make the second shell slightly bigger so it slips over the first one.
         self.edges["f"].settings.setValues(
@@ -127,39 +178,63 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
         for i, shell_name in enumerate(shell_names):
             d = i * 2 * (t + p)
             height = hi if i == 0 else h
+            wall_w = x + d
+            # Outer walls are drawn rotated 180° so the opening edge (e) is at
+            # the bottom of the piece – matching how they are actually assembled.
+            # Inner: opening at top  → edges "fFeF" / "ffef"
+            # Outer: opening at bottom → edges "eFfF" / "efff"
+            front_edges = "fFeF" if i == 0 else "eFfF"
+            side_edges  = "ffef" if i == 0 else "efff"
+            near_top    = True
+
+            def _front_cb(
+                ww: float = wall_w,
+                ht: float = height,
+                idx: int = i,
+                nt: bool = near_top,
+            ) -> None:
+                if idx == 0 and self.drawer_opening:
+                    wall_cb(ww, Color.OUTER_CUT)
+                self._magnet_holes_cb(ww, ht, near_top=nt)
+
+            def _back_cb(
+                ww: float = wall_w,
+                idx: int = i,
+            ) -> None:
+                # back wall: shelf split line only, no magnets
+                if idx == 0 and self.drawer_opening:
+                    wall_cb(ww, Color.OUTER_CUT)
+
             with self.saved_context():
-                if i == 0 and self.drawer_opening:
-                    self.rectangularWall(x + d, height, "fFeF",
-                                         label=f"{shell_name} front",
-                                         callback=[lambda xd=x + d: wall_cb(xd, Color.OUTER_CUT)],
-                                         move="right")
-                else:
-                    self.rectangularWall(x + d, height, "fFeF", label=f"{shell_name} front", move="right")
+                self.rectangularWall(wall_w, height, front_edges,
+                                     label=f"{shell_name} front",
+                                     callback=[_front_cb],
+                                     move="right")
 
                 if i == 0 and self.drawer_opening:
-                    self.rectangularWall(y + d, height, "ffef",
+                    self.rectangularWall(y + d, height, side_edges,
                                          label=f"{shell_name} right",
                                          callback=[lambda yd=y + d: wall_cb(yd, Color.ETCHING)],
                                          move="right")
                 else:
-                    self.rectangularWall(y + d, height, "ffef", label=f"{shell_name} right", move="right")
+                    self.rectangularWall(y + d, height, side_edges, label=f"{shell_name} right", move="right")
 
                 if i == 0 and self.drawer_opening:
-                    self.rectangularWall(x + d, height, "fFeF",
+                    self.rectangularWall(wall_w, height, front_edges,
                                          label=f"{shell_name} back",
-                                         callback=[lambda xd=x + d: wall_cb(xd, Color.OUTER_CUT)],
+                                         callback=[_back_cb],
                                          move="right")
                 else:
-                    self.rectangularWall(x + d, height, "fFeF", label=f"{shell_name} back", move="right")
+                    self.rectangularWall(wall_w, height, front_edges, label=f"{shell_name} back", move="right")
 
                 if i == 0 and self.drawer_opening:
-                    self.rectangularWall(y + d, height, "ffef",
+                    self.rectangularWall(y + d, height, side_edges,
                                          label=f"{shell_name} left",
                                          callback=[lambda yd=y + d: wall_cb(yd, Color.ETCHING)],
                                          move="right")
                 else:
-                    self.rectangularWall(y + d, height, "ffef", label=f"{shell_name} left", move="right")
-            self.rectangularWall(y, height, "ffef", move="up only")
+                    self.rectangularWall(y + d, height, side_edges, label=f"{shell_name} left", move="right")
+            self.rectangularWall(y, height, side_edges, move="up only")
 
         with self.saved_context():
             if self.drawer_opening:
@@ -167,13 +242,11 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             self.rectangularWall(x + d, y + d, "FFFF", label="outer top", bedBolts=None, move="right")
 
             if self.drawer_opening:
-              # _FlushEdge: same spacing as 'h' but no holes → exact same layout size
               fe = _FlushEdge(self, self.edges["h"].settings)
               self.rectangularWall(x, y, [fe, self.edges["h"], fe, self.edges["h"]], label="inner bottom flush", bedBolts=None, move="right")
             else:
               self.rectangularWall(x, y, "hhhh", label="inner bottom", bedBolts=None, move="right")
 
-        # layout spacer: advances past the plates row (uses "hhhh" – tallest edge spacing in the row)
         self.rectangularWall(x + d, y + d, "hhhh", move="up only")
 
         with self.saved_context():
@@ -181,6 +254,5 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             self.rectangularWall(drawer_y, drawer_h, "ffef", label="drawer right", move="right")
             self.rectangularWall(drawer_x, drawer_h, "FFeF", label="drawer back", move="right")
             self.rectangularWall(drawer_y, drawer_h, "ffef", label="drawer left", move="right")
-            self.rectangularWall(drawer_x, drawer_y, "FfFf", label="drawer bottom", move="right")
-        # layout spacer: advances past the drawer row
+            self.rectangularWall(drawer_x, drawer_y, "fFfF", label="drawer bottom", move="right")
         self.rectangularWall(drawer_x, drawer_y, "FfFf", move="up only")
