@@ -59,6 +59,7 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
     magnet_nb: int = 1
     magnet_diameter: float = 6.0
     magnet_distance: float = 0.0
+    magnet_h: float = 0.0
 
     def __init__(self) -> None:
         Boxes.__init__(self)
@@ -106,6 +107,13 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             default=self.magnet_distance,
             help="centre-to-centre spacing between magnets (0 = auto, evenly distributed) [mm]",
         )
+        self.argparser.add_argument(
+            "--magnet_h",
+            action="store",
+            type=float,
+            default=self.magnet_h,
+            help="vertical offset of magnet holes from the auto position (0 = auto) [mm]",
+        )
 
     def _magnet_holes_cb(self, wall_width: float, wall_height: float, near_top: bool = True) -> None:
         """Drill magnet holes near the opening edge of a front wall.
@@ -125,6 +133,8 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             spacing = self.magnet_distance
             start_x = wall_width / 2 - (n - 1) / 2 * spacing
         y_pos = (wall_height - t - d / 2) if near_top else (t + d / 2)
+        if self.magnet_h != 0.0:
+            y_pos = self.magnet_h
         with self.saved_context():
             self.set_source_color(Color.INNER_CUT)
             for i in range(n):
