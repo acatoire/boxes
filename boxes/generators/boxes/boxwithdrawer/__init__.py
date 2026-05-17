@@ -132,17 +132,21 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
 
     def render(self) -> None:
 
-        h = self.h + self.drawer_h
-
         x = self.x
         y = self.y
-        if self.hi > 0:
-            hi = self.hi + self.drawer_h
-        else:
-            hi = self.h + self.drawer_h
         drawer_h = self.drawer_h
         t = self.thickness
         p = self.play * t
+        # When drawer_opening is True a shelf panel (thickness t) sits between
+        # the drawer compartment and the upper compartment, so the total wall
+        # height must include that extra t.
+        shelf_t = t * 2 if self.drawer_opening else t
+
+        h = self.h + self.drawer_h + shelf_t
+        if self.hi > 0:
+            hi = self.hi + self.drawer_h + shelf_t
+        else:
+            hi = self.h + self.drawer_h + shelf_t
 
         if self.outside:
             x -= 4 * t + 2 * p
@@ -159,10 +163,10 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
             """Finger holes for shelf + split line at drawer_h in the given color."""
             with self.saved_context():
                 self.set_source_color(Color.INNER_CUT)
-                self.fingerHolesAt(0, drawer_h + t / 2, length, angle=0)
+                self.fingerHolesAt(0, drawer_h + t + t / 2, length, angle=0)
             with self.saved_context():
                 self.set_source_color(line_color)
-                self.moveTo(0, drawer_h)
+                self.moveTo(0, drawer_h + t)
                 self.edge(length)
                 ctx = cast(Context, self.ctx)
                 ctx.stroke()
