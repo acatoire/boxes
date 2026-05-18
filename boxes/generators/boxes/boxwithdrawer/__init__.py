@@ -258,7 +258,8 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
 
             if self.drawer_opening:
               fe = _FlushEdge(self, self.edges["h"].settings)
-              self.rectangularWall(x, y, [fe, self.edges["h"], fe, self.edges["h"]], label="inner bottom flush", bedBolts=None, move="right")
+              self.rectangularWall(x - t, y - t, [fe, self.edges["h"], fe, self.edges["h"]],
+                                   label="inner bottom flush", bedBolts=None, move="right")
             else:
               self.rectangularWall(x, y, "hhhh", label="inner bottom", bedBolts=None, move="right")
 
