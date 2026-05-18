@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import cast
 
 from boxes import *
+from boxes.args import FloatStepper, IntStepper
 from boxes.drawing import Context
 
 
@@ -68,14 +69,14 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
         self.argparser.add_argument(
             "--play",
             action="store",
-            type=float,
+            type=FloatStepper(0.05),
             default=self.play,
             help="play between fitting parts as multiple of the wall thickness",
         )
         self.argparser.add_argument(
             "--drawer_h",
             action="store",
-            type=float,
+            type=FloatStepper(1.0),
             default=self.drawer_h,
             help="height of the inner drawer [mm]",
         )
@@ -89,28 +90,28 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
         self.argparser.add_argument(
             "--magnet_nb",
             action="store",
-            type=int,
+            type=IntStepper(1),
             default=self.magnet_nb,
             help="number of magnets on the front walls (0 = none)",
         )
         self.argparser.add_argument(
             "--magnet_diameter",
             action="store",
-            type=float,
+            type=FloatStepper(0.1),
             default=self.magnet_diameter,
             help="diameter of each magnet hole [mm]",
         )
         self.argparser.add_argument(
             "--magnet_distance",
             action="store",
-            type=float,
+            type=FloatStepper(0.5),
             default=self.magnet_distance,
             help="centre-to-centre spacing between magnets (0 = auto, evenly distributed) [mm]",
         )
         self.argparser.add_argument(
             "--magnet_h",
             action="store",
-            type=float,
+            type=FloatStepper(0.5),
             default=self.magnet_h,
             help="vertical offset of magnet holes from the auto position (0 = auto) [mm]",
         )
