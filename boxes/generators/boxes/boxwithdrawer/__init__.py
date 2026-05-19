@@ -290,20 +290,26 @@ Use *drawer_h* to control drawer height independently from *h* / *hi*.
                     self.rectangularWall(y + d, height, side_edges, label=f"{shell_name} left", move="right")
             self.rectangularWall(y, height, side_edges, move="up only")
 
+        # Top and bottom
         with self.saved_context():
+            outer_extra = 2 * (t + p)
+            inner_extra = 2 * t
+
             if self.drawer_opening:
                 self.rectangularWall(x, y, "ffff", label="shelf bottom", bedBolts=None, move="right")
-            self.rectangularWall(x + d, y + d, "FFFF", label="outer top", bedBolts=None, move="right")
+            self.rectangularWall(x + outer_extra, y + outer_extra, "FFFF", label="outer top", bedBolts=None, move="right")
 
             if self.drawer_opening:
               fe = _FlushEdge(self, self.edges["h"].settings)
-              self.rectangularWall(x - t, y - t, [fe, self.edges["h"], fe, self.edges["h"]],
+              self.rectangularWall(x - inner_extra, y - inner_extra, [fe, self.edges["h"], fe, self.edges["h"]],
                                    label="inner bottom flush", bedBolts=None, move="right")
             else:
-              self.rectangularWall(x, y, "hhhh", label="inner bottom", bedBolts=None, move="right")
+              self.rectangularWall(x - inner_extra, y - inner_extra, "hhhh", label="inner bottom", bedBolts=None, move="right")
 
-        self.rectangularWall(x + d, y + d, "hhhh", move="up only")
+        # No drawing, just for movement
+        self.rectangularWall(x + outer_extra, y + outer_extra, "hhhh", move="up only")
 
+        # Drawer
         with self.saved_context():
             self.rectangularWall(drawer_x, drawer_h, "FFeF", label="drawer front", move="right")
             self.rectangularWall(drawer_y, drawer_h, "ffef", label="drawer right",

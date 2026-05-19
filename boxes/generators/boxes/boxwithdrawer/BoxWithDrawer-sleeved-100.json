@@ -20,6 +20,7 @@
   "magnet_diameter": "3",
   "magnet_distance": "35",
   "magnet_h": "70",
+  "side_magnet_diameter": "6",
   "thickness": "3.0",
   "burn": "0.1",
   "format": "svg",
