@@ -26,6 +26,7 @@ Set *hi* larger than *h* to leave gap between the inner and outer shell. This ca
 """
 
     ui_group = "Box"
+    tags = ["🦉", "cards", "tcg"]
 
     def __init__(self) -> None:
         Boxes.__init__(self)
