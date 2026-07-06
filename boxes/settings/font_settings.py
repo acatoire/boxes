@@ -68,8 +68,9 @@ class FontSettings(Settings):
                         prefix: str | None = None, **defaults: object) -> None:
         """Register arguments in a dedicated *Font Settings* group."""
         prefix = prefix or "Font"
+        title = str(defaults.pop("title", "Font Settings"))
 
-        group = parser.add_argument_group("Font Settings")
+        group = parser.add_argument_group(title)
         group.prefix = prefix  # type: ignore[attr-defined]
 
         available_fonts = discover_fonts()
