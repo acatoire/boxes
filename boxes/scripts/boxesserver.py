@@ -50,6 +50,7 @@ from boxes.scripts.pages.colors import ColorsUIMixin
 from boxes.scripts.pages.categories import CategoriesUIMixin
 from boxes.scripts.pages.generator import GeneratorUIMixin
 from boxes.scripts.pages.machine import MachineUIMixin
+from boxes.scripts.pages.memo import MemoUIMixin
 
 
 class FileChecker(threading.Thread):
@@ -123,7 +124,7 @@ class ThrowingArgumentParser(boxes.args.BoxesArgumentParser):
 boxes.ArgumentParser = ThrowingArgumentParser  # type: ignore
 
 
-class BServer(HomeLegacyMixin, MenuUIMixin, HomeGalleryMixin, HomeTouchMixin, ColorsUIMixin, CategoriesUIMixin, GeneratorUIMixin, MachineUIMixin):
+class BServer(HomeLegacyMixin, MenuUIMixin, HomeGalleryMixin, HomeTouchMixin, ColorsUIMixin, CategoriesUIMixin, GeneratorUIMixin, MachineUIMixin, MemoUIMixin):
     """WSGI application that serves the Boxes.py web UI.
 
     HTML rendering is split across mixins:
@@ -395,6 +396,9 @@ class BServer(HomeLegacyMixin, MenuUIMixin, HomeGalleryMixin, HomeTouchMixin, Co
 
         if name == "machine":
             return self.serveMachine(environ, start_response, lang)
+
+        if name == "memo":
+            return self.serveMemo(environ, start_response, lang)
 
         if name == "categories":
             return self.serveCategorySettings(environ, start_response, lang)
