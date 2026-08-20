@@ -225,6 +225,9 @@ class GeneratorUIMixin:
             f'  <div id="surface-info-bar" class="surface-info-bar"></div>\n'
             f'  <div id="price-info-bar" class="price-info-bar"></div>\n'
             f'  <div id="fit-info-bar" class="fit-info-bar"></div>\n'
+            f'  <img id="slide-me-icon" class="slide-me-icon" draggable="true"\n'
+            f'       title="{_("Drag this onto your laser software -- works regardless of the Show fill toggle")}"\n'
+            f'       alt="{_("Slide me")}" src="{self.static_url}/nothing.png">\n'
             f'</div>\n'
         )
         # Tab buttons go in the header center

@@ -326,6 +326,22 @@ body.touch-args form > p:last-of-type { display: none; }
 .fit-ok   { background: #e8f5e9; color: #2e7d32; }
 .fit-warn { background: #fff3e0; color: #e65100; }
 
+/* Always-draggable preview icon, next to the fit-info-bar -- see
+   _syncSlideMeIcon() in generator.js for why this needs to be a real
+   <img> rather than the inline-svg fill preview. */
+.slide-me-icon {
+  display: none; /* shown once a real preview has loaded */
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border: 1px solid #d8cdb0;
+  border-radius: 6px;
+  background: #fff;
+  padding: 2px;
+  cursor: grab;
+}
+.slide-me-icon:active { cursor: grabbing; }
+
 /* When not yet populated, surface/price/fit items are hidden */
 .surface-info-bar:empty,
 .price-info-bar:empty,

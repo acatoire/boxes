@@ -21,6 +21,7 @@ function initTouchArgs(numHide) {
         img.addEventListener('load',  _hidePreviewLoading);
         img.addEventListener('error', _hidePreviewLoading);
         img.addEventListener('load',  () => { if (previewFillEnabled) _loadInlinePreviewFill(img.src); });
+        img.addEventListener('load',  _syncSlideMeIcon);
     }
 
     // "Show fill" checkbox next to the zoom controls starts checked (default true).
@@ -51,6 +52,28 @@ function initTouchArgs(numHide) {
    The downloaded/generated file is never touched. Defaults to on. */
 
 let previewFillEnabled = true;
+
+/* ----------------------------------------------------------------
+   "Slide me" drag-out icon (next to the fit-info-bar)
+   ----------------------------------------------------------------
+   Only a real <img src="..."> is natively draggable out of the browser
+   (onto a laser app / the desktop) in every browser -- when "Show fill" is
+   on, the visible preview is an inline <svg> injected as markup (see the
+   toggle above), which most browsers won't let you drag out as a file.
+   This icon is always a plain <img> pointed at the same preview url, kept
+   in sync on every preview reload, so dragging works regardless of the
+   Show fill toggle. */
+
+function _syncSlideMeIcon() {
+    const img = document.getElementById('preview_img');
+    const slideMe = document.getElementById('slide-me-icon');
+    if (!img || !slideMe) return;
+    slideMe.src = img.src;
+    // The stylesheet default is display:none -- '' would just clear the
+    // inline style and fall back to that, so an explicit visible value is
+    // needed here, not ''.
+    slideMe.style.display = img.src.endsWith('/nothing.png') ? 'none' : 'inline-block';
+}
 
 /** Keep both the <img> and the inline-svg preview at the same zoom level. */
 function setPreviewZoom(scale) {
