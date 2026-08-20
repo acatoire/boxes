@@ -22,6 +22,7 @@ function initTouchArgs(numHide) {
         img.addEventListener('error', _hidePreviewLoading);
         img.addEventListener('load',  () => { if (previewFillEnabled) _loadInlinePreviewFill(img.src); });
         img.addEventListener('load',  _syncSlideMeIcon);
+        img.addEventListener('load',  _updateAutoLabel);
     }
 
     // "Show fill" checkbox next to the zoom controls starts checked (default true).
@@ -54,7 +55,8 @@ function initTouchArgs(numHide) {
 let previewFillEnabled = true;
 
 /* ----------------------------------------------------------------
-   "Slide me" drag-out icon (next to the fit-info-bar)
+   "Slide me" drag-out icon (sticky action bar, between Generate and
+   Download)
    ----------------------------------------------------------------
    Only a real <img src="..."> is natively draggable out of the browser
    (onto a laser app / the desktop) in every browser -- when "Show fill" is
@@ -67,12 +69,52 @@ let previewFillEnabled = true;
 function _syncSlideMeIcon() {
     const img = document.getElementById('preview_img');
     const slideMe = document.getElementById('slide-me-icon');
-    if (!img || !slideMe) return;
+    const wrap = document.getElementById('slide-me-wrap');
+    if (!img || !slideMe || !wrap) return;
     slideMe.src = img.src;
     // The stylesheet default is display:none -- '' would just clear the
     // inline style and fall back to that, so an explicit visible value is
-    // needed here, not ''.
-    slideMe.style.display = img.src.endsWith('/nothing.png') ? 'none' : 'inline-block';
+    // needed here, not ''. Toggle the wrapper (not the <img> itself) so the
+    // "Grab me" label shown/hidden with it stays in sync.
+    wrap.style.display = img.src.endsWith('/nothing.png') ? 'none' : 'inline-flex';
+}
+
+/* ----------------------------------------------------------------
+   Live "auto label" (MiniatureWorkshop's Text_text field)
+   ----------------------------------------------------------------
+   While the Auto_label checkbox is on (default), the server always uses
+   the auto-generated caption regardless of what's in the box (see
+   MiniatureWorkshop._default_label()/render() in Python) -- this mirrors
+   that same computation into the field's real value (not just a
+   placeholder) after every preview recalculation, so the box always shows
+   real, editable text instead of starting empty, and stays in sync as the
+   character/pet selection changes. Once Auto_label is unchecked, this
+   stops touching the field so manual edits are never overwritten.
+   No-op on generators that don't have these fields. */
+
+function _displayResourceName(stem) {
+    if (!stem) return '';
+    return stem.replace(/[-_]/g, ' ').replace(/\S+/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
+
+function _updateAutoLabel() {
+    const textField = document.getElementById('Text_text');
+    const autoCheckbox = document.getElementById('Auto_label');
+    if (!textField || (autoCheckbox && !autoCheckbox.checked)) return;
+    const selValue = (id) => {
+        const el = document.getElementById(id);
+        return (el && el.value && el.value !== 'none') ? el.value : '';
+    };
+    const characterName = _displayResourceName(selValue('Character_resource'));
+    const petNames = ['Pet_resource', 'Pet2_resource']
+        .map(selValue)
+        .filter(Boolean)
+        .map(_displayResourceName);
+    let label = '';
+    if (characterName && petNames.length) label = `${characterName} with ${petNames.join(' and ')}`;
+    else if (characterName) label = characterName;
+    else if (petNames.length) label = petNames.join(' and ');
+    textField.value = label;
 }
 
 /** Keep both the <img> and the inline-svg preview at the same zoom level. */

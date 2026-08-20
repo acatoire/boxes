@@ -397,6 +397,13 @@ textarea {
     background: #DFD8BA;
 }
 
+/* Label text field and resource picker dropdowns (ResourceSettings'
+   --{prefix}_resource selects) get room to show longer values/filenames. */
+#Text_text,
+select[id$="_resource"] {
+    min-width: 300px;
+}
+
 :root {
     --gallery-item-height: 120px;
 }

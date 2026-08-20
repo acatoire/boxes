@@ -225,9 +225,6 @@ class GeneratorUIMixin:
             f'  <div id="surface-info-bar" class="surface-info-bar"></div>\n'
             f'  <div id="price-info-bar" class="price-info-bar"></div>\n'
             f'  <div id="fit-info-bar" class="fit-info-bar"></div>\n'
-            f'  <img id="slide-me-icon" class="slide-me-icon" draggable="true"\n'
-            f'       title="{_("Drag this onto your laser software -- works regardless of the Show fill toggle")}"\n'
-            f'       alt="{_("Slide me")}" src="{self.static_url}/nothing.png">\n'
             f'</div>\n'
         )
         # Tab buttons go in the header center
@@ -295,6 +292,12 @@ class GeneratorUIMixin:
             "\n<!-- Sticky bottom action bar -->\n"
             '<div class="touch-action-bar">\n'
             f'  <button class="touch-action-btn" data-render="1" data-target="_blank">{_("Generate")}</button>\n'
+            f'  <span id="slide-me-wrap" class="slide-me-wrap"\n'
+            f'        title="{_("Drag this onto your laser software -- works regardless of the Show fill toggle")}">\n'
+            f'    <img id="slide-me-icon" class="slide-me-icon" draggable="true"\n'
+            f'         alt="{_("Slide me")}" src="{self.static_url}/nothing.png">\n'
+            f'    <span class="slide-me-label" aria-hidden="true">{_("Grab me")}</span>\n'
+            f'  </span>\n'
             f'  <button class="touch-action-btn secondary" data-render="2" data-target="_self">{_("Download")}</button>\n'
             f'  <button class="touch-action-btn secondary" data-render="0" data-target="_self">{_("URL")}</button>\n'
             f'  <button class="touch-action-btn secondary" data-render="3" data-target="_blank">{_("QR")}</button>\n'

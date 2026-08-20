@@ -327,21 +327,47 @@ body.touch-args form > p:last-of-type { display: none; }
 .fit-ok   { background: #e8f5e9; color: #2e7d32; }
 .fit-warn { background: #fff3e0; color: #e65100; }
 
-/* Always-draggable preview icon, next to the fit-info-bar -- see
-   _syncSlideMeIcon() in generator.js for why this needs to be a real
-   <img> rather than the inline-svg fill preview. */
-.slide-me-icon {
-  display: none; /* shown once a real preview has loaded */
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  border: 1px solid #d8cdb0;
-  border-radius: 6px;
-  background: #fff;
-  padding: 2px;
+/* Always-draggable preview button, in the sticky action bar between
+   Generate and Download -- see _syncSlideMeIcon() in generator.js for why
+   dragging needs a real <img> rather than the inline-svg fill preview.
+   Styled like the other .touch-action-btn buttons (green here); the <img>
+   itself is fully transparent and stretched over the whole button so the
+   preview thumbnail is never shown, only the "Grab me" label is -- but the
+   image stays on top and hit-testable, so dragging still works anywhere on
+   the button. */
+.slide-me-wrap {
+  display: none; /* shown once a real preview has loaded, as inline-flex */
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--th-tap-min);
+  padding: 0 26px;
+  border-radius: 10px;
+  background: #2e7d32;
   cursor: grab;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
 }
-.slide-me-icon:active { cursor: grabbing; }
+.slide-me-wrap:hover  { background: #276b2b; }
+.slide-me-wrap:active { cursor: grabbing; transform: scale(0.96); }
+
+.slide-me-icon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  object-fit: contain;
+}
+
+.slide-me-label {
+  font-size: 1em;
+  font-family: inherit;
+  font-weight: bold;
+  color: #fff;
+  pointer-events: none;
+  white-space: nowrap;
+}
 
 /* When not yet populated, surface/price/fit items are hidden */
 .surface-info-bar:empty,

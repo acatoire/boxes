@@ -13,11 +13,14 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import pathlib
 from types import SimpleNamespace
 
 from boxes import Boxes, Color, FloatStepper, boolarg
-from boxes.settings.resource_settings import ResourceSettings, resource_path
+from boxes.settings.font_settings import FontSettings
+from boxes.settings.resource_settings import NONE_CHOICE, ResourceSettings, resource_path
+from boxes.settings.text_settings import TextSettings
 
 from .svgimport import draw_piece, load_svg_piece
 
@@ -36,6 +39,24 @@ _PET_HOLE_CY_FRACTION = 1 / 3
 
 # Standard tabletop miniature base diameters [mm], covering most games.
 BASE_HEIGHT_PRESETS = [25, 28.5, 30, 32, 40, 50, 60, 80, 100, 130]
+
+
+def _display_name(resource_stem: str) -> str:
+    """Turn a resource file stem (e.g. "gobelin-queen") into a display name
+    (e.g. "Gobelin Queen")."""
+    return resource_stem.replace("-", " ").replace("_", " ").title()
+
+
+def _compose_label(character: str | None, pet1: str | None, pet2: str | None) -> str:
+    """Build "Character with Pet1 and Pet2" (or a subset of that) from raw
+    resource names -- "" / "none" entries are skipped."""
+    character_name = _display_name(character) if character and character != NONE_CHOICE else None
+    pet_names = [_display_name(r) for r in (pet1, pet2) if r and r != NONE_CHOICE and r is not None]
+    if character_name and pet_names:
+        return f"{character_name}\nwith {' and '.join(pet_names)}"
+    if character_name:
+        return character_name
+    return " and ".join(pet_names)
 
 
 def _draw_hole(boxes_obj, piece, cx_fraction: float, cy_fraction: float, hole_length: float) -> None:
@@ -116,6 +137,32 @@ class MiniatureWorkshop(Boxes):
             self.argparser.add_argument(
                 "--Base_invert_pet_hole_side", action="store", type=boolarg, default=False,
                 help="With exactly one pet, put its peg hole on the left of the base instead of the right")
+            self.argparser.add_argument(
+                "--Board_corner_radius", action="store", type=FloatStepper(0.5), default=8.0,
+                help="Corner radius of the outer cut border [mm] (0 = sharp right angles)")
+            self.argparser.add_argument(
+                "--Auto_label", action="store", type=boolarg, default=True,
+                help="Keep the caption in sync with the selected character/pet names; "
+                     "turn off to edit it freely without it being overwritten")
+        # Seed the caption with the label the just-resolved character/pet
+        # selections would produce, so editing it starts from real text
+        # instead of an empty box (render() still recomputes it from
+        # whatever is actually selected when --Auto_label is on).
+        initial_label = _compose_label(
+            self._resolved_default("Character_resource"),
+            self._resolved_default("Pet_resource"),
+            self._resolved_default("Pet2_resource"),
+        )
+        self.addSettingsArgs(TextSettings, text=initial_label)
+        self.addSettingsArgs(FontSettings, size=8.0, font="unifrakturCook")
+
+    def _resolved_default(self, dest: str) -> str | None:
+        """Look up the default just registered for argparse dest *dest*
+        (e.g. the resource a "random" pick just landed on)."""
+        for action in self.argparser._actions:
+            if action.dest == dest:
+                return action.default
+        return None
 
     def _load(self, folder, name, target_height=0.0):
         """Return (piece, scale) for the resource named *name* in *folder*,
@@ -134,6 +181,23 @@ class MiniatureWorkshop(Boxes):
             if scale != 1.0:
                 self.ctx.scale(scale, scale)
             draw_piece(self, piece)
+
+    def _rounded_rect(self, w: float, h: float, r: float) -> None:
+        """Draw a rounded rectangle starting from the bottom-left corner,
+        same turtle-walk approach as the Label generator's outer perimeter."""
+        r = max(0.0, min(r, w / 2.0, h / 2.0))
+        self.moveTo(r, 0)
+        self.polyline(
+            w - 2 * r, (90, r),
+            h - 2 * r, (90, r),
+            w - 2 * r, (90, r),
+            h - 2 * r, (90, r),
+        )
+
+    def _default_label(self) -> str:
+        """Auto-generate a caption from the selected character/pet names,
+        e.g. "Dragon with Deer" or "Dragon with Deer and Barrel"."""
+        return _compose_label(self.Character_resource, self.Pet_resource, self.Pet2_resource)
 
     # Margin between the outer cut border and every other piece [mm].
     OUTER_BORDER_MARGIN = 5.0
@@ -205,12 +269,55 @@ class MiniatureWorkshop(Boxes):
             piece, scale = pets[0]
             draw_and_track(piece, scale, x_cursor, 0.0)
 
-        # Outer cut: a red rectangle self.OUTER_BORDER_MARGIN away from every
-        # piece drawn above, on all four sides.
+        # Caption band reserved above every piece drawn -- the outer cut
+        # border below is grown to include it, so the label ends up inside
+        # the final square instead of floating outside it. "\n" typed in the
+        # text field is a literal backslash-n (plain <input>, not a
+        # <textarea>), so turn it into a real newline for multi-line labels.
+        # --Auto_label forces the auto-generated text regardless of what is
+        # in the box, so it can't go stale once character/pet change.
+        raw_label = self._default_label() if self.Auto_label else self.Text_text.strip()
+        lines = raw_label.replace("\\n", "\n").split("\n") if raw_label else []
+        # Only the first line is full size; any further line is smaller and
+        # packed close underneath it (a subtitle, not a second headline).
+        line_sizes = [self.Font_size if i == 0 else self.Font_size * 0.8 for i in range(len(lines))]
+        line_gap = 0.15 * self.Font_size  # minimal gap between lines
+        label_padding = 0.3 * self.Font_size  # breathing room above/below the text block
+        if lines and self.Font_size > 0:
+            label_height = sum(line_sizes) + line_gap * (len(lines) - 1) + 2 * label_padding
+        else:
+            label_height = 0.0
+
         min_x, min_y, max_x, max_y = bbox
+        top_y = max_y + label_height
         margin = self.OUTER_BORDER_MARGIN
+        radius = self.Board_corner_radius
         with self.saved_context():
             self.set_source_color(Color.OUTER_CUT)
-            self.ctx.rectangle(min_x - margin, min_y - margin,
-                                (max_x - min_x) + 2 * margin, (max_y - min_y) + 2 * margin)
+            self.ctx.translate(min_x - margin, min_y - margin)
+            self._rounded_rect((max_x - min_x) + 2 * margin, (top_y - min_y) + 2 * margin, radius)
             self.ctx.stroke()
+
+        if label_height:
+            self.ctx.set_font(self.Font_font, bold=self.Font_bold, italic=self.Font_italic,
+                               as_path=self.Font_font_as_path)
+            cx = (min_x + max_x) / 2 + self.Text_x
+            line_top = max_y + label_height - label_padding + self.Text_y
+            for line, size in zip(lines, line_sizes):
+                self.text(line, x=cx, y=line_top, align="top center",
+                          fontsize=size, color=Color.ETCHING, outline_lw=self.Text_outline)
+                line_top -= size + line_gap
+
+        # Small date stamp tucked in the bottom-right corner of the outer
+        # cut border. set_font is reset first since it isn't part of the
+        # save/restore state and would otherwise still be the caption's font.
+        self.ctx.set_font("sans-serif")
+        date_inset = margin / 2.0
+        self.text(
+            datetime.date.today().isoformat(),
+            x=max_x + margin - date_inset,
+            y=min_y - margin + date_inset,
+            align="bottom right",
+            fontsize=3.0,
+            color=Color.ETCHING,
+        )
