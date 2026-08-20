@@ -32,6 +32,11 @@ Usage in any generator::
             self.text("Hello", x=10, y=10,
                       fontsize=self.Font_size,
                       color=Color.ETCHING)
+
+To draw :class:`~boxes.settings.text_settings.TextSettings`'s (possibly
+multi-line, via a literal "\\n") text sized from a paired FontSettings group
+in one call, use :func:`boxes.settings.text_settings.draw_text_block`
+instead of calling ``self.text()`` directly.
 """
 
 from __future__ import annotations
@@ -49,17 +54,21 @@ class FontSettings(Settings):
 
     Controls the font used for engraved text.
 
-     * size   : 4.0  : Font size [mm]
-     * bold   : False : Bold font weight
-     * italic : False : Italic font style
+     * size                : 4.0  : Primary font size [mm]
+     * secondary_size_coef : 0.8  : Size of every line after the first, as a
+                                    fraction of the primary size (for
+                                    multi-line text entered via "\\n")
+     * bold                : False : Bold font weight
+     * italic              : False : Italic font style
     """
 
     # font is handled manually in parserArguments (dynamic choices).
     absolute_params: dict = {
-        "size":       4.0,
-        "bold":       False,
-        "italic":     False,
-        "font_as_path": True,
+        "size":                 4.0,
+        "secondary_size_coef":  0.8,
+        "bold":                 False,
+        "italic":               False,
+        "font_as_path":         True,
     }
     relative_params: dict = {}
 
@@ -89,7 +98,17 @@ class FontSettings(Settings):
             f"--{prefix}_size",
             action="store", type=FloatStepper(0.5),
             default=default_size,
-            help="Font size [mm]")
+            help="Primary font size [mm]")
+
+        default_secondary_coef = float(
+            defaults.get("secondary_size_coef", cls.absolute_params["secondary_size_coef"])  # type: ignore[arg-type]
+        )
+        group.add_argument(
+            f"--{prefix}_secondary_size_coef",
+            action="store", type=FloatStepper(0.05),
+            default=default_secondary_coef,
+            help="Size of every line after the first, as a fraction of the primary size "
+                 '(for multi-line text entered via "\\n")')
 
         default_bold = bool(defaults.get("bold", cls.absolute_params["bold"]))
         group.add_argument(

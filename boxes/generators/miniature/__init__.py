@@ -20,7 +20,7 @@ from types import SimpleNamespace
 from boxes import Boxes, Color, FloatStepper, boolarg
 from boxes.settings.font_settings import FontSettings
 from boxes.settings.resource_settings import NONE_CHOICE, ResourceSettings, resource_path
-from boxes.settings.text_settings import TextSettings
+from boxes.settings.text_settings import TextSettings, draw_text_block, measure_text_block
 
 from .svgimport import draw_piece, load_svg_piece
 
@@ -154,7 +154,7 @@ class MiniatureWorkshop(Boxes):
             self._resolved_default("Pet2_resource"),
         )
         self.addSettingsArgs(TextSettings, text=initial_label)
-        self.addSettingsArgs(FontSettings, size=8.0, font="unifrakturCook")
+        self.addSettingsArgs(FontSettings, size=8.0, font="unifrakturCook", secondary_size_coef=0.45)
 
     def _resolved_default(self, dest: str) -> str | None:
         """Look up the default just registered for argparse dest *dest*
@@ -271,22 +271,16 @@ class MiniatureWorkshop(Boxes):
 
         # Caption band reserved above every piece drawn -- the outer cut
         # border below is grown to include it, so the label ends up inside
-        # the final square instead of floating outside it. "\n" typed in the
-        # text field is a literal backslash-n (plain <input>, not a
-        # <textarea>), so turn it into a real newline for multi-line labels.
-        # --Auto_label forces the auto-generated text regardless of what is
-        # in the box, so it can't go stale once character/pet change.
-        raw_label = self._default_label() if self.Auto_label else self.Text_text.strip()
-        lines = raw_label.replace("\\n", "\n").split("\n") if raw_label else []
-        # Only the first line is full size; any further line is smaller and
-        # packed close underneath it (a subtitle, not a second headline).
-        line_sizes = [self.Font_size if i == 0 else self.Font_size * 0.8 for i in range(len(lines))]
-        line_gap = 0.15 * self.Font_size  # minimal gap between lines
-        label_padding = 0.3 * self.Font_size  # breathing room above/below the text block
-        if lines and self.Font_size > 0:
-            label_height = sum(line_sizes) + line_gap * (len(lines) - 1) + 2 * label_padding
-        else:
-            label_height = 0.0
+        # the final square instead of floating outside it. --Auto_label
+        # forces the auto-generated text regardless of what is in the box,
+        # so it can't go stale once character/pet change. Multi-line sizing
+        # (secondary lines smaller, minimal gap) is TextSettings/
+        # FontSettings' shared job, not this generator's -- see
+        # draw_text_block()/measure_text_block().
+        raw_label = self._default_label() if self.Auto_label else None
+        _, _, _, text_height = measure_text_block(self, text_override=raw_label)
+        label_padding = 0.3 * self.Font_size if text_height else 0.0  # breathing room top/bottom
+        label_height = text_height + 2 * label_padding
 
         min_x, min_y, max_x, max_y = bbox
         top_y = max_y + label_height
@@ -299,14 +293,11 @@ class MiniatureWorkshop(Boxes):
             self.ctx.stroke()
 
         if label_height:
-            self.ctx.set_font(self.Font_font, bold=self.Font_bold, italic=self.Font_italic,
-                               as_path=self.Font_font_as_path)
-            cx = (min_x + max_x) / 2 + self.Text_x
-            line_top = max_y + label_height - label_padding + self.Text_y
-            for line, size in zip(lines, line_sizes):
-                self.text(line, x=cx, y=line_top, align="top center",
-                          fontsize=size, color=Color.ETCHING, outline_lw=self.Text_outline)
-                line_top -= size + line_gap
+            # Grows upward from here regardless of --Text_align's vertical
+            # half: this band is sized to fit the text exactly, so there is
+            # no slack to align within -- only the horizontal half matters.
+            draw_text_block(self, (min_x + max_x) / 2, max_y + label_padding,
+                             color=Color.ETCHING, text_override=raw_label, valign_override="bottom")
 
         # Small date stamp tucked in the bottom-right corner of the outer
         # cut border. set_font is reset first since it isn't part of the
