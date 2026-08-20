@@ -374,6 +374,36 @@ textarea {
     background: #BACBBA;
 }
 
+/* One-click preset buttons next to a FloatStepper (e.g. standard sizes) */
+.stepper-presets {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-left: 6px;
+}
+
+.stepper-preset-btn {
+    padding: 1px 6px;
+    font-size: 0.85em;
+    cursor: pointer;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #EFE8DA;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.stepper-preset-btn:hover {
+    background: #DFD8BA;
+}
+
+/* Label text field and resource picker dropdowns (ResourceSettings'
+   --{prefix}_resource selects) get room to show longer values/filenames. */
+#Text_text,
+select[id$="_resource"] {
+    min-width: 300px;
+}
+
 :root {
     --gallery-item-height: 120px;
 }

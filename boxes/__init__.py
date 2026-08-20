@@ -384,19 +384,21 @@ class Boxes:
         self.spacing = 2 * self.burn + self.spacing[0] * self.thickness + self.spacing[1]
         self.set_font("sans-serif")
         self._buildObjects()
-        if self.reference and self.format != 'svg_Ponoko':
+        if self.reference and self.reference_print and self.format != 'svg_Ponoko':
             self.move(self.reference, 10, "up", before=True)
-            self.ctx.rectangle(0, 0, self.reference, 10)
+            with self.saved_context():
+                self.set_source_color(Color.OUTER_CUT)
+                self.ctx.rectangle(0, 0, self.reference, 10)
+                self.ctx.stroke()
             if self.reference < 80:
                 self.text(f"{self.reference:.1f}mm, burn:{self.burn:.2f}mm", self.reference + 5, 5,
-                          fontsize=6, align="middle left", color=Color.ANNOTATIONS)
+                          fontsize=6, align="middle left", color=Color.BLACK)
             else:
                 self.text(f"{self.reference:.1f}mm, burn:{self.burn:.2f}mm", self.reference / 2.0, 5,
-                          fontsize=6, align="middle center", color=Color.ANNOTATIONS)
+                          fontsize=6, align="middle center", color=Color.BLACK)
             self.move(self.reference, 10, "up")
             if self.qr_code:
                 self.renderQrCode()
-            self.ctx.stroke()
 
     def renderQrCode(self):
         content = self.metadata['url_short'] or self.metadata["cli_short"]
@@ -518,8 +520,34 @@ class Boxes:
 
     def addSettingsArgs(self, settings, prefix=None, **defaults):
         prefix = prefix or settings.__name__[:-len("Settings")]
+        n_before = len(self.argparser._action_groups)
         settings.parserArguments(self.argparser, prefix, **defaults)
         self.edgesettings[prefix] =  {}
+        # Tag any argument group(s) just added so the UI can nest them under
+        # the umbrella heading opened by settingsGroup(), if any is active.
+        super_group = getattr(self, "_settings_group_label", None)
+        if super_group is not None:
+            for group in self.argparser._action_groups[n_before:]:
+                group.super_group = super_group  # type: ignore[attr-defined]
+
+    @contextmanager
+    def settingsGroup(self, label: str):
+        """Group several addSettingsArgs() calls under one umbrella heading in the UI.
+
+        Purely cosmetic: it only affects how the generator's config page nests
+        the resulting groups, not argument parsing itself. Usage::
+
+            with self.settingsGroup("Miniature configuration"):
+                self.addSettingsArgs(ResourceSettings, prefix="Character", ...)
+                self.addSettingsArgs(ResourceSettings, prefix="Pet", ...)
+                self.addSettingsArgs(ResourceSettings, prefix="Base", ...)
+        """
+        previous = getattr(self, "_settings_group_label", None)
+        self._settings_group_label = label
+        try:
+            yield
+        finally:
+            self._settings_group_label = previous
 
 
     def parseArgs(self, args=None):

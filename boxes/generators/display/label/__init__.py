@@ -51,6 +51,7 @@ Assembly: none required – this is a single flat piece.
     Label_inner_border:  bool  = True
     Label_border_margin: float = 3.0
     Text_text:           str   = "Label"
+    Text_align:          str   = "middle center"
     Text_x:              float = 0.0
     Text_y:              float = 0.0
     Text_step:           float = 1.0
@@ -129,7 +130,7 @@ Assembly: none required – this is a single flat piece.
             self.text(
                 self.Text_text,
                 x=tx, y=ty, angle=0,
-                align="middle center",
+                align=self.Text_align,
                 fontsize=self.Font_size,
                 color=Color.ETCHING,
                 outline_lw=self.Text_outline,

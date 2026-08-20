@@ -20,7 +20,14 @@ function initTouchArgs(numHide) {
     if (img) {
         img.addEventListener('load',  _hidePreviewLoading);
         img.addEventListener('error', _hidePreviewLoading);
+        img.addEventListener('load',  () => { if (previewFillEnabled) _loadInlinePreviewFill(img.src); });
+        img.addEventListener('load',  _syncSlideMeIcon);
+        img.addEventListener('load',  _updateAutoLabel);
     }
+
+    // "Show fill" checkbox next to the zoom controls starts checked (default true).
+    const fillToggle = document.getElementById('preview-fill-toggle');
+    if (fillToggle) previewFillEnabled = fillToggle.checked;
 
     // Wire up the sticky action bar buttons
     _bindTouchActionBar();
@@ -32,6 +39,154 @@ function initTouchArgs(numHide) {
     if (!CSS.supports('field-sizing', 'content')) {
         _autoSizeAllFields();
     }
+}
+
+/* ----------------------------------------------------------------
+   Preview "show fill" toggle
+   ----------------------------------------------------------------
+   The cut file itself is line-art only (no <path fill>, by design --
+   laser software decides per color-layer whether to fill). This toggle
+   is a preview-only aid: on the client we fetch the same preview svg as
+   text, inline it into the page (an <img> can't have its inner <path>
+   elements restyled), and set fill=stroke on paths whose stroke color
+   matches the SOLID_FILL role so the on-screen preview looks filled.
+   The downloaded/generated file is never touched. Defaults to on. */
+
+let previewFillEnabled = true;
+
+/* ----------------------------------------------------------------
+   "Slide me" drag-out icon (sticky action bar, between Generate and
+   Download)
+   ----------------------------------------------------------------
+   Only a real <img src="..."> is natively draggable out of the browser
+   (onto a laser app / the desktop) in every browser -- when "Show fill" is
+   on, the visible preview is an inline <svg> injected as markup (see the
+   toggle above), which most browsers won't let you drag out as a file.
+   This icon is always a plain <img> pointed at the same preview url, kept
+   in sync on every preview reload, so dragging works regardless of the
+   Show fill toggle. */
+
+function _syncSlideMeIcon() {
+    const img = document.getElementById('preview_img');
+    const slideMe = document.getElementById('slide-me-icon');
+    const wrap = document.getElementById('slide-me-wrap');
+    if (!img || !slideMe || !wrap) return;
+    slideMe.src = img.src;
+    // The stylesheet default is display:none -- '' would just clear the
+    // inline style and fall back to that, so an explicit visible value is
+    // needed here, not ''. Toggle the wrapper (not the <img> itself) so the
+    // "Grab me" label shown/hidden with it stays in sync.
+    wrap.style.display = img.src.endsWith('/nothing.png') ? 'none' : 'inline-flex';
+}
+
+/* ----------------------------------------------------------------
+   Live "auto label" (MiniatureWorkshop's Text_text field)
+   ----------------------------------------------------------------
+   While the Auto_label checkbox is on (default), the server always uses
+   the auto-generated caption regardless of what's in the box (see
+   MiniatureWorkshop._default_label()/render() in Python) -- this mirrors
+   that same computation into the field's real value (not just a
+   placeholder) after every preview recalculation, so the box always shows
+   real, editable text instead of starting empty, and stays in sync as the
+   character/pet selection changes. Once Auto_label is unchecked, this
+   stops touching the field so manual edits are never overwritten.
+   No-op on generators that don't have these fields. */
+
+function _displayResourceName(stem) {
+    if (!stem) return '';
+    return stem.replace(/[-_]/g, ' ').replace(/\S+/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+}
+
+function _updateAutoLabel() {
+    const textField = document.getElementById('Text_text');
+    const autoCheckbox = document.getElementById('Auto_label');
+    if (!textField || (autoCheckbox && !autoCheckbox.checked)) return;
+    const selValue = (id) => {
+        const el = document.getElementById(id);
+        return (el && el.value && el.value !== 'none') ? el.value : '';
+    };
+    const characterName = _displayResourceName(selValue('Character_resource'));
+    const petNames = ['Pet_resource', 'Pet2_resource']
+        .map(selValue)
+        .filter(Boolean)
+        .map(_displayResourceName);
+    let label = '';
+    if (characterName && petNames.length) label = `${characterName} with ${petNames.join(' and ')}`;
+    else if (characterName) label = characterName;
+    else if (petNames.length) label = petNames.join(' and ');
+    textField.value = label;
+}
+
+/** Keep both the <img> and the inline-svg preview at the same zoom level. */
+function setPreviewZoom(scale) {
+    const img = document.getElementById('preview_img');
+    const inline = document.getElementById('preview_svg_inline');
+    if (img) img.style.width = scale + '%';
+    if (inline) inline.style.width = scale + '%';
+}
+
+function onPreviewFillToggleChange() {
+    const cb = document.getElementById('preview-fill-toggle');
+    previewFillEnabled = cb ? cb.checked : true;
+    const img = document.getElementById('preview_img');
+    const inline = document.getElementById('preview_svg_inline');
+    if (!img || !inline) return;
+    if (previewFillEnabled) {
+        _loadInlinePreviewFill(img.src);
+    } else {
+        inline.style.display = 'none';
+        inline.innerHTML = '';
+        img.style.display = '';
+    }
+}
+
+function _hexToRgbString(hex) {
+    hex = hex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `rgb(${r},${g},${b})`;
+}
+
+/** Fill in every path whose stroke matches the current SOLID_FILL color. */
+function _applySolidFillPreview(svgEl) {
+    const overrides = (typeof loadColorSettings === 'function') ? loadColorSettings() : {};
+    const hex = overrides['SOLID_FILL'] ||
+        (typeof DEFAULT_ROLE_COLORS !== 'undefined' ? DEFAULT_ROLE_COLORS['SOLID_FILL'] : null);
+    if (!hex) return;
+    const targets = new Set([hex.toLowerCase(), _hexToRgbString(hex)]);
+    svgEl.querySelectorAll('path[stroke]').forEach(p => {
+        const stroke = p.getAttribute('stroke');
+        if (stroke && targets.has(stroke.toLowerCase())) {
+            p.setAttribute('fill', stroke);
+        }
+    });
+}
+
+/** Fetch the preview svg as text and inline it so its paths can be restyled. */
+function _loadInlinePreviewFill(url) {
+    if (!url || !previewFillEnabled) return;
+    fetch(url)
+        .then(r => r.text())
+        .then(text => {
+            if (!previewFillEnabled) return; // toggled off while the fetch was in flight
+            const img = document.getElementById('preview_img');
+            const inline = document.getElementById('preview_svg_inline');
+            if (!img || !inline) return;
+            inline.innerHTML = text;
+            const svgEl = inline.querySelector('svg');
+            if (!svgEl) return;
+            svgEl.removeAttribute('width');
+            svgEl.removeAttribute('height');
+            svgEl.style.width = '100%';
+            svgEl.style.height = 'auto';
+            svgEl.style.display = 'block';
+            _applySolidFillPreview(svgEl);
+            inline.style.width = img.style.width || '100%';
+            inline.style.display = '';
+            img.style.display = 'none';
+        })
+        .catch(() => {}); // e.g. the initial nothing.png placeholder isn't an svg -- ignore
 }
 
 /* ----------------------------------------------------------------

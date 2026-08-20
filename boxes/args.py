@@ -138,15 +138,21 @@ class FloatStepper:
     converter returns ``None`` for that string).  The argparse default should
     be ``None`` when this mode is used.
 
+    ``presets`` – an optional list of common values to render as one-click
+    buttons next to the stepper (e.g. standard sizes). Clicking one
+    overwrites the field with that exact value.
+
     The value is stored as a plain ``float`` (or ``None`` when auto is active).
     """
 
     def __init__(self, step: float = 1.0,
                  auto_default: float | None = None,
-                 auto: bool = False) -> None:
+                 auto: bool = False,
+                 presets: list[float] | None = None) -> None:
         self.step = step
         self.auto_default = auto_default
         self.auto = auto
+        self.presets = presets
 
     def __call__(self, s: str) -> float | None:
         if s.strip().lower() == "auto":
@@ -161,6 +167,13 @@ class FloatStepper:
             f'<button type="button" class="stepper-btn stepper-auto"'
             f' onclick="setInputAuto(\'{name}\')">auto</button>'
         ) if self.auto else ""
+        preset_btns = ""
+        if self.presets:
+            preset_btns = '<span class="stepper-presets">' + "".join(
+                f'<button type="button" class="stepper-preset-btn"'
+                f' onclick="setInputValue(\'{name}\', {p!r})">{p:g}</button>'
+                for p in self.presets
+            ) + '</span>'
         return (
             f'<span class="stepper-wrap">'
             f'{auto_btn}'
@@ -172,6 +185,7 @@ class FloatStepper:
             f'<button type="button" class="stepper-btn"'
             f' onclick="stepInput(\'{name}\', {step}{auto_arg})">+</button>'
             f'</span>'
+            f'{preset_btns}'
         )
 
 
