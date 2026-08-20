@@ -112,8 +112,11 @@ class ResourceSettings(Settings):
         ``extensions`` (defaults to ``(".svg",)``), ``optional`` (adds a
         "none" choice, defaults to ``False``), ``height`` (a default mm
         value that both enables and seeds a target-height argument used to
-        scale the resource; omit it to not offer height scaling at all) and
-        ``default`` (the starting selection -- omit it to just default to the first
+        scale the resource; omit it to not offer height scaling at all),
+        ``height_presets`` (an optional list of common mm values rendered as
+        one-click buttons next to the height stepper -- ignored unless
+        ``height`` is also set) and ``default`` (the starting selection --
+        omit it to just default to the first
         discovered resource, or pass ``None`` to start on "none" (requires
         ``optional=True``), ``"random"`` to pick a random resource each time
         this generator's argument parser is built, or any other string to
@@ -126,6 +129,7 @@ class ResourceSettings(Settings):
         extensions = defaults.pop("extensions", (".svg",))
         optional = bool(defaults.pop("optional", False))
         height_default = defaults.pop("height", None)
+        height_presets = defaults.pop("height_presets", None)
         requested_default = defaults.pop("default", _DEFAULT_UNSET)
         label = str(defaults.pop("label", prefix or "Resource"))
 
@@ -166,7 +170,7 @@ class ResourceSettings(Settings):
         if height_default is not None:
             group.add_argument(
                 f"--{prefix}_height",
-                action="store", type=FloatStepper(0.5),
+                action="store", type=FloatStepper(0.5, presets=height_presets),
                 default=float(height_default),
                 help=f"{label} height in mm (0 = use the artwork's native size; "
                      f"scales it proportionally, e.g. also changes a round piece's diameter)")

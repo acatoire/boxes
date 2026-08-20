@@ -34,6 +34,9 @@ _LEFT_HOLE_CX_FRACTION = 1 / 4
 _RIGHT_HOLE_CX_FRACTION = 3 / 4
 _PET_HOLE_CY_FRACTION = 1 / 3
 
+# Standard tabletop miniature base diameters [mm], covering most games.
+BASE_HEIGHT_PRESETS = [25, 28.5, 30, 32, 40, 50, 60, 80, 100, 130]
+
 
 def _draw_hole(boxes_obj, piece, cx_fraction: float, cy_fraction: float, hole_length: float) -> None:
     """Draw one horizontal, thickness-tall peg hole centered at
@@ -105,6 +108,7 @@ class MiniatureWorkshop(Boxes):
                                   default=None)
             self.addSettingsArgs(ResourceSettings, prefix="Base",
                                   folder=BASE_DIR, label="Base", height=40.0,
+                                  height_presets=BASE_HEIGHT_PRESETS,
                                   optional=True, default="random")
             self.argparser.add_argument(
                 "--gap", action="store", type=FloatStepper(0.5), default=1.0,

@@ -536,6 +536,13 @@ function setInputAuto(id) {
     input.dispatchEvent(new Event('change'));
 }
 
+/** Overwrite a stepper field with an exact value. Called by preset buttons. */
+function setInputValue(id, value) {
+    const input = document.getElementById(id);
+    input.value = String(value);
+    input.dispatchEvent(new Event('change'));
+}
+
 function stepInput(id, delta, autoDefault) {
     const input = document.getElementById(id);
     const raw = input.value.trim().toLowerCase();

@@ -162,6 +162,7 @@ body.touch-args table textarea    { height: auto; max-height: 70px; overflow-y: 
 
 body.touch-args .stepper-input    { height: 44px; width: 4.5em; font-size: 1em; }
 body.touch-args .stepper-btn      { min-width: 44px; min-height: 44px; font-size: 1.2em; padding: 0 10px; }
+body.touch-args .stepper-preset-btn { min-height: 44px; font-size: 1em; padding: 0 10px; }
 body.touch-args .dpad-btn         { width: 44px; height: 44px; font-size: 1.3em; border-radius: 8px; }
 body.touch-args .dpad-grid        { grid-template-columns: repeat(3,44px); grid-template-rows: repeat(3,44px); }
 
