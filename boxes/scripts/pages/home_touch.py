@@ -140,6 +140,7 @@ class HomeTouchMixin:
         dropdown_items.append('      <hr style="border:none;border-top:1px solid #e8e0d0;margin:4px 0">')
         dropdown_items.append(f'      <a href="colors">\U0001f3a8 {_("Colors")}</a>')
         dropdown_items.append(f'      <a href="machine">\u2699 {_("Machine")}</a>')
+        dropdown_items.append(f'      <a href="memo">\U0001f4d3 {_("Memo")}</a>')
         dropdown_items.append(f'      <a href="categories">\U0001f4c2 {_("Selection")}</a>')
         lang_sel = self.genHTMLLanguageSelection(lang)
         if "select" in lang_sel:
@@ -262,6 +263,7 @@ class HomeTouchMixin:
         sidebar_links_html += (
             f'\n    <a class="th-sidenav-link" href="colors{langparam}">\U0001f3a8 {_("Colors")}</a>'
             f'\n    <a class="th-sidenav-link" href="machine{langparam}">\u2699\ufe0f {_("Machine")}</a>'
+            f'\n    <a class="th-sidenav-link" href="memo{langparam}">\U0001f4d3 {_("Memo")}</a>'
             f'\n    <a class="th-sidenav-link" href="categories{langparam}">\U0001f4c2 {_("Selection")}</a>'
         )
         sidebar_links_html += '\n    <hr class="th-sidenav-sep">'
