@@ -71,7 +71,8 @@ reducing `width` and/or increasing `angle` in the `Settings for
 Stackable Edges`. Reducing the `opening` will also give more space for
 the feet."""
     ui_group = "Box"
-    tags = ["🦉"]
+    shop = ["archichouette"]
+    tags = []
 
     def __init__(self) -> None:
         Boxes.__init__(self)

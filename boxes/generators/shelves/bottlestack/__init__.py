@@ -27,7 +27,8 @@ Without the "double" option the stand is a bit narrower.
 """
 
     ui_group = "Shelf"
-    tags = ["🦉","📄"]
+    shop = ["archichouette"]
+    tags = ["📄"]
 
     def __init__(self) -> None:
         Boxes.__init__(self)

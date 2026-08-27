@@ -20,7 +20,8 @@ class WineRack(Boxes):
     """Honey Comb Style Wine Rack"""
 
     ui_group = "Shelf"
-    tags = ["🦉"]
+    shop = ["archichouette"]
+    tags = []
 
     def __init__(self) -> None:
         Boxes.__init__(self)

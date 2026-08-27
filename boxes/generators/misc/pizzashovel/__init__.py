@@ -24,7 +24,8 @@ You need (permanent) baking paper to create the conveyor. With that you can pick
     """
 
     ui_group = "Misc"
-    tags = ["🦉"]
+    shop = ["archichouette"]
+    tags = []
 
     def __init__(self) -> None:
         Boxes.__init__(self)

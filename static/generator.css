@@ -50,7 +50,7 @@ body.touch-args .th-header {
   font-family: 'Luckiest Guy', cursive;
   font-size: 1.6em;
   margin: 4px 0 2px;
-  color: #333;
+  color: var(--th-text);
 }
 
 /* Category › Name breadcrumb row */
@@ -97,7 +97,7 @@ a.gen-bc-cat:hover {
 }
 
 .touch-gen-doc {
-  color: #666;
+  color: var(--th-text-muted);
   font-size: 0.9em;
   margin-bottom: 10px;
 }
@@ -119,7 +119,9 @@ body.touch-args table textarea {
   font-size: 1em;
   padding: 0 10px;
   border-radius: 6px;
-  border: 1px solid #bbb;
+  border: 1px solid var(--th-border-color, #bbb);
+  background: var(--th-container-bg, #fff);
+  color: var(--th-text, #222);
   box-sizing: border-box;
   min-width: 55px;
   max-width: 70px;
@@ -131,10 +133,16 @@ body.touch-args table select {
   font-size: 1em;
   padding: 0 10px;
   border-radius: 6px;
-  border: 1px solid #bbb;
+  border: 1px solid var(--th-border-color, #bbb);
+  background: var(--th-container-bg, #fff);
+  color: var(--th-text, #222);
   box-sizing: border-box;
   min-width: 55px;
   max-width: 200px;
+}
+body.touch-args table select option {
+  background: var(--th-container-bg, #fff);
+  color: var(--th-text, #222);
 }
 body.touch-args table textarea    { height: auto; max-height: 70px; overflow-y: auto; padding: 8px 10px; width: 100%; min-width: 0; max-width: none; resize: vertical; }
 
@@ -149,7 +157,9 @@ body.touch-args table textarea    { height: auto; max-height: 70px; overflow-y: 
   font-size: 1em;
   font-family: monospace;
   border-radius: 6px;
-  border: 1px solid #bbb;
+  border: 1px solid var(--th-border-color, #bbb);
+  background: var(--th-container-bg, #fff);
+  color: var(--th-text, #222);
   box-sizing: border-box;
   resize: vertical;
   overflow-y: auto;
@@ -457,8 +467,8 @@ body.touch-args form > p:last-of-type { display: none; }
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  background: #fff8ea;
-  border: 1px solid #d8cdb0;
+  background: var(--th-container-bg);
+  border: 1px solid var(--th-border-color);
   border-radius: 8px;
   padding: 6px 12px;
   margin-bottom: 12px;
@@ -469,7 +479,7 @@ body.touch-args form > p:last-of-type { display: none; }
   display: block;
   width: 1px;
   align-self: stretch;
-  background: #d8cdb0;
+  background: var(--th-border-color);
   margin: 0 4px;
   flex-shrink: 0;
 }
@@ -480,10 +490,15 @@ body.touch-args form > p:last-of-type { display: none; }
   font-size: 0.95em;
   padding: 0 8px;
   border-radius: 6px;
-  border: 1px solid #bbb;
-  background: #fff;
+  border: 1px solid var(--th-border-color);
+  background: var(--th-container-bg);
+  color: var(--th-text);
   cursor: pointer;
   min-width: 180px;
+}
+.template-select option {
+  background: var(--th-container-bg);
+  color: var(--th-text);
 }
 
 /* Responsive overrides for touch-args */

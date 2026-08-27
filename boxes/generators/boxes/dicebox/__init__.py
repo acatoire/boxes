@@ -20,7 +20,8 @@ class DiceBox(Boxes):
     """Box with lid and integrated hinge for storing dice."""
 
     ui_group = "Box"
-    tags = ["🦉", "🎲", "rpg"]
+    shop = ["archichouette"]
+    tags = ["🎲", "rpg"]
 
     def __init__(self) -> None:
         Boxes.__init__(self)

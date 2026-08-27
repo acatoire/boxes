@@ -31,7 +31,7 @@ class ABox(Boxes):
         self.addSettingsArgs(LidSettings)
         self.buildArgParser("x", "y", "h", "outside", "bottom_edge")
 
-    def render(self):
+    def render(self) -> None:
         x, y, h = self.x, self.y, self.h
         t = self.thickness
 

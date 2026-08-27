@@ -35,6 +35,12 @@ class CategoriesUIMixin:
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
 
+    def genHTMLShopJS(self) -> str:
+        raise NotImplementedError
+
+    def genHTMLThemeInit(self) -> str:
+        raise NotImplementedError
+
     def _touch_header_html(self, lang: object, back_url: str = "", back_icon_only: bool = False, center_html: str = "", show_dropdown: bool = True) -> str:
         raise NotImplementedError
 
@@ -101,11 +107,13 @@ class CategoriesUIMixin:
             "<head>\n"
             f"  <title>{_('Selection')} \u2013 {_('Boxes.py')}</title>\n"
             f"  {self.genHTMLMeta()}\n"
+            f"  {self.genHTMLThemeInit()}\n"
             f"  {self.genHTMLCSS()}\n"
             f"  {self.genHTMLTouchCSS()}\n"
             f"  {self.genHTMLCategoriesCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f"  {self.genHTMLShopJS()}\n"
             "</head>\n"
             f'<body class="touch-cat" onload="initCategorySettingsPage()">\n'
             f"\n{touch_header}\n\n"

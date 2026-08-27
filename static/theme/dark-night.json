@@ -1,0 +1,25 @@
+{
+  "label": "Dark Night",
+  "dark": true,
+  "glitter": false,
+  "logo": "logo-dark-night.svg",
+  "favicon": "logo-dark-night.svg",
+  "logoText": "Boxes.py \ud83c\udf19",
+  "vars": {
+    "--th-bar-bg": "#10141a",
+    "--th-bar-fg": "#e8edf5",
+    "--th-accent": "#3b82f6",
+    "--th-accent2": "#2563eb",
+    "--th-card-bg": "#1c212b",
+    "--th-page-bg": "#0b0e13",
+    "--th-sidebar-bg": "#12161d",
+    "--th-text": "#dfe6f0",
+    "--th-text-muted": "#8a94a6",
+    "--th-container-bg": "#161a22",
+    "--th-border-color": "#2a2f3a",
+    "--th-button-fg": "#ffffff",
+    "--th-neutral-btn-bg": "#232935",
+    "--th-neutral-btn-bg-hover": "#2d3444"
+  }
+}
+

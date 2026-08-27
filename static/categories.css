@@ -14,7 +14,7 @@ body.touch-cat {
 }
 
 .cat-body { flex: 1; padding: 20px 24px; overflow-y: auto; }
-.cat-body p { margin: 0 0 10px; color: #666; font-size: .9em; }
+.cat-body p { margin: 0 0 10px; color: var(--th-text-muted); font-size: .9em; }
 
 .cat-title-row {
   display: flex;
@@ -24,7 +24,7 @@ body.touch-cat {
   flex-wrap: wrap;
   margin-bottom: 6px;
 }
-.cat-title-row h2 { margin: 0; color: #333; }
+.cat-title-row h2 { margin: 0; color: var(--th-text); }
 .cat-title-actions {
   display: flex;
   gap: 10px;
@@ -88,11 +88,11 @@ body.touch-cat {
 .sel-label {
   flex: 1;
   font-size: .95em;
-  color: #222;
+  color: var(--th-text);
 }
 
 .sel-nolabel {
-  color: #888;
+  color: var(--th-text-muted);
   font-style: italic;
 }
 

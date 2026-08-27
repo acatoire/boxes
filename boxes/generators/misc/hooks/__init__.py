@@ -20,7 +20,8 @@ class Hook(Boxes):
     """A hook with a rectangular mouth to mount at the wall"""
 
     ui_group = "Misc"  # see ./__init__.py for names
-    tags = ["🦉"]
+    shop = ["archichouette"]
+    tags = []
 
     def __init__(self) -> None:
         Boxes.__init__(self)

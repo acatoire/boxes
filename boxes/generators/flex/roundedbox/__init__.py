@@ -30,7 +30,8 @@ With lid:
 """
 
     ui_group = "Flex"
-    tags = ["🦉"]
+    shop = ["archichouette", "bijoux"]
+    tags = []
 
     def __init__(self) -> None:
         boxes.Boxes.__init__(self)

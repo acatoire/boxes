@@ -1,0 +1,25 @@
+{
+  "label": "Archichouette",
+  "dark": false,
+  "glitter": false,
+  "logo": "logo-archichouette.png",
+  "favicon": "logo-archichouette.png",
+  "logoText": "Archichouette",
+  "vars": {
+    "--th-bar-bg": "#01423b",
+    "--th-bar-fg": "#ffffff",
+    "--th-accent": "#007355",
+    "--th-accent2": "#01423b",
+    "--th-card-bg": "#ffffff",
+    "--th-page-bg": "#ffffff",
+    "--th-sidebar-bg": "#01423b",
+    "--th-text": "#01423b",
+    "--th-text-muted": "#4d7a72",
+    "--th-container-bg": "#ffffff",
+    "--th-border-color": "#a9c029",
+    "--th-button-fg": "#ffffff",
+    "--th-neutral-btn-bg": "#eef2df",
+    "--th-neutral-btn-bg-hover": "#e2ecc7"
+  }
+}
+

@@ -20,7 +20,8 @@ class Tetris(Boxes):
     """3D Tetris shapes"""
 
     ui_group = "Game"
-    tags = ["🦉"]
+    shop = ["archichouette"]
+    tags = []
 
     def __init__(self):
         Boxes.__init__(self)

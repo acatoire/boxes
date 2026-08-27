@@ -1,0 +1,25 @@
+{
+  "label": "Boxes.py (default)",
+  "dark": false,
+  "glitter": false,
+  "logo": "logo-boxes.svg",
+  "favicon": "logo-boxes.svg",
+  "logoText": "Boxes.py",
+  "vars": {
+    "--th-bar-bg": "#3a3330",
+    "--th-bar-fg": "#ffffff",
+    "--th-accent": "#e8750a",
+    "--th-accent2": "#c96500",
+    "--th-card-bg": "#ffffff",
+    "--th-page-bg": "#f0ebe0",
+    "--th-sidebar-bg": "#2e2a27",
+    "--th-text": "#222222",
+    "--th-text-muted": "#666666",
+    "--th-container-bg": "#ffffff",
+    "--th-border-color": "#cccccc",
+    "--th-button-fg": "#ffffff",
+    "--th-neutral-btn-bg": "#EFE8DA",
+    "--th-neutral-btn-bg-hover": "#DFD8BA"
+  }
+}
+

@@ -380,6 +380,16 @@ class BServer(HomeLegacyMixin, MenuUIMixin, HomeGalleryMixin, HomeTouchMixin, Co
 
         lang = self.getLanguage(args, environ.get("HTTP_ACCEPT_LANGUAGE", ""))
 
+        #  Route: /shop/<id> friendly redirect → TouchHub?shop=<id>
+        if name.startswith("shop/"):
+            shop_id = name[len("shop/"):]
+            lang_name = lang.info().get("language", None)
+            qs = f"shop={quote(shop_id)}"
+            if lang_name:
+                qs += f"&language={quote(lang_name)}"
+            start_response("302 Found", [("Location", f"{self.url_prefix}/TouchHub?{qs}")])
+            return [b""]
+
         #  Route: hub / gallery
         if not name:
             return self.serveTouchHub(environ, start_response, lang)
@@ -460,13 +470,15 @@ class BServer(HomeLegacyMixin, MenuUIMixin, HomeGalleryMixin, HomeTouchMixin, Co
             box.metadata["url_short"] = filter_url(
                 str(box.metadata["url"]), box.non_default_args
             )
-            box.open()
             from boxes.Color import Color as _Color
 
             _saved_colors = {role: list(getattr(_Color, role)) for role in _Color.ROLE_LABELS}
             if color_overrides:
                 _Color.apply_overrides(color_overrides)
             try:
+                # open() sets the initial pen color from Color.OUTER_CUT, so
+                # overrides must be applied *before* open() runs.
+                box.open()
                 box.render()
             finally:
                 for role, val in _saved_colors.items():

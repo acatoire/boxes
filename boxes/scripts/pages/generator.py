@@ -47,6 +47,12 @@ class GeneratorUIMixin:
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
 
+    def genHTMLShopJS(self) -> str:
+        raise NotImplementedError
+
+    def genHTMLThemeInit(self) -> str:
+        raise NotImplementedError
+
     def _touch_header_html(
         self,
         lang: object,
@@ -243,11 +249,13 @@ class GeneratorUIMixin:
             f"  <title>{_('%s - Boxes') % _(name)}</title>\n"
             f"  {self.genHTMLMeta()}\n"
             f"{self.genHTMLMetaLanguageLink()}\n"
+            f"  {self.genHTMLThemeInit()}\n"
             f"  {self.genHTMLCSS()}\n"
             f"  {self.genHTMLTouchCSS()}\n"
             f"  {self.genHTMLGeneratorCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f"  {self.genHTMLShopJS()}\n"
             f"  {templates_script}\n"
             f"  {role_colors_script}\n"
             f'  <script src="{self.static_url}/generator.js"></script>\n'

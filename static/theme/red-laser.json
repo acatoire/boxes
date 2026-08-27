@@ -1,0 +1,25 @@
+{
+  "label": "Red Laser",
+  "dark": true,
+  "glitter": false,
+  "logo": "logo-red-laser.svg",
+  "favicon": "logo-red-laser.svg",
+  "logoText": "Perso.box \u26a1",
+  "vars": {
+    "--th-bar-bg": "#1a0000",
+    "--th-bar-fg": "#ff6666",
+    "--th-accent": "#e50000",
+    "--th-accent2": "#a30000",
+    "--th-card-bg": "#1f1f1f",
+    "--th-page-bg": "#120000",
+    "--th-sidebar-bg": "#0d0000",
+    "--th-text": "#f5e0e0",
+    "--th-text-muted": "#cc8888",
+    "--th-container-bg": "#1a0a0a",
+    "--th-border-color": "#4d0000",
+    "--th-button-fg": "#ffffff",
+    "--th-neutral-btn-bg": "#2a1010",
+    "--th-neutral-btn-bg-hover": "#3a1515"
+  }
+}
+

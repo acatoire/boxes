@@ -64,6 +64,7 @@ class TypeTray(_TopEdge):
     """Type tray - allows only continuous walls"""
 
     ui_group = "Tray"
+    shop = ["bijoux"]
     tags = []
 
     def __init__(self) -> None:
