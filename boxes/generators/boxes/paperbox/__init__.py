@@ -24,7 +24,8 @@ class PaperBox(Boxes):
     """
 
     ui_group = "Box"
-    tags = ["📄", "🦉"]
+    shop = ["archichouette"]
+    tags = ["📄"]
 
     description = """
 This box is made of paper.

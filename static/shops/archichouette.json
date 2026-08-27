@@ -1,0 +1,17 @@
+{
+  "theme": "archichouette",
+  "machine": {
+    "w": 400,
+    "h": 380,
+    "material": "tilleul3",
+    "margin_coef": 2.0
+  },
+  "colors": {
+    "OUTER_CUT": "#ff0000",
+    "INNER_CUT": "#ff00ff",
+    "ANNOTATIONS": "#00ff00",
+    "SOLID_FILL": "#000000",
+    "ETCHING": "#0000ff",
+    "ETCHING_DEEP": "#00ffff"
+  }
+}

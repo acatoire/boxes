@@ -47,6 +47,9 @@ class GeneratorUIMixin:
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
 
+    def genHTMLShopJS(self) -> str:
+        raise NotImplementedError
+
     def genHTMLThemeInit(self) -> str:
         raise NotImplementedError
 
@@ -252,6 +255,7 @@ class GeneratorUIMixin:
             f"  {self.genHTMLGeneratorCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f"  {self.genHTMLShopJS()}\n"
             f"  {templates_script}\n"
             f"  {role_colors_script}\n"
             f'  <script src="{self.static_url}/generator.js"></script>\n'

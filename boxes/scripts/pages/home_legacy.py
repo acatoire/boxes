@@ -57,7 +57,7 @@ class HomeLegacyMixin:
         return f"""
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/svg+xml" href="{self.static_url}/logo-boxes.svg" sizes="any">
+    <link rel="icon" id="favicon-link" type="image/svg+xml" href="{self.static_url}/theme/logo-boxes.svg" sizes="any">
     <link rel="icon" type="image/x-icon" href="{self.static_url}/favicon.ico">
 """
 
@@ -123,7 +123,7 @@ class HomeLegacyMixin:
 </div>
 
 <div style="width: 25%; float: left;">
-<img alt="self-Logo" src="{self.static_url}/logo-boxes.svg" width="250">
+<img alt="self-Logo" src="{self.static_url}/theme/logo-boxes.svg" width="250">
 </div>
 
 <div>
@@ -295,7 +295,7 @@ class HomeLegacyMixin:
 <a href="./{langparam}"><h1>{_("Boxes.py")}</h1></a>
 </div>
 <div style="width: 120px; float: right;">
-<img alt="self-Logo" src="{self.static_url}/logo-boxes.svg" width="120">
+<img alt="self-Logo" src="{self.static_url}/theme/logo-boxes.svg" width="120">
 </div>
 <div>
 <div class="clear"></div>

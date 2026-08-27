@@ -148,14 +148,14 @@ function applyHiddenLabelsTouch() {
 }
 
 /** Recompute the visible-card count badge on each sidebar nav item.
- *  Also hides the nav item and panel when all cards are label-filtered out. */
+ *  Also hides the nav item and panel when all cards are label/shop-filtered out. */
 function _updateGroupCounts() {
     let activeEmptied = false;
 
     document.querySelectorAll('.th-panel[data-group]').forEach(function (panel) {
         const groupId = panel.dataset.group;
         const total   = panel.querySelectorAll('.th-card').length;
-        const hiddenN = panel.querySelectorAll('.th-card.th-label-hidden').length;
+        const hiddenN = panel.querySelectorAll('.th-card.th-label-hidden, .th-card.th-shop-hidden').length;
         const visible = total - hiddenN;
         const navItem = document.querySelector('.th-sidenav-item[data-group="' + groupId + '"]');
 
@@ -214,7 +214,7 @@ function applyHiddenCategoriesTouch() {
     }
 }
 
-/* Hub init */
+/* Shop mode (shared with shop.js getActiveShopId) */
 
 /**
  * Navigate back to the hub pre-selecting a specific category group.
@@ -238,6 +238,35 @@ function thGoBack(fallbackUrl) {
     }
 }
 
+/**
+ * Apply shop filtering to all generator cards: when a shop is active, only
+ * cards whose `data-shop` list includes it stay visible (CSS class
+ * `th-shop-hidden`, same mechanism as label filtering). The category
+ * sidebar stays visible and usable; user-saved category/label filters
+ * (applyHiddenCategoriesTouch / applyHiddenLabelsTouch) are skipped while
+ * a shop is active since the shop filter fully replaces them.
+ *
+ * Returns true when a shop is active.
+ */
+function applyShopFilterTouch() {
+    const shopId = (typeof getActiveShopId === 'function') ? getActiveShopId() : null;
+
+    document.querySelectorAll('.th-card').forEach(card => {
+        if (!shopId) {
+            card.classList.remove('th-shop-hidden');
+            return;
+        }
+        const shopsAttr = (card.dataset.shop || '').trim();
+        const shops = shopsAttr ? shopsAttr.split(' ') : [];
+        card.classList.toggle('th-shop-hidden', !shops.includes(shopId));
+    });
+
+    _updateGroupCounts();
+    return !!shopId;
+}
+
+/* Hub init */
+
 function initTouchHub() {
     // Record that we're in touch mode.
     setUIModePreference('touch');
@@ -249,8 +278,11 @@ function initTouchHub() {
         thSwitchTab(lastGroup);
     }
 
-    applyHiddenCategoriesTouch();
-    applyHiddenLabelsTouch();
+    const shopActive = applyShopFilterTouch();
+    if (!shopActive) {
+        applyHiddenCategoriesTouch();
+        applyHiddenLabelsTouch();
+    }
 }
 
 /* field-sizing fallback (Firefox / Safari) */

@@ -1,10 +1,14 @@
 /* ================================================================
    Boxes.py – Theme switcher (theme.js)
    Loaded on every touch-mode page (hub, colors, categories, machine,
-   generator/touch-args). Reads presets from static/themes.json and
-   applies them as CSS custom properties on <html>, so touch.css /
-   colors.css / categories.css / machine.css / generator.css and the
-   shared self.css widgets all repaint instantly.
+   generator/touch-args). Reads presets from static/theme/index.json
+   (list of known theme ids/labels) and static/theme/<id>.json (each
+   theme's own config: dark/glitter flags, logo, favicon, logoText and
+   CSS custom-property vars). Split into one file per theme, same
+   pattern as the shop config in static/shops/. Applies the vars as
+   CSS custom properties on <html>, so touch.css / colors.css /
+   categories.css / machine.css / generator.css and the shared
+   self.css widgets all repaint instantly.
 
    Theme selection precedence (highest first):
      1. `?theme=<name>` URL parameter (persisted once applied)
@@ -15,16 +19,19 @@
    also kept in localStorage (`boxes-theme-cache`) so an inline snippet
    emitted in <head> (see genHTMLThemeInit() in home_touch.py) can
    re-apply it *before* the stylesheets paint, avoiding a flash of the
-   wrong theme while themes.json is being fetched.
+   wrong theme while the theme JSON is being fetched.
    ================================================================ */
 
 var THEME_STORAGE_KEY = 'boxes-theme';
 var THEME_CACHE_KEY = 'boxes-theme-cache';
 var THEME_DEFAULT = 'boxes';
-var THEME_JSON_URL = (window.BOXES_STATIC_URL || 'static') + '/themes.json';
+var THEME_DIR = (window.BOXES_STATIC_URL || 'static') + '/theme';
+var THEME_INDEX_URL = THEME_DIR + '/index.json';
 
-var _themesData = null;      /* populated once fetched */
-var _themesPromise = null;
+var _themeIndexData = null;   /* populated once fetched: [{id, label}, ...] */
+var _themeIndexPromise = null;
+var _themeConfigCache = {};   /* id -> resolved theme object, memoized */
+var _themeConfigPromises = {};
 
 /** Read the raw cache blob (name + resolved theme object) from localStorage. */
 function _readThemeCache() {
@@ -82,19 +89,32 @@ function applyThemeVars(theme) {
     applyThemeBranding(theme);
 }
 
-/** Swap the header logo image + text to match the active theme, if present. */
+/** Swap the header logo image + text + favicon to match the active theme, if present. */
 function applyThemeBranding(theme) {
     if (!document.body) return;
-    var staticUrl = window.BOXES_STATIC_URL || 'static';
     var logoImg = document.getElementById('th-logo-img');
     if (logoImg && theme.logo) {
-        var newSrc = staticUrl + '/' + theme.logo;
+        // Logo images may be svg or png (or any other <img>-compatible format);
+        // the file extension is taken as-is from the theme config.
+        var newSrc = THEME_DIR + '/' + theme.logo;
         if (logoImg.getAttribute('src') !== newSrc) logoImg.setAttribute('src', newSrc);
     }
     if (theme.logoText) {
         document.querySelectorAll('.th-logo-text').forEach(function (el) {
             el.textContent = theme.logoText;
         });
+    }
+    var faviconFile = theme.favicon || theme.logo;
+    var faviconLink = document.getElementById('favicon-link');
+    if (faviconLink && faviconFile) {
+        var faviconSrc = THEME_DIR + '/' + faviconFile;
+        if (faviconLink.getAttribute('href') !== faviconSrc) {
+            // svg/png both work as favicons in modern browsers; derive the
+            // mime type from the actual extension instead of assuming svg.
+            var isPng = /\.png$/i.test(faviconFile);
+            faviconLink.setAttribute('type', isPng ? 'image/png' : 'image/svg+xml');
+            faviconLink.setAttribute('href', faviconSrc);
+        }
     }
 }
 
@@ -104,32 +124,56 @@ function applyCachedThemeInstantly() {
     if (cached && cached.theme) applyThemeVars(cached.theme);
 }
 
-/** Fetch (and memoize) static/themes.json. Returns a Promise<object>. */
-function loadThemesData() {
-    if (_themesData) return Promise.resolve(_themesData);
-    if (_themesPromise) return _themesPromise;
-    _themesPromise = fetch(THEME_JSON_URL)
+/** Fetch (and memoize) static/theme/index.json – the list of known themes. */
+function loadThemeIndex() {
+    if (_themeIndexData) return Promise.resolve(_themeIndexData);
+    if (_themeIndexPromise) return _themeIndexPromise;
+    _themeIndexPromise = fetch(THEME_INDEX_URL)
         .then(function (r) { return r.json(); })
         .then(function (data) {
-            _themesData = data;
+            _themeIndexData = data;
             return data;
         })
         .catch(function () {
-            _themesData = {};
-            return _themesData;
+            _themeIndexData = [];
+            return _themeIndexData;
         });
-    return _themesPromise;
+    return _themeIndexPromise;
+}
+
+/** Fetch (and memoize) a single theme's config JSON: static/theme/<id>.json. */
+function loadThemeConfig(id) {
+    if (_themeConfigCache[id]) return Promise.resolve(_themeConfigCache[id]);
+    if (_themeConfigPromises[id]) return _themeConfigPromises[id];
+    _themeConfigPromises[id] = fetch(THEME_DIR + '/' + encodeURIComponent(id) + '.json')
+        .then(function (r) { if (!r.ok) throw new Error('not found'); return r.json(); })
+        .then(function (data) {
+            _themeConfigCache[id] = data;
+            return data;
+        })
+        .catch(function () { return null; });
+    return _themeConfigPromises[id];
 }
 
 /** Resolve + apply a theme by name, persist it, and update the URL param cache. */
 function applyThemeByName(name, persist) {
-    return loadThemesData().then(function (themes) {
-        var theme = themes[name] || themes[THEME_DEFAULT];
-        var resolvedName = themes[name] ? name : THEME_DEFAULT;
-        applyThemeVars(theme);
-        _writeThemeCache(resolvedName, theme);
-        if (persist !== false) saveThemeName(resolvedName);
-        return resolvedName;
+    return loadThemeConfig(name).then(function (theme) {
+        if (theme) {
+            applyThemeVars(theme);
+            _writeThemeCache(name, theme);
+            if (persist !== false) saveThemeName(name);
+            return name;
+        }
+        // Unknown/failed theme id: fall back to the default theme.
+        if (name === THEME_DEFAULT) return name;
+        return loadThemeConfig(THEME_DEFAULT).then(function (fallback) {
+            if (fallback) {
+                applyThemeVars(fallback);
+                _writeThemeCache(THEME_DEFAULT, fallback);
+            }
+            if (persist !== false) saveThemeName(THEME_DEFAULT);
+            return THEME_DEFAULT;
+        });
     });
 }
 
@@ -143,12 +187,11 @@ function getCurrentThemeName() {
 /** Populate a <select> element with <option> entries for every known theme. */
 function populateThemeSelect(selectEl) {
     if (!selectEl) return;
-    loadThemesData().then(function (themes) {
+    loadThemeIndex().then(function (themes) {
         var current = getCurrentThemeName();
-        var html = Object.keys(themes).map(function (key) {
-            var t = themes[key];
-            var sel = key === current ? ' selected' : '';
-            return '<option value="' + key + '"' + sel + '>' + (t.label || key) + '</option>';
+        var html = (themes || []).map(function (t) {
+            var sel = t.id === current ? ' selected' : '';
+            return '<option value="' + t.id + '"' + sel + '>' + (t.label || t.id) + '</option>';
         }).join('');
         selectEl.innerHTML = html;
     });

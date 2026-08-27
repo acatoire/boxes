@@ -87,6 +87,9 @@ class HomeTouchMixin:
     def genHTMLTouchJS(self) -> str:
         return f'<script src="{self.static_url}/touch.js"></script>'
 
+    def genHTMLShopJS(self) -> str:
+        return f'<script src="{self.static_url}/shop.js"></script>'
+
     def genHTMLThemeInit(self) -> str:
         """Theme assets: static_url hint, theme.js, and an inline snippet that
         re-applies the last cached theme's CSS vars *before* stylesheets paint
@@ -145,13 +148,17 @@ class HomeTouchMixin:
             for url, txt in links
         ]
         dropdown_items.append('      <hr style="border:none;border-top:1px solid #e8e0d0;margin:4px 0">')
-        dropdown_items.append(f'      <a href="TouchHub">\U0001f4f1 {_("Touch")}</a>')
-        dropdown_items.append(f'      <a href="Gallery">\U0001f5bc\ufe0f {_("Gallery")}</a>')
-        dropdown_items.append(f'      <a href="Menu">\U0001f4cb {_("Menu")}</a>')
+        dropdown_items.append(f'      <a href="TouchHub" data-hide-on-shop>\U0001f4f1 {_("Touch")}</a>')
+        dropdown_items.append(f'      <a href="Gallery" data-hide-on-shop>\U0001f5bc\ufe0f {_("Gallery")}</a>')
+        dropdown_items.append(f'      <a href="Menu" data-hide-on-shop>\U0001f4cb {_("Menu")}</a>')
         dropdown_items.append('      <hr style="border:none;border-top:1px solid #e8e0d0;margin:4px 0">')
-        dropdown_items.append(f'      <a href="colors">\U0001f3a8 {_("Colors")}</a>')
-        dropdown_items.append(f'      <a href="machine">\u2699 {_("Machine")}</a>')
-        dropdown_items.append(f'      <a href="categories">\U0001f4c2 {_("Selection")}</a>')
+        dropdown_items.append(f'      <a href="colors" data-hide-on-shop>\U0001f3a8 {_("Colors")}</a>')
+        dropdown_items.append(f'      <a href="machine" data-hide-on-shop>\u2699 {_("Machine")}</a>')
+        dropdown_items.append(f'      <a href="categories" data-hide-on-shop>\U0001f4c2 {_("Selection")}</a>')
+        dropdown_items.append(
+            f'      <div class="dropdown-shop">\U0001f6d2 {_("Shop:")} '
+            f'<select id="shop-select" onchange="onShopChange(this)"></select></div>'
+        )
         lang_sel = self.genHTMLLanguageSelection(lang)
         if "select" in lang_sel:
             dropdown_items.append(
@@ -192,7 +199,7 @@ class HomeTouchMixin:
             "\n  <header class=\"th-header\">\n"
             f"    {sidebar_toggle}\n"
             f'    <a class="th-logo" href="TouchHub{langparam}">\n'
-            f'      <img id="th-logo-img" src="{self.static_url}/logo-boxes.svg" alt="Boxes.py" height="40">\n'
+            f'      <img id="th-logo-img" src="{self.static_url}/theme/logo-boxes.svg" alt="Boxes.py" height="40">\n'
             f'      <span class="th-logo-text">{_("Boxes.py")}</span>\n'
             "    </a>\n"
             f"    {center_section}\n"
@@ -238,10 +245,11 @@ class HomeTouchMixin:
                 badges = self.tag_badges_html(box)
                 href = f"{bname}{langparam}"
                 tags_str = html.escape(" ".join(getattr(box, "tags", [])))
+                shop_str = html.escape(" ".join(getattr(box, "shop", [])))
                 cards.append(
                     f'<a class="th-card" href="{html.escape(href)}" '
                     f'id="tc_{bname}" title="{html.escape(_(bname))}" '
-                    f'data-tags="{tags_str}">'
+                    f'data-tags="{tags_str}" data-shop="{shop_str}">'
                     f'<img class="th-card-thumb" src="{thumb}" '
                     f'alt="{html.escape(_(bname))}" loading="lazy" '
                     "onerror=\"this.outerHTML='<div class=&quot;th-card-thumb-missing&quot;>&#128230;</div>'\">"
@@ -271,14 +279,18 @@ class HomeTouchMixin:
             for url, txt in links
         )
         sidebar_links_html += (
-            f'\n    <a class="th-sidenav-link" href="colors{langparam}">\U0001f3a8 {_("Colors")}</a>'
-            f'\n    <a class="th-sidenav-link" href="machine{langparam}">\u2699\ufe0f {_("Machine")}</a>'
-            f'\n    <a class="th-sidenav-link" href="categories{langparam}">\U0001f4c2 {_("Selection")}</a>'
+            f'\n    <a class="th-sidenav-link" href="colors{langparam}" data-hide-on-shop>\U0001f3a8 {_("Colors")}</a>'
+            f'\n    <a class="th-sidenav-link" href="machine{langparam}" data-hide-on-shop>\u2699\ufe0f {_("Machine")}</a>'
+            f'\n    <a class="th-sidenav-link" href="categories{langparam}" data-hide-on-shop>\U0001f4c2 {_("Selection")}</a>'
         )
         sidebar_links_html += '\n    <hr class="th-sidenav-sep">'
         sidebar_links_html += (
-            f'\n    <a class="th-sidenav-link" href="Gallery{langparam}">\U0001f5bc\ufe0f {_("Gallery")}</a>'
-            f'\n    <a class="th-sidenav-link" href="Menu{langparam}">\U0001f4cb {_("Menu")}</a>'
+            f'\n    <a class="th-sidenav-link" href="Gallery{langparam}" data-hide-on-shop>\U0001f5bc\ufe0f {_("Gallery")}</a>'
+            f'\n    <a class="th-sidenav-link" href="Menu{langparam}" data-hide-on-shop>\U0001f4cb {_("Menu")}</a>'
+        )
+        sidebar_links_html += (
+            f'\n    <div class="th-sidenav-shop">\U0001f6d2 {_("Shop:")} '
+            f'<select id="shop-select-sidebar" onchange="onShopChange(this)"></select></div>'
         )
         lang_sel = self.genHTMLLanguageSelection(lang)
         if "select" in lang_sel:
@@ -306,6 +318,7 @@ class HomeTouchMixin:
             f"  {self.genHTMLTouchCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f"  {self.genHTMLShopJS()}\n"
             "</head>\n"
             f'<body class="touch-hub" onload="initTouchHub()">\n'
             f"\n{header_html}\n\n"

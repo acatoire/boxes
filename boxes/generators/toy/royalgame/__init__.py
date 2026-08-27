@@ -20,7 +20,8 @@ class RoyalGame(Boxes):
     """The Royal Game of Ur"""
 
     ui_group = "Toy"
-    tags = ["🦉"]
+    shop = ["archichouette"]
+    tags = []
 
     description = """Most of the blue lines need to be engraved by cutting with high speed and low power. But there are three blue holes that actually need to be cut: The grip hole in the lid and two tiny rectangles on the top and bottom for the lid to grip into.
 

@@ -256,6 +256,27 @@ video {
     margin-top: 4px;
 }
 
+/* Shop row inside dropdown */
+.dropdown-shop {
+    padding: 8px 16px;
+    font-size: 0.9em;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #e8e0d0;
+    margin-top: 4px;
+}
+
+.dropdown-shop select {
+    padding: 2px 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background: #F8F4EE;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+
 /* Interface switcher row inside dropdown */
 .dropdown-interface {
     padding: 8px 16px;
@@ -735,7 +756,7 @@ select[id$="_resource"] {
 
 /* ================================================================
    THEME: dark-mode helper (toggled on <body> by theme.js when the
-   active theme declares "dark": true in static/themes.json).
+   active theme declares "dark": true in static/theme/<name>.json).
    Only touches elements that are shared with touch-mode pages
    (touch-args uses self.css for tables/tabs/steppers/dpad/help-modal).
    ================================================================ */

@@ -35,6 +35,9 @@ class CategoriesUIMixin:
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
 
+    def genHTMLShopJS(self) -> str:
+        raise NotImplementedError
+
     def genHTMLThemeInit(self) -> str:
         raise NotImplementedError
 
@@ -110,6 +113,7 @@ class CategoriesUIMixin:
             f"  {self.genHTMLCategoriesCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f"  {self.genHTMLShopJS()}\n"
             "</head>\n"
             f'<body class="touch-cat" onload="initCategorySettingsPage()">\n'
             f"\n{touch_header}\n\n"

@@ -9,8 +9,8 @@
    ------------------------------------------------------------------
    These are the "theme" variables. Their default values below are the
    "boxes" (default) theme. All values can be overridden at runtime by
-   theme.js, which reads static/themes.json and named presets selected
-   on the Colors page (or via the ?theme= URL parameter). */
+   theme.js, which reads static/theme/index.json + static/theme/<name>.json
+   presets selected on the Colors page (or via the ?theme= URL parameter). */
 :root {
   --th-bar-bg:     #3a3330;
   --th-bar-fg:     #fff;
@@ -35,7 +35,7 @@
 /* ================================================================
    THEME EXTRAS (glitter effect, dark-mode helper class)
    Toggled on <body> by theme.js based on the active theme's
-   "glitter" / "dark" flags in themes.json.
+   "glitter" / "dark" flags in static/theme/<name>.json.
    ================================================================ */
 body.theme-glitter .th-header,
 body.theme-glitter .th-sidebar {
@@ -218,6 +218,25 @@ body.touch-hub {
   cursor: pointer;
 }
 .th-sidenav-lang select option { color: #333; background: #fff; }
+
+.th-sidenav-shop {
+  padding: 8px 16px 4px;
+  font-size: 0.82em;
+  color: rgba(255,255,255,0.55);
+  white-space: nowrap;
+}
+.th-sidenav-shop select {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 0.95em;
+  cursor: pointer;
+}
+.th-sidenav-shop select option { color: #333; background: #fff; }
+
+
 
 .th-sidenav-fingerprint {
   padding: 4px 16px;
@@ -541,3 +560,7 @@ body.th-sidebar-open .th-sidebar-overlay { display: block; }
 
 /* Label-filtered cards: CSS class set by applyHiddenLabelsTouch() in touch.js */
 .th-card.th-label-hidden { display: none !important; }
+
+/* Shop-filtered cards: CSS class set by applyShopFilterTouch() in touch.js */
+.th-card.th-shop-hidden { display: none !important; }
+

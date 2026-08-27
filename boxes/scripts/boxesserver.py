@@ -380,6 +380,16 @@ class BServer(HomeLegacyMixin, MenuUIMixin, HomeGalleryMixin, HomeTouchMixin, Co
 
         lang = self.getLanguage(args, environ.get("HTTP_ACCEPT_LANGUAGE", ""))
 
+        #  Route: /shop/<id> friendly redirect → TouchHub?shop=<id>
+        if name.startswith("shop/"):
+            shop_id = name[len("shop/"):]
+            lang_name = lang.info().get("language", None)
+            qs = f"shop={quote(shop_id)}"
+            if lang_name:
+                qs += f"&language={quote(lang_name)}"
+            start_response("302 Found", [("Location", f"{self.url_prefix}/TouchHub?{qs}")])
+            return [b""]
+
         #  Route: hub / gallery
         if not name:
             return self.serveTouchHub(environ, start_response, lang)

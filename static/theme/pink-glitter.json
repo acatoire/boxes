@@ -1,0 +1,25 @@
+{
+  "label": "Pink Glitter",
+  "dark": false,
+  "glitter": true,
+  "logo": "logo-pink-glitter.svg",
+  "favicon": "logo-pink-glitter.svg",
+  "logoText": "Laser \u2728",
+  "vars": {
+    "--th-bar-bg": "#ff2d95",
+    "--th-bar-fg": "#ffffff",
+    "--th-accent": "#ff4fd8",
+    "--th-accent2": "#d6009c",
+    "--th-card-bg": "#fff0f8",
+    "--th-page-bg": "#ffe0f0",
+    "--th-sidebar-bg": "#c2005c",
+    "--th-text": "#4a002a",
+    "--th-text-muted": "#a4457a",
+    "--th-container-bg": "#fff5fa",
+    "--th-border-color": "#ffb3dd",
+    "--th-button-fg": "#ffffff",
+    "--th-neutral-btn-bg": "#ffd6ec",
+    "--th-neutral-btn-bg-hover": "#ffbfe0"
+  }
+}
+

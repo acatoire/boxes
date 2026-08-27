@@ -38,6 +38,9 @@ class MachineUIMixin:
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
 
+    def genHTMLShopJS(self) -> str:
+        raise NotImplementedError
+
     def genHTMLMachineCSS(self) -> str:
         raise NotImplementedError
 
@@ -66,6 +69,7 @@ class MachineUIMixin:
             f"  {self.genHTMLMachineCSS()}\n"
             f"  {self.genHTMLJS()}\n"
             f"  {self.genHTMLTouchJS()}\n"
+            f"  {self.genHTMLShopJS()}\n"
             "</head>\n"
             f'<body class="touch-machine" onload="initMachineConfigPanel()">\n'
             f"\n{touch_header}\n\n"

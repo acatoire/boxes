@@ -33,7 +33,8 @@ pieces or as a single piece that continues at the back.
 """
 
     ui_group = "Tray"
-    tags = ["🦉"]
+    shop = ["archichouette"]
+    tags = []
 
     def __init__(self) -> None:
         Boxes.__init__(self) # avoid TypeTray.__init__

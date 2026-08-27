@@ -293,6 +293,7 @@ class Boxes:
     webinterface = True
     ui_group = "Misc"
     tags: list[str] = []
+    shop: list[str] = []
     UI = ""
 
     description: str = ""  # Markdown syntax is supported

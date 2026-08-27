@@ -1,0 +1,25 @@
+{
+  "label": "Apple Green",
+  "dark": false,
+  "glitter": false,
+  "logo": "logo-apple-green.svg",
+  "favicon": "logo-apple-green.svg",
+  "logoText": "MyBox \ud83c\udf43",
+  "vars": {
+    "--th-bar-bg": "#1b5e20",
+    "--th-bar-fg": "#ffffff",
+    "--th-accent": "#4caf50",
+    "--th-accent2": "#2e7d32",
+    "--th-card-bg": "#ffffff",
+    "--th-page-bg": "#eaf7ea",
+    "--th-sidebar-bg": "#14401a",
+    "--th-text": "#1b3d1b",
+    "--th-text-muted": "#5a7a5a",
+    "--th-container-bg": "#f2fbf2",
+    "--th-border-color": "#a5d6a7",
+    "--th-button-fg": "#ffffff",
+    "--th-neutral-btn-bg": "#dcefdc",
+    "--th-neutral-btn-bg-hover": "#c7e6c7"
+  }
+}
+

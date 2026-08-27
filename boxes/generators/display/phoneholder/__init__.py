@@ -25,7 +25,8 @@ class PhoneHolder(Boxes):
     """
 
     ui_group = "Display"
-    tags = ["🦉"]
+    shop = ["archichouette"]
+    tags = []
 
     description = """
     This phone stand holds your phone between two tabs, with access to its
