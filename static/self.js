@@ -123,12 +123,46 @@ function onColorChange(sel) {
     overrides[sel.dataset.role] = sel.value;
     persistColorSettings(overrides);
     updateSwatch(sel);
+    updatePreviewColors();
 }
 
 /** Update the color swatch span next to a select element. */
 function updateSwatch(sel) {
-    const swatch = sel.parentElement.querySelector('.color-swatch');
-    if (swatch) swatch.style.background = sel.value;
+    const labelSwatch = sel.closest('.cs-row')?.querySelector('.color-swatch');
+    if (labelSwatch) labelSwatch.style.background = sel.value;
+}
+
+/** Toggle visibility of filled areas in the preview. */
+function toggleShowFill() {
+    const checkbox = document.getElementById('cs-show-fill');
+    const fills = document.querySelectorAll('.cs-preview [data-fill-role]');
+    fills.forEach(el => {
+        const role = el.getAttribute('data-color-role');
+        const sel = document.querySelector('select[data-role="' + role + '"]');
+        const color = sel ? sel.value : el.getAttribute('stroke');
+        el.setAttribute('fill', checkbox.checked ? color : 'none');
+    });
+}
+
+/** Recolor the live example SVG on the Colors page to match the current selects. */
+function updatePreviewColors() {
+    document.querySelectorAll('select[data-role]').forEach(function (sel) {
+        const role = sel.dataset.role;
+        document.querySelectorAll('.cs-preview [data-color-role="' + role + '"]').forEach(function (el) {
+            if (el.hasAttribute('data-fill-role')) {
+                // Always keep the outline in sync; only update the fill itself
+                // if it is currently shown (i.e. not "none").
+                el.setAttribute('stroke', sel.value);
+                if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') {
+                    el.setAttribute('fill', sel.value);
+                }
+            } else if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') {
+                el.setAttribute('fill', sel.value);
+            } else {
+                el.setAttribute('stroke', sel.value);
+            }
+        });
+    });
 }
 
 /** Settings page – load saved values into selects and swatches on page load. */
@@ -141,12 +175,10 @@ function initColorSettingsPage() {
             const opt = Array.from(sel.options).find(o => o.value === saved);
             if (opt) sel.value = saved;
         }
-        // Inject a live swatch next to the select.
-        const swatch = document.createElement('span');
-        swatch.className = 'color-swatch';
-        swatch.style.background = sel.value;
-        sel.insertAdjacentElement('afterend', swatch);
+        // Update the swatch that's already in the HTML.
+        updateSwatch(sel);
     });
+    updatePreviewColors();
 }
 
 /** Export current localStorage settings as a downloaded JSON file. */
