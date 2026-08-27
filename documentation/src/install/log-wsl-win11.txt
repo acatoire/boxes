@@ -115,7 +115,7 @@ BoxesServer serving on host:port :8000...
 127.0.0.1 - - [13/Oct/2022 10:53:34] "GET /static/self.css HTTP/1.1" 200 2357
 127.0.0.1 - - [13/Oct/2022 10:53:34] "GET /static/fonts.css HTTP/1.1" 200 1592
 127.0.0.1 - - [13/Oct/2022 10:53:35] "GET /static/normalize.css HTTP/1.1" 200 4693
-127.0.0.1 - - [13/Oct/2022 10:53:35] "GET /static/boxes-logo.svg HTTP/1.1" 200 12702
+127.0.0.1 - - [13/Oct/2022 10:53:35] "GET /static/logo-boxes.svg HTTP/1.1" 200 12702
 127.0.0.1 - - [13/Oct/2022 10:53:35] "GET /static/nothing.png HTTP/1.1" 200 89
 127.0.0.1 - - [13/Oct/2022 10:53:35] "GET /static/fonts/bungeeshade/v3/DtVkJxarWL0t2KdzK3oI_jkc6SjT.woff2 HTTP/1.1" 200 42432
 127.0.0.1 - - [13/Oct/2022 10:53:35] "GET /static/nothing.png HTTP/1.1" 200 89
@@ -141,7 +141,7 @@ BoxesServer serving on host:port :8000...
 127.0.0.1 - - [13/Oct/2022 10:53:53] "GET /static/self.css HTTP/1.1" 200 2357
 127.0.0.1 - - [13/Oct/2022 10:53:54] "GET /static/fonts.css HTTP/1.1" 200 1592
 127.0.0.1 - - [13/Oct/2022 10:53:54] "GET /static/normalize.css HTTP/1.1" 200 4693
-127.0.0.1 - - [13/Oct/2022 10:53:54] "GET /static/boxes-logo.svg HTTP/1.1" 200 12702
+127.0.0.1 - - [13/Oct/2022 10:53:54] "GET /static/logo-boxes.svg HTTP/1.1" 200 12702
 127.0.0.1 - - [13/Oct/2022 10:53:54] "GET /static/samples/BottleTag.jpg HTTP/1.1" 200 82889
 127.0.0.1 - - [13/Oct/2022 10:53:54] "GET /static/fonts/bungeeshade/v3/DtVkJxarWL0t2KdzK3oI_jkc6SjT.woff2 HTTP/1.1" 200 42432
 127.0.0.1 - - [13/Oct/2022 10:53:54] "GET /static/fonts/luckiestguy/v8/_gP_1RrxsjcxVyin9l9n_j2hTd52.woff2 HTTP/1.1" 200 17024
@@ -153,7 +153,7 @@ BoxesServer serving on host:port :8000...
 127.0.0.1 - - [13/Oct/2022 12:04:45] "GET /static/self.css HTTP/1.1" 200 2357
 127.0.0.1 - - [13/Oct/2022 12:04:45] "GET /static/fonts.css HTTP/1.1" 200 1592
 127.0.0.1 - - [13/Oct/2022 12:04:45] "GET /static/normalize.css HTTP/1.1" 200 4693
-127.0.0.1 - - [13/Oct/2022 12:04:45] "GET /static/boxes-logo.svg HTTP/1.1" 200 12702
+127.0.0.1 - - [13/Oct/2022 12:04:45] "GET /static/logo-boxes.svg HTTP/1.1" 200 12702
 127.0.0.1 - - [13/Oct/2022 12:04:45] "GET /static/nothing.png HTTP/1.1" 200 89
 127.0.0.1 - - [13/Oct/2022 12:04:46] "GET /static/fonts/bungeeshade/v3/DtVkJxarWL0t2KdzK3oI_jkc6SjT.woff2 HTTP/1.1" 200 42432
 127.0.0.1 - - [13/Oct/2022 12:04:46] "GET /static/samples/RoundedBox-thumb.jpg HTTP/1.1" 200 2803

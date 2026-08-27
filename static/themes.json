@@ -1,0 +1,118 @@
+{
+  "boxes": {
+    "label": "Boxes.py (default)",
+    "dark": false,
+    "glitter": false,
+    "logo": "logo-boxes.svg",
+    "logoText": "Boxes.py",
+    "vars": {
+      "--th-bar-bg": "#3a3330",
+      "--th-bar-fg": "#ffffff",
+      "--th-accent": "#e8750a",
+      "--th-accent2": "#c96500",
+      "--th-card-bg": "#ffffff",
+      "--th-page-bg": "#f0ebe0",
+      "--th-sidebar-bg": "#2e2a27",
+      "--th-text": "#222222",
+      "--th-text-muted": "#666666",
+      "--th-container-bg": "#ffffff",
+      "--th-border-color": "#cccccc",
+      "--th-button-fg": "#ffffff",
+      "--th-neutral-btn-bg": "#EFE8DA",
+      "--th-neutral-btn-bg-hover": "#DFD8BA"
+    }
+  },
+  "pink-glitter": {
+    "label": "Pink Glitter",
+    "dark": false,
+    "glitter": true,
+    "logo": "logo-pink-glitter.svg",
+    "logoText": "Laser \u2728",
+    "vars": {
+      "--th-bar-bg": "#ff2d95",
+      "--th-bar-fg": "#ffffff",
+      "--th-accent": "#ff4fd8",
+      "--th-accent2": "#d6009c",
+      "--th-card-bg": "#fff0f8",
+      "--th-page-bg": "#ffe0f0",
+      "--th-sidebar-bg": "#c2005c",
+      "--th-text": "#4a002a",
+      "--th-text-muted": "#a4457a",
+      "--th-container-bg": "#fff5fa",
+      "--th-border-color": "#ffb3dd",
+      "--th-button-fg": "#ffffff",
+      "--th-neutral-btn-bg": "#ffd6ec",
+      "--th-neutral-btn-bg-hover": "#ffbfe0"
+    }
+  },
+  "apple-green": {
+    "label": "Apple Green",
+    "dark": false,
+    "glitter": false,
+    "logo": "logo-apple-green.svg",
+    "logoText": "MyBox \ud83c\udf43",
+    "vars": {
+      "--th-bar-bg": "#1b5e20",
+      "--th-bar-fg": "#ffffff",
+      "--th-accent": "#4caf50",
+      "--th-accent2": "#2e7d32",
+      "--th-card-bg": "#ffffff",
+      "--th-page-bg": "#eaf7ea",
+      "--th-sidebar-bg": "#14401a",
+      "--th-text": "#1b3d1b",
+      "--th-text-muted": "#5a7a5a",
+      "--th-container-bg": "#f2fbf2",
+      "--th-border-color": "#a5d6a7",
+      "--th-button-fg": "#ffffff",
+      "--th-neutral-btn-bg": "#dcefdc",
+      "--th-neutral-btn-bg-hover": "#c7e6c7"
+    }
+  },
+  "red-laser": {
+    "label": "Red Laser",
+    "dark": true,
+    "glitter": false,
+    "logo": "logo-red-laser.svg",
+    "logoText": "Perso.box \u26a1",
+    "vars": {
+      "--th-bar-bg": "#1a0000",
+      "--th-bar-fg": "#ff6666",
+      "--th-accent": "#e50000",
+      "--th-accent2": "#a30000",
+      "--th-card-bg": "#1f1f1f",
+      "--th-page-bg": "#120000",
+      "--th-sidebar-bg": "#0d0000",
+      "--th-text": "#f5e0e0",
+      "--th-text-muted": "#cc8888",
+      "--th-container-bg": "#1a0a0a",
+      "--th-border-color": "#4d0000",
+      "--th-button-fg": "#ffffff",
+      "--th-neutral-btn-bg": "#2a1010",
+      "--th-neutral-btn-bg-hover": "#3a1515"
+    }
+  },
+  "dark-night": {
+    "label": "Dark Night",
+    "dark": true,
+    "glitter": false,
+    "logo": "logo-dark-night.svg",
+    "logoText": "Boxes.py \ud83c\udf19",
+    "vars": {
+      "--th-bar-bg": "#10141a",
+      "--th-bar-fg": "#e8edf5",
+      "--th-accent": "#3b82f6",
+      "--th-accent2": "#2563eb",
+      "--th-card-bg": "#1c212b",
+      "--th-page-bg": "#0b0e13",
+      "--th-sidebar-bg": "#12161d",
+      "--th-text": "#dfe6f0",
+      "--th-text-muted": "#8a94a6",
+      "--th-container-bg": "#161a22",
+      "--th-border-color": "#2a2f3a",
+      "--th-button-fg": "#ffffff",
+      "--th-neutral-btn-bg": "#232935",
+      "--th-neutral-btn-bg-hover": "#2d3444"
+    }
+  }
+}
+

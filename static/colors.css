@@ -14,8 +14,8 @@ body.touch-colors {
 }
 
 .cs-body { flex: 1; padding: 20px 24px; overflow-y: auto; }
-.cs-body h2 { margin: 0 0 6px; color: #333; }
-.cs-body > p { margin: 0 0 20px; color: #666; font-size: .9em; }
+.cs-body h2 { margin: 0 0 6px; color: var(--th-text); }
+.cs-body > p { margin: 0 0 20px; color: var(--th-text-muted); font-size: .9em; }
 
 .cs-toggle-label {
   display: flex;
@@ -60,7 +60,7 @@ body.touch-colors {
 }
 
 .cs-row {
-  background: #fff;
+  background: var(--th-container-bg);
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,.09);
   padding: 12px 14px;
@@ -76,7 +76,7 @@ body.touch-colors {
   gap: 8px;
   font-weight: bold;
   font-size: .95em;
-  color: #222;
+  color: var(--th-text);
 }
 
 .cs-label-swatch label {
@@ -101,15 +101,16 @@ body.touch-colors {
   font-size: .9em;
   padding: 0 8px;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fafafa;
+  border: 1px solid var(--th-border-color);
+  background: var(--th-container-bg);
+  color: var(--th-text);
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
 }
 
 .cs-preview-column {
-  background: #fff;
+  background: var(--th-container-bg);
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,.09);
   padding: 12px;
@@ -160,6 +161,47 @@ body.touch-colors {
 
 #color-settings-status { color: green; font-weight: bold; }
 #import-file           { display: none; }
+
+/* ── Theme switcher section ──────────────────────────────────────── */
+.cs-theme-section {
+  background: var(--th-container-bg);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.09);
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cs-theme-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cs-theme-row select { min-width: 220px; }
+
+.cs-select option {
+  background: var(--th-container-bg);
+  color: var(--th-text);
+}
+
+.cs-theme-swatches {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.cs-theme-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 2px solid rgba(0,0,0,.15);
+}
+
+#theme-settings-status { color: green; font-weight: bold; }
 
 
 

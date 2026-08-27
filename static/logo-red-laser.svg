@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Red Laser theme logo for Boxes.py -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <rect x="4" y="4" width="88" height="88" rx="18" fill="#1a0000"/>
+  <rect x="4" y="4" width="88" height="88" rx="18" fill="none" stroke="#e50000" stroke-width="3"/>
+  <path d="M28 30 L68 30 L68 46 L48 46 L48 66 L28 66 Z" fill="none" stroke="#ff6666" stroke-width="2.5"/>
+  <path d="M48 46 L68 46 L68 66 L48 66 Z" fill="none" stroke="#ff6666" stroke-width="2.5"/>
+  <line x1="10" y1="48" x2="86" y2="48" stroke="#e50000" stroke-width="3"/>
+  <circle cx="86" cy="48" r="3.5" fill="#ff2b2b"/>
+</svg>
+

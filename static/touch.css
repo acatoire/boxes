@@ -5,7 +5,12 @@
    to avoid polluting the legacy UI.
    ================================================================ */
 
-/* CSS variables */
+/* CSS variables
+   ------------------------------------------------------------------
+   These are the "theme" variables. Their default values below are the
+   "boxes" (default) theme. All values can be overridden at runtime by
+   theme.js, which reads static/themes.json and named presets selected
+   on the Colors page (or via the ?theme= URL parameter). */
 :root {
   --th-bar-bg:     #3a3330;
   --th-bar-fg:     #fff;
@@ -15,6 +20,59 @@
   --th-page-bg:    #f0ebe0;
   --th-border-r:   12px;
   --th-tap-min:    52px;
+
+  /* Extended theme palette */
+  --th-sidebar-bg:          #2e2a27;
+  --th-text:                #222;
+  --th-text-muted:          #666;
+  --th-container-bg:        #fff;
+  --th-border-color:        #ccc;
+  --th-button-fg:           #fff;
+  --th-neutral-btn-bg:      #EFE8DA;
+  --th-neutral-btn-bg-hover:#DFD8BA;
+}
+
+/* ================================================================
+   THEME EXTRAS (glitter effect, dark-mode helper class)
+   Toggled on <body> by theme.js based on the active theme's
+   "glitter" / "dark" flags in themes.json.
+   ================================================================ */
+body.theme-glitter .th-header,
+body.theme-glitter .th-sidebar {
+  background-image:
+    radial-gradient(circle at 15% 25%, rgba(255,255,255,0.55) 0, rgba(255,255,255,0.55) 1px, transparent 2px),
+    radial-gradient(circle at 65% 60%, rgba(255,255,255,0.4) 0, rgba(255,255,255,0.4) 1px, transparent 2px),
+    radial-gradient(circle at 40% 85%, rgba(255,255,255,0.5) 0, rgba(255,255,255,0.5) 1px, transparent 2px),
+    radial-gradient(circle at 85% 15%, rgba(255,255,255,0.45) 0, rgba(255,255,255,0.45) 1px, transparent 2px);
+  background-size: 40px 40px, 55px 55px, 70px 70px, 35px 35px;
+}
+body.theme-glitter .th-card:hover {
+  box-shadow: 0 5px 18px rgba(255,45,149,0.35);
+}
+
+/* Generic native <select>/<option> theming for form-style dropdowns
+   (machine presets/materials, template picker, color/theme selects,
+   etc.) that don't already have their own deliberately translucent
+   style -- so dark themes never show a stray white/cream browser-
+   default box. Header/sidebar selects keep their own translucent
+   rules further up (intentional). Generator-args table selects are
+   themed directly in generator.css (loaded after this file). */
+.ms-preset-select,
+.ms-mat-select,
+#machine-preset,
+#machine-material,
+body.touch-args select {
+  background: var(--th-container-bg);
+  color: var(--th-text);
+  border-color: var(--th-border-color);
+}
+.ms-preset-select option,
+.ms-mat-select option,
+#machine-preset option,
+#machine-material option,
+body.touch-args select option {
+  background: var(--th-container-bg);
+  color: var(--th-text);
 }
 
 /* ================================================================
@@ -44,7 +102,7 @@ body.touch-hub {
 .th-sidebar {
   width: 230px;
   min-width: 230px;
-  background: #2e2a27;
+  background: var(--th-sidebar-bg);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -250,7 +308,7 @@ body.th-sidebar-open .th-sidebar-overlay { display: block; }
   min-height: 44px;
   cursor: pointer;
 }
-.th-header-actions option { color: #333; background: #fff; }
+.th-header-actions option { color: var(--th-text); background: var(--th-container-bg); }
 
 .th-mode-btn {
   background: rgba(255,255,255,0.12);
@@ -315,7 +373,7 @@ body.th-sidebar-open .th-sidebar-overlay { display: block; }
   right: 0;
   left: auto;
   min-width: 280px;
-  background: #fff;
+  background: var(--th-container-bg);
   border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0,0,0,0.25);
   padding: 4px 0;
@@ -326,7 +384,7 @@ body.th-sidebar-open .th-sidebar-overlay { display: block; }
 .th-dropdown-content span {
   display: block;
   padding: 12px 18px;
-  color: #333;
+  color: var(--th-text);
   text-decoration: none;
   font-size: 1em;
   white-space: nowrap;
@@ -338,15 +396,15 @@ body.th-sidebar-open .th-sidebar-overlay { display: block; }
   border-top: 1px solid #e8e0d0;
   margin-top: 4px;
   padding: 10px 16px;
-  color: #333;
+  color: var(--th-text);
   white-space: nowrap;
   flex-wrap: nowrap;
 }
 
 .th-dropdown-content .dropdown-lang select {
-  background: #F8F4EE;
-  color: #333;
-  border: 1px solid #bbb;
+  background: var(--th-container-bg);
+  color: var(--th-text);
+  border: 1px solid var(--th-border-color);
   border-radius: 4px;
   padding: 3px 6px;
   font-size: 0.95em;
@@ -450,13 +508,13 @@ body.th-sidebar-open .th-sidebar-overlay { display: block; }
 .th-card-name {
   font-weight: bold;
   font-size: 0.9em;
-  color: #222;
+  color: var(--th-text);
   line-height: 1.3;
 }
 
 .th-card-doc {
   font-size: 0.78em;
-  color: #666;
+  color: var(--th-text-muted);
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;

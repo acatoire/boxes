@@ -354,13 +354,13 @@ textarea {
     cursor: pointer;
     border: 1px solid #999;
     border-radius: 4px;
-    background: #EFE8DA;
+    background: var(--th-neutral-btn-bg, #EFE8DA);
     line-height: 1.4;
     flex-shrink: 0;
 }
 
 .stepper-btn:hover {
-    background: #DFD8BA;
+    background: var(--th-neutral-btn-bg-hover, #DFD8BA);
 }
 
 /* "auto" reset button – narrower, muted green tint */
@@ -388,13 +388,13 @@ textarea {
     cursor: pointer;
     border: 1px solid #999;
     border-radius: 4px;
-    background: #EFE8DA;
+    background: var(--th-neutral-btn-bg, #EFE8DA);
     line-height: 1.4;
     flex-shrink: 0;
 }
 
 .stepper-preset-btn:hover {
-    background: #DFD8BA;
+    background: var(--th-neutral-btn-bg-hover, #DFD8BA);
 }
 
 /* Label text field and resource picker dropdowns (ResourceSettings'
@@ -520,7 +520,7 @@ select[id$="_resource"] {
 }
 
 .help-modal-box {
-    background: #FFF8EA;
+    background: var(--th-container-bg, #FFF8EA);
     border-radius: 12px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
     padding: 24px 32px;
@@ -589,7 +589,7 @@ select[id$="_resource"] {
     min-width: 280px;
     position: sticky;
     top: 0;
-    background-color: #ffffff;
+    background-color: var(--th-container-bg, #ffffff);
     border-radius: 8px;
     padding: 8px;
 }
@@ -650,13 +650,13 @@ select[id$="_resource"] {
     border-radius: 10px;
     font-size: 1em;
     cursor: pointer;
-    background-color: #EFE8DA;
+    background-color: var(--th-neutral-btn-bg, #EFE8DA);
 }
 .tabbtn:hover {
-    background-color: #DFD8BA;
+    background-color: var(--th-neutral-btn-bg-hover, #DFD8BA);
 }
 .tabbtn.active {
-    background-color: #DFD8BA;
+    background-color: var(--th-neutral-btn-bg-hover, #DFD8BA);
     font-weight: bold;
     box-shadow: inset 0 -2px 0 #888;
 }
@@ -681,7 +681,7 @@ select[id$="_resource"] {
     padding: 0;
     border: 1px solid #999;
     border-radius: 6px;
-    background: #EFE8DA;
+    background: var(--th-neutral-btn-bg, #EFE8DA);
     cursor: pointer;
     font-size: 1.15em;
     line-height: 1;
@@ -692,7 +692,7 @@ select[id$="_resource"] {
 }
 
 .dpad-btn:hover {
-    background: #DFD8BA;
+    background: var(--th-neutral-btn-bg-hover, #DFD8BA);
 }
 
 .dpad-btn.dpad-center {
@@ -732,3 +732,32 @@ select[id$="_resource"] {
     font-size: 0.85em;
     color: #666;
 }
+
+/* ================================================================
+   THEME: dark-mode helper (toggled on <body> by theme.js when the
+   active theme declares "dark": true in static/themes.json).
+   Only touches elements that are shared with touch-mode pages
+   (touch-args uses self.css for tables/tabs/steppers/dpad/help-modal).
+   ================================================================ */
+body.theme-dark,
+body.theme-dark button,
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea {
+    color: var(--th-text, #222);
+}
+
+body.theme-dark table input[type="text"],
+body.theme-dark table textarea,
+body.theme-dark table select,
+body.theme-dark .textarea-values {
+    background: var(--th-container-bg, #fff);
+    border-color: var(--th-border-color, #bbb);
+    color: var(--th-text, #222);
+}
+
+body.theme-dark .help-modal-content,
+body.theme-dark h3 {
+    color: var(--th-text, #222);
+}
+

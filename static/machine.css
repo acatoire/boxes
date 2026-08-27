@@ -14,8 +14,8 @@ body.touch-machine {
 }
 
 .ms-body { flex: 1; padding: 20px 24px; overflow-y: auto; max-width: 700px; }
-.ms-body h2 { margin: 0; color: #333; }
-.ms-body > p { margin: 0 0 20px; color: #666; font-size: .9em; }
+.ms-body h2 { margin: 0; color: var(--th-text); }
+.ms-body > p { margin: 0 0 20px; color: var(--th-text-muted); font-size: .9em; }
 
 .ms-title-row {
   display: flex;
@@ -33,7 +33,7 @@ body.touch-machine {
 }
 
 .ms-section {
-  background: #fff;
+  background: var(--th-container-bg);
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,.09);
   padding: 18px 20px;
@@ -42,7 +42,7 @@ body.touch-machine {
 .ms-section h3 {
   margin: 0 0 14px;
   font-size: 1em;
-  color: #333;
+  color: var(--th-text);
   width: auto;
   padding: 0;
   cursor: default;

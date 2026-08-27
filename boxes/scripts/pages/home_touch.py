@@ -87,6 +87,17 @@ class HomeTouchMixin:
     def genHTMLTouchJS(self) -> str:
         return f'<script src="{self.static_url}/touch.js"></script>'
 
+    def genHTMLThemeInit(self) -> str:
+        """Theme assets: static_url hint, theme.js, and an inline snippet that
+        re-applies the last cached theme's CSS vars *before* stylesheets paint
+        (avoids a flash of the wrong theme while themes.json is fetched).
+        """
+        return (
+            f'<script>window.BOXES_STATIC_URL={self.static_url!r};</script>\n'
+            f'  <script src="{self.static_url}/theme.js"></script>\n'
+            '  <script>try{applyCachedThemeInstantly();}catch(e){}</script>'
+        )
+
     # Shared header bar
 
     def _touch_header_html(
@@ -181,7 +192,7 @@ class HomeTouchMixin:
             "\n  <header class=\"th-header\">\n"
             f"    {sidebar_toggle}\n"
             f'    <a class="th-logo" href="TouchHub{langparam}">\n'
-            f'      <img src="{self.static_url}/boxes-logo.svg" alt="Boxes.py" height="40">\n'
+            f'      <img id="th-logo-img" src="{self.static_url}/logo-boxes.svg" alt="Boxes.py" height="40">\n'
             f'      <span class="th-logo-text">{_("Boxes.py")}</span>\n'
             "    </a>\n"
             f"    {center_section}\n"
@@ -290,6 +301,7 @@ class HomeTouchMixin:
             f"  <title>{_('Boxes.py')}</title>\n"
             f"  {self.genHTMLMeta()}\n"
             f"{self.genHTMLMetaLanguageLink()}"
+            f"  {self.genHTMLThemeInit()}\n"
             f"  {self.genHTMLCSS()}\n"
             f"  {self.genHTMLTouchCSS()}\n"
             f"  {self.genHTMLJS()}\n"

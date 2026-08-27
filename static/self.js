@@ -179,6 +179,10 @@ function initColorSettingsPage() {
         updateSwatch(sel);
     });
     updatePreviewColors();
+    // Theme switcher (theme.js) – populate the <select> with available themes.
+    if (typeof populateThemeSelect === 'function') {
+        populateThemeSelect(document.getElementById('theme-select'));
+    }
 }
 
 /** Export current localStorage settings as a downloaded JSON file. */

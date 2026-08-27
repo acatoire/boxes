@@ -23,6 +23,8 @@ class ColorsUIMixin:
         raise NotImplementedError
     def genHTMLTouchJS(self) -> str:
         raise NotImplementedError
+    def genHTMLThemeInit(self) -> str:
+        raise NotImplementedError
     def _touch_header_html(self, lang: object, back_url: str = "", back_icon_only: bool = False, center_html: str = "", show_dropdown: bool = True) -> str:
         raise NotImplementedError
     def _colorPreviewSVG(self) -> str:
@@ -138,6 +140,7 @@ class ColorsUIMixin:
             "<head>\n"
             f"  <title>{_('Colors')} \u2013 {_('Boxes.py')}</title>\n"
             f"  {self.genHTMLMeta()}\n"
+            f"  {self.genHTMLThemeInit()}\n"
             f"  {self.genHTMLCSS()}\n"
             f"  {touch_css}\n"
             f"  {self.genHTMLColorsCSS()}\n"
@@ -149,6 +152,15 @@ class ColorsUIMixin:
             '<div class="cs-body">\n'
             f"  <h2>{_('Colors')}</h2>\n"
             f"  <p>{_('Choose the SVG stroke color for each laser operation. Changes are saved instantly in your browser.')}</p>\n"
+            '  <div class="cs-theme-section">\n'
+            f"    <h3 style=\"margin:0;padding:0;width:auto;cursor:default;\">\U0001f3a8 {_('UI Theme')}</h3>\n"
+            f"    <p style=\"margin:0;color:var(--th-text-muted);font-size:.9em;\">{_('Pick a color theme for the whole interface (background, buttons, headers).')}</p>\n"
+            '    <div class="cs-theme-row">\n'
+            '      <select id="theme-select" class="cs-select" style="width:auto" onchange="onThemeChange(this)"></select>\n'
+            f'      <span id="theme-settings-status" style="display:none">{_("Saved.")}</span>\n'
+            f'      <button class="cs-btn secondary" onclick="resetThemeSettings()">{_("Reset to default")}</button>\n'
+            '    </div>\n'
+            '  </div>\n'
             f'  <label class="cs-toggle-label"><input type="checkbox" id="cs-show-fill" onchange="toggleShowFill()">'
             f" {_('Show filled areas in preview')}</label>\n"
             f'  <div class="cs-layout">\n'
