@@ -4,7 +4,7 @@
   "glitter": false,
   "logo": "logo-archichouette.png",
   "favicon": "logo-archichouette.png",
-  "logoText": "Archichouette",
+  "logoText": "Laserchouette",
   "vars": {
     "--th-bar-bg": "#01423b",
     "--th-bar-fg": "#ffffff",

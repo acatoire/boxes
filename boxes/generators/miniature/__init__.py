@@ -114,6 +114,8 @@ class MiniatureWorkshop(Boxes):
     )
 
     ui_group = "Game"
+    shop = ["archichouette"]
+    tags = ["rpg", "🎲", "wargame"]
 
     def __init__(self) -> None:
         Boxes.__init__(self)

@@ -199,9 +199,23 @@ class HomeTouchMixin:
             "\n  <header class=\"th-header\">\n"
             f"    {sidebar_toggle}\n"
             f'    <a class="th-logo" href="TouchHub{langparam}">\n'
-            f'      <img id="th-logo-img" src="{self.static_url}/theme/logo-boxes.svg" alt="Boxes.py" height="40">\n'
+            '      <img id="th-logo-img" '
+            'src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" '
+            f'data-default-logo="{self.static_url}/theme/logo-boxes.svg" alt="Boxes.py" height="40">\n'
             f'      <span class="th-logo-text">{_("Boxes.py")}</span>\n'
             "    </a>\n"
+            "    <script>(function(){"
+            "var img=document.getElementById('th-logo-img');"
+            "if(!img)return;"
+            "var dir=(typeof THEME_DIR!=='undefined')?THEME_DIR:((window.BOXES_STATIC_URL||'static')+'/theme');"
+            "var src=img.getAttribute('data-default-logo');"
+            "try{"
+            "var c=(typeof _readThemeCache==='function')?_readThemeCache():null;"
+            "if(c&&c.theme&&c.theme.logo){src=dir+'/'+c.theme.logo;}"
+            "}catch(e){}"
+            "img.setAttribute('src',src);"
+            "try{if(typeof applyCachedThemeInstantly==='function')applyCachedThemeInstantly();}catch(e){}"
+            "})();</script>\n"
             f"    {center_section}\n"
             '    <div class="th-header-actions">\n'
             f"      {back_btn}\n"
@@ -320,7 +334,7 @@ class HomeTouchMixin:
             f"  {self.genHTMLTouchJS()}\n"
             f"  {self.genHTMLShopJS()}\n"
             "</head>\n"
-            f'<body class="touch-hub" onload="initTouchHub()">\n'
+            f'<body class="touch-hub">\n'
             f"\n{header_html}\n\n"
             '<div class="th-shell">\n\n'
             "  <!-- Left sidebar -->\n"
@@ -339,6 +353,12 @@ class HomeTouchMixin:
             '  <main class="th-content" id="th-content">\n'
             f'    {"".join(panels_html)}\n'
             "  </main>\n\n"
+            "  <!-- Run tab/category/label/shop filtering as soon as the sidebar\n"
+            "       and cards exist, instead of waiting for body onload (which\n"
+            "       only fires once every thumbnail image has finished loading -\n"
+            "       causing the full, unfiltered catalog to flash on screen for\n"
+            "       a second before shop filtering kicks in). -->\n"
+            "  <script>try{initTouchHub();}catch(e){}</script>\n\n"
             "</div>\n\n"
             "</body>\n"
             "</html>"

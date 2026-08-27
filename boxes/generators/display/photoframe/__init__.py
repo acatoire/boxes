@@ -302,6 +302,7 @@ class PhotoFrame(Boxes):
     """
 
     ui_group = "Display"
+    shop = ["archichouette"]
     tags = []
 
     description = """
