@@ -460,13 +460,15 @@ class BServer(HomeLegacyMixin, MenuUIMixin, HomeGalleryMixin, HomeTouchMixin, Co
             box.metadata["url_short"] = filter_url(
                 str(box.metadata["url"]), box.non_default_args
             )
-            box.open()
             from boxes.Color import Color as _Color
 
             _saved_colors = {role: list(getattr(_Color, role)) for role in _Color.ROLE_LABELS}
             if color_overrides:
                 _Color.apply_overrides(color_overrides)
             try:
+                # open() sets the initial pen color from Color.OUTER_CUT, so
+                # overrides must be applied *before* open() runs.
+                box.open()
                 box.render()
             finally:
                 for role, val in _saved_colors.items():

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg height="132.85mm" viewBox="0.0 0.0 237.35 132.85" width="237.35mm" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg height="122.40mm" viewBox="0.0 0.0 237.35 122.40" width="237.35mm" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <!--
 FrontPanel - Mounting Holes and cutouts for all your holy needs.
 
@@ -169,10 +169,6 @@ Command line short: boxes FrontPanel
 </dc:description>
 </cc:Work></rdf:RDF></metadata>
 <g id="p-0" style="fill:none;stroke-linecap:round;stroke-linejoin:round;">
-  <path d="M 36.800 122.850 H 136.800 V 112.850 H 36.800 V 122.850 Z" stroke="rgb(0,0,0)" stroke-width="0.20" />
-  <text font-size="6px" style="font-family: sans-serif ; font-weight: normal; font-style: normal; fill: rgb(0,255,0)" text-anchor="middle" transform="matrix( 1.000 0.000 0.000 1.000 86.800 120.010 )">100.0mm, burn:0.10mm</text>
-</g>
-<g id="p-1" style="fill:none;stroke-linecap:round;stroke-linejoin:round;">
   <path d="M 35.950 112.000 H 135.950 V 12.000 H 35.950 V 112.000 Z" stroke="rgb(0,255,0)" stroke-width="0.20" />
   <path d="M 36.350 112.000 C 36.350 112.077 36.328 112.152 36.287 112.216 C 36.245 112.281 36.186 112.332 36.116 112.364 C 36.046 112.396 35.969 112.407 35.893 112.396 C 35.817 112.385 35.746 112.353 35.688 112.302 C 35.630 112.252 35.588 112.186 35.566 112.113 C 35.545 112.039 35.545 111.961 35.566 111.887 C 35.588 111.814 35.630 111.748 35.688 111.698 C 35.746 111.647 35.817 111.615 35.893 111.604 C 35.969 111.593 36.046 111.604 36.116 111.636 C 36.186 111.668 36.245 111.719 36.287 111.784 C 36.328 111.848 36.350 111.923 36.350 112.000 Z" stroke="rgb(0,255,0)" stroke-width="0.20" />
   <text font-size="2px" style="font-family: sans-serif ; font-weight: normal; font-style: normal; fill: rgb(0,255,0)" text-anchor="left" transform="matrix( 1.000 0.000 0.000 1.000 35.950 111.720 )">1</text>
