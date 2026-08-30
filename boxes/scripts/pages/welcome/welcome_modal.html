@@ -1,0 +1,35 @@
+<!--
+  Welcome modal template (touch hub, first visit).
+  Rendered by HomeTouchMixin._welcome_modal_html() in
+  boxes/scripts/pages/home_touch.py using string.Template.
+  Placeholders (${name}) are substituted server-side:
+    fr_html, en_html         -> markdown-rendered content (welcome_fr.md / welcome_en.md)
+    close_label              -> aria-label for the (x) close button
+    hide_label                -> "don't show again" checkbox label
+    close_button_label       -> footer close button label
+  Styling lives in static/touch.css (.th-modal*).
+  Behaviour (show/hide, lang switch, localStorage) lives in static/touch.js.
+-->
+<div id="welcome-modal-overlay" class="th-modal-overlay">
+  <div class="th-modal" role="dialog" aria-modal="true" aria-labelledby="welcome-modal-title">
+    <div class="th-modal-header">
+      <div class="th-modal-lang-switch">
+        <button type="button" class="th-modal-lang-btn active" data-lang="fr" onclick="welcomeModalSetLang('fr')">FR</button>
+        <button type="button" class="th-modal-lang-btn" data-lang="en" onclick="welcomeModalSetLang('en')">EN</button>
+      </div>
+      <button type="button" class="th-modal-close" onclick="closeWelcomeModal()" aria-label="${close_label}">&times;</button>
+    </div>
+    <div class="th-modal-body">
+      <div class="th-modal-content" data-lang="fr">${fr_html}</div>
+      <div class="th-modal-content" data-lang="en" style="display:none;">${en_html}</div>
+    </div>
+    <div class="th-modal-footer">
+      <label class="th-modal-checkbox">
+        <input type="checkbox" id="welcome-modal-hide-checkbox">
+        ${hide_label}
+      </label>
+      <button type="button" class="th-mode-btn" onclick="closeWelcomeModal()">${close_button_label}</button>
+    </div>
+  </div>
+</div>
+

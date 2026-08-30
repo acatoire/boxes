@@ -564,3 +564,93 @@ body.th-sidebar-open .th-sidebar-overlay { display: block; }
 /* Shop-filtered cards: CSS class set by applyShopFilterTouch() in touch.js */
 .th-card.th-shop-hidden { display: none !important; }
 
+/* ================================================================
+   WELCOME MODAL
+   ================================================================ */
+.th-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.th-modal-overlay.th-modal-open { display: flex; }
+
+.th-modal {
+  background: var(--th-container-bg);
+  color: var(--th-text);
+  border-radius: var(--th-border-r);
+  max-width: 560px;
+  width: 92%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+.th-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--th-border-color);
+  background: var(--th-bar-bg);
+}
+
+.th-modal-lang-switch { display: flex; gap: 6px; }
+
+.th-modal-lang-btn {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.85em;
+  font-family: inherit;
+  cursor: pointer;
+}
+.th-modal-lang-btn.active { background: var(--th-accent); border-color: var(--th-accent); font-weight: bold; }
+
+.th-modal-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.4em;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.th-modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+.th-modal-content h1, .th-modal-content h2, .th-modal-content h3 { margin-top: 0; }
+.th-modal-content p { line-height: 1.5; }
+.th-modal-content ul { padding-left: 1.3em; }
+
+.th-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--th-border-color);
+}
+
+.th-modal-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88em;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .th-modal { width: 96%; max-height: 92vh; }
+  .th-modal-footer { flex-direction: column; align-items: flex-start; }
+}
+

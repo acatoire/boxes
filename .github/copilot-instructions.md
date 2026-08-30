@@ -459,6 +459,66 @@ Rules:
 
 ---
 
+## 10a. HTML Templates for Web UI Fragments (modals, dialogs, standalone blocks)
+
+For self-contained HTML fragments (modals, dialogs, banners — anything more than a couple of tags) **prefer an
+external `.html` template file** over building markup with Python string concatenation/f-strings. This keeps HTML
+readable and diffable, and lets non-Python contributors edit markup without touching Python.
+
+### Pattern
+
+1. Store the template next to the Python mixin that renders it, e.g.:
+
+   ```
+   boxes/scripts/pages/welcome/welcome_modal.html   ← markup with ${placeholder} slots
+   boxes/scripts/pages/welcome/welcome_fr.md        ← translated body content (markdown)
+   boxes/scripts/pages/welcome/welcome_en.md
+   ```
+
+2. Load and cache it with `string.Template` (stdlib, no new dependency) and a module-level `functools.lru_cache`:
+
+   ```python
+   from functools import lru_cache
+   from pathlib import Path
+   from string import Template
+
+   _TEMPLATE_PATH = Path(__file__).resolve().parent / "welcome" / "welcome_modal.html"
+
+   @lru_cache(maxsize=None)
+   def _welcome_modal_template() -> Template:
+       return Template(_TEMPLATE_PATH.read_text(encoding="utf-8"))
+   ```
+
+3. Render by substituting `${name}` placeholders; values (translated labels, markdown-rendered HTML) are inserted
+   as-is and are **not** re-scanned for further placeholders, so `$` in markdown content is safe:
+
+   ```python
+   def _welcome_modal_html(self, lang: object) -> str:
+       _ = lang.gettext  # type: ignore[attr-defined]
+       return _welcome_modal_template().substitute(
+           fr_html=_welcome_markdown_html("fr"),
+           en_html=_welcome_markdown_html("en"),
+           close_label=html.escape(_("Close")),
+       )
+   ```
+
+4. Escape any translated/user-provided string passed into a template slot with `html.escape()` **before**
+   substitution — the template itself does no escaping.
+
+### Rules
+
+- Template files use `${name}` syntax (never `{name}`/f-string braces, to avoid clashing with literal `{`/`}` in CSS
+  or JSON that might appear in the fragment).
+- Always cache the loaded `Template` (and any markdown-rendered content) with `functools.lru_cache` — these files are
+  read once per process, not per request.
+- Keep behaviour (show/hide, language switch, localStorage) in the page's existing JS file (e.g. `static/touch.js`),
+  and styling in its existing CSS file (e.g. `static/touch.css`) — the `.html` template only holds structure.
+- Multi-language content blocks (e.g. fr/en) belong in separate `.md` files rendered through the existing `markdown`
+  library (see `generator.py` / `home_legacy.py` for the established `markdown.markdown(_(text), extensions=["extra"])`
+  pattern), not hard-coded in the template.
+
+---
+
 ## 11. Providing Photos / Sample Images
 
 - File: `boxes/generators/<category>/<name>/<name>.jpg` (1200 px wide, ~square)

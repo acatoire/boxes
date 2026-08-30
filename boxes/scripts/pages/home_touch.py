@@ -15,8 +15,29 @@
 from __future__ import annotations
 
 import argparse
+import functools
 import html
+from pathlib import Path
+from string import Template
 
+import markdown
+
+_WELCOME_DIR = Path(__file__).resolve().parent / "welcome"
+_WELCOME_MODAL_TEMPLATE_PATH = _WELCOME_DIR / "welcome_modal.html"
+
+
+@functools.lru_cache(maxsize=None)
+def _welcome_markdown_html(locale: str) -> str:
+    """Render the welcome-modal markdown content (fr/en) to HTML (cached)."""
+    path = _WELCOME_DIR / f"welcome_{locale}.md"
+    text = path.read_text(encoding="utf-8")
+    return markdown.markdown(text, extensions=["extra"])
+
+
+@functools.lru_cache(maxsize=None)
+def _welcome_modal_template() -> Template:
+    """Load the welcome-modal HTML template (cached)."""
+    return Template(_WELCOME_MODAL_TEMPLATE_PATH.read_text(encoding="utf-8"))
 
 
 class HomeTouchMixin:
@@ -225,6 +246,25 @@ class HomeTouchMixin:
             "  </header>"
         )
 
+    # Welcome modal
+
+    def _welcome_modal_html(self, lang: object) -> str:
+        """Render the first-visit welcome modal from its HTML template.
+
+        The markup lives in ``boxes/scripts/pages/welcome/welcome_modal.html``
+        (kept separate from Python for easier maintenance/editing); the fr/en
+        body content comes from ``welcome_fr.md`` / ``welcome_en.md`` next to it.
+        """
+        _ = lang.gettext  # type: ignore[attr-defined]
+        template = _welcome_modal_template()
+        return "\n" + template.substitute(
+            fr_html=_welcome_markdown_html("fr"),
+            en_html=_welcome_markdown_html("en"),
+            close_label=html.escape(_("Close")),
+            hide_label=html.escape(_("Ne plus afficher ce message")),
+            close_button_label=html.escape(_("Fermer")),
+        )
+
     # Hub page
 
     def genTouchHub(self, lang: object) -> list[bytes]:
@@ -320,6 +360,7 @@ class HomeTouchMixin:
 
         sidebar_nav_html = "\n".join(sidebar_nav_items)
         header_html = self._touch_header_html(lang, show_dropdown=False)
+        welcome_modal_html = self._welcome_modal_html(lang)
 
         page = (
             f"{self.genHTMLStart(lang)}\n"
@@ -360,6 +401,8 @@ class HomeTouchMixin:
             "       a second before shop filtering kicks in). -->\n"
             "  <script>try{initTouchHub();}catch(e){}</script>\n\n"
             "</div>\n\n"
+            f"{welcome_modal_html}\n"
+            "  <script>try{initWelcomeModal();}catch(e){}</script>\n\n"
             "</body>\n"
             "</html>"
         )

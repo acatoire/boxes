@@ -265,10 +265,42 @@ function applyShopFilterTouch() {
     return !!shopId;
 }
 
+/* Welcome modal */
+
+const WELCOME_HIDE_KEY = 'boxes-welcome-hide';
+
+function shouldShowWelcomeModal() {
+    try { return localStorage.getItem(WELCOME_HIDE_KEY) !== '1'; } catch(_) { return true; }
+}
+
+function welcomeModalSetLang(lang) {
+    document.querySelectorAll('.th-modal-content').forEach(el => {
+        el.style.display = (el.dataset.lang === lang) ? '' : 'none';
+    });
+    document.querySelectorAll('.th-modal-lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+}
+
+function closeWelcomeModal() {
+    const overlay = document.getElementById('welcome-modal-overlay');
+    if (!overlay) return;
+    const checkbox = document.getElementById('welcome-modal-hide-checkbox');
+    if (checkbox && checkbox.checked) {
+        try { localStorage.setItem(WELCOME_HIDE_KEY, '1'); } catch(_) {}
+    }
+    overlay.classList.remove('th-modal-open');
+}
+
+function initWelcomeModal() {
+    if (!shouldShowWelcomeModal()) return;
+    const overlay = document.getElementById('welcome-modal-overlay');
+    if (overlay) overlay.classList.add('th-modal-open');
+}
+
 /* Hub init */
 
-function initTouchHub() {
-    // Record that we're in touch mode.
+function initTouchHub() {    // Record that we're in touch mode.
     setUIModePreference('touch');
 
     // Restore last active group.
