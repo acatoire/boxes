@@ -309,6 +309,7 @@ class Boxes:
         self.argparser = ArgumentParser(description=description)
         self.edgesettings: dict[Any, Any] = {}
         self.non_default_args: dict[Any, Any] = {}
+        self._settings_group_label: str | None = None
         self.translations = gettext.NullTranslations()
 
         short_description: str = ""
@@ -410,11 +411,11 @@ class Boxes:
                 self.text(text=content, y=6, color=Color.ANNOTATIONS, fontsize=6)
             self.qrcode(content, box_size=size, move="up only")
 
-    def buildArgParser(self, *l: str, stepper: bool = False, **kw: Any) -> None:
+    def buildArgParser(self, *parameters: str, stepper: bool = False, **kw: Any) -> None:
         """
         Add commonly used arguments
 
-        :param l: parameter names
+        :param parameters: parameter names
         :param stepper: when True use FloatStepper(1.0) / IntStepper(1) for
                         numeric params so the web UI gets −/+ buttons
         :param kw: parameters with new default values
@@ -429,7 +430,7 @@ class Boxes:
         * str (selection): nema_mount
         """
         _float = FloatStepper(1.0) if stepper else float
-        for arg in l:
+        for arg in parameters:
             kw[arg] = None
         for arg, default in kw.items():
             if arg == "x":
@@ -529,7 +530,7 @@ class Boxes:
         super_group = getattr(self, "_settings_group_label", None)
         if super_group is not None:
             for group in self.argparser._action_groups[n_before:]:
-                group.super_group = super_group  # type: ignore[attr-defined]
+                group.super_group = super_group
 
     @contextmanager
     def settingsGroup(self, label: str):
@@ -543,7 +544,7 @@ class Boxes:
                 self.addSettingsArgs(ResourceSettings, prefix="Pet", ...)
                 self.addSettingsArgs(ResourceSettings, prefix="Base", ...)
         """
-        previous = getattr(self, "_settings_group_label", None)
+        previous = self._settings_group_label
         self._settings_group_label = label
         try:
             yield

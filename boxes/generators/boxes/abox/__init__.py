@@ -20,22 +20,29 @@ from boxes.lids import LidSettings
 class ABox(Boxes):
     """A simple Box"""
 
+    x: float
+    y: float
+    h: float
+    outside: bool
+    bottom_edge: str
+
     description = "This box is kept simple on purpose. If you need more features have a look at the UniversalBox."
 
     ui_group = "Box"
-    tags = []
+    tags = ["mtg", "tcg"]
+    shop = ["archichouette"]
 
     def __init__(self) -> None:
         Boxes.__init__(self)
         self.addSettingsArgs(edges.FingerJointSettings)
         self.addSettingsArgs(LidSettings)
-        self.buildArgParser("x", "y", "h", "outside", "bottom_edge")
+        self.buildArgParser("x", "y", "h", "outside", "bottom_edge", stepper=True)
 
     def render(self) -> None:
         x, y, h = self.x, self.y, self.h
         t = self.thickness
 
-        t1, t2, t3, t4 = "eeee"
+        t1, t2, t3, t4 = ("e", "e", "e", "e")
         b = self.edges.get(self.bottom_edge, self.edges["F"])
         sideedge = "F" # if self.vertical_edges == "finger joints" else "h"
 
