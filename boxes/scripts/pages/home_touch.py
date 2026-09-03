@@ -26,7 +26,7 @@ _WELCOME_DIR = Path(__file__).resolve().parent / "welcome"
 _WELCOME_MODAL_TEMPLATE_PATH = _WELCOME_DIR / "welcome_modal.html"
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _welcome_markdown_html(locale: str) -> str:
     """Render the welcome-modal markdown content (fr/en) to HTML (cached)."""
     path = _WELCOME_DIR / f"welcome_{locale}.md"
@@ -34,7 +34,7 @@ def _welcome_markdown_html(locale: str) -> str:
     return markdown.markdown(text, extensions=["extra"])
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _welcome_modal_template() -> Template:
     """Load the welcome-modal HTML template (cached)."""
     return Template(_WELCOME_MODAL_TEMPLATE_PATH.read_text(encoding="utf-8"))

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import random
 import re
 import sys
 pass
@@ -20,6 +21,8 @@ import boxes.generators
 
 
 import yaml
+
+REPRODUCIBLE_RANDOM_SEED = 0
 
 
 class TestSVG:
@@ -114,12 +117,13 @@ class TestSVG:
     @pytest.mark.parametrize(
         "generator",
         all_generators.values(),
-        ids=idfunc.__func__,
+        ids=idfunc.__func__,  # type: ignore[attr-defined]
     )
     def test_default_generator(self, generator: type[boxes.Boxes], capsys) -> None:
         boxName = generator.__name__
         if boxName in self.avoidGenerator:
             pytest.skip("Skipped generator")
+        random.seed(REPRODUCIBLE_RANDOM_SEED)
         box = generator()
         box.parseArgs("")
         box.metadata["reproducible"] = True
@@ -149,7 +153,7 @@ class TestSVG:
         @pytest.mark.parametrize(
             "generator_idx",
             range(len(additionalTests)),
-            ids=idfunc_args.__func__,
+            ids=idfunc_args.__func__,  # type: ignore[attr-defined]
         )
         def test_additonal_generator(self, generator_idx, capsys) -> None:
             generator_settings = self.additionalTests[generator_idx]
@@ -160,6 +164,7 @@ class TestSVG:
             if generator is None:
                 pytest.fail(f"{boxType} is not a valid generator {self.all_generators.keys()}")
             boxName = generator_settings.get("name", boxType)
+            random.seed(REPRODUCIBLE_RANDOM_SEED)
             box = generator()
 
             boxArgs, argsHash = TestSVG.get_additional_test_args_hash(generator_settings)

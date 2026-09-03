@@ -34,8 +34,9 @@ import argparse
 import hashlib
 import inspect
 import io
+import random
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -48,8 +49,9 @@ if str(ROOT) not in sys.path:
 
 import boxes.generators  # noqa: E402  (after sys.path fix)
 
-# Maximum number of parallel SVG generation threads.
+# Maximum number of parallel SVG generation processes.
 MAX_WORKERS: int = 10
+REPRODUCIBLE_RANDOM_SEED: int = 0
 
 
 def _svg_path(cls: type) -> Path:
@@ -80,8 +82,9 @@ def regen(name: str) -> bool:
         short_names = sorted({v.__name__ for v in all_generators.values()})
         raise SystemExit(f"Unknown generator: {name!r}.\nAvailable: {short_names}")
 
+    random.seed(REPRODUCIBLE_RANDOM_SEED)
     b = cls()
-    b.parseArgs([])
+    b.parseArgs("")
     b.metadata["reproducible"] = True
     with redirect_stdout(io.StringIO()):
         b.open()
@@ -133,6 +136,44 @@ def interactive_select() -> list[str]:
     return selected
 
 
+def _regen_entry(entry: dict) -> tuple[str, str]:
+    """Regenerate one examples.yml entry. Returns (status, generator name)."""
+    gen_name = entry.get("box_type", "")
+    if not gen_name or gen_name == "__ALL__":
+        return ("skip", gen_name)
+
+    args_dict: dict = entry.get("args", {})
+    all_generators = boxes.generators.getAllBoxGenerators()
+    by_name = {v.__name__: v for v in all_generators.values()}
+    cls = by_name.get(gen_name)
+    if cls is None:
+        print(f"  SKIP {gen_name}: not found", flush=True)
+        return ("skip", gen_name)
+
+    box_args = [f"--{k}={v}" for k, v in args_dict.items()]
+    args_hash = hashlib.sha1(" ".join(sorted(box_args)).encode()).hexdigest()
+
+    gen_file = Path(inspect.getfile(cls))
+    stem = gen_file.parent.name if gen_file.name == "__init__.py" else gen_file.stem
+    out = gen_file.parent / f"{stem}_{args_hash[:8]}.svg"
+
+    random.seed(REPRODUCIBLE_RANDOM_SEED)
+    b = cls()
+    b.parseArgs(box_args)
+    b.metadata["reproducible"] = True
+    b.metadata["args_hash"] = args_hash
+    with redirect_stdout(io.StringIO()):
+        b.open()
+        b.render()
+        data = b.close()
+    if data is None:
+        print(f"  SKIP {gen_name}: no SVG output", flush=True)
+        return ("skip", gen_name)
+    out.write_bytes(data.getvalue())
+    print(str(out), flush=True)
+    return ("ok", gen_name)
+
+
 def regen_examples() -> None:
     """Regenerate hash-suffixed SVGs for all entries in examples.yml."""
     examples_file = ROOT / "examples.yml"
@@ -143,45 +184,9 @@ def regen_examples() -> None:
     with examples_file.open() as f:
         config = yaml.safe_load(f)
 
-    all_generators = boxes.generators.getAllBoxGenerators()
-    by_name = {v.__name__: v for v in all_generators.values()}
-
-    def _regen_entry(entry: dict) -> tuple[str, str]:
-        """Regenerate one examples.yml entry. Returns (status, gen_name)."""
-        gen_name = entry.get("box_type", "")
-        if not gen_name or gen_name == "__ALL__":
-            return ("skip", gen_name)
-        args_dict: dict = entry.get("args", {})
-        cls = by_name.get(gen_name)
-        if cls is None:
-            print(f"  SKIP {gen_name}: not found", flush=True)
-            return ("skip", gen_name)
-
-        box_args = [f"--{k}={v}" for k, v in args_dict.items()]
-        args_hash = hashlib.sha1(" ".join(sorted(box_args)).encode()).hexdigest()
-
-        gen_file = Path(inspect.getfile(cls))
-        stem = gen_file.parent.name if gen_file.name == "__init__.py" else gen_file.stem
-        out = gen_file.parent / f"{stem}_{args_hash[:8]}.svg"
-
-        b = cls()
-        b.parseArgs(box_args)
-        b.metadata["reproducible"] = True
-        b.metadata["args_hash"] = args_hash
-        with redirect_stdout(io.StringIO()):
-            b.open()
-            b.render()
-            data = b.close()
-        if data is None:
-            print(f"  SKIP {gen_name}: no SVG output", flush=True)
-            return ("skip", gen_name)
-        out.write_bytes(data.getvalue())
-        print(str(out), flush=True)
-        return ("ok", gen_name)
-
     ok = skipped = failed = 0
     entries = [e for e in config.get("Boxes", []) if e.get("box_type")]
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+    with ProcessPoolExecutor(max_workers=MAX_WORKERS) as pool:
         futures = {pool.submit(_regen_entry, entry): entry.get("box_type", "") for entry in entries}
         for future in as_completed(futures):
             gen_name = futures[future]
@@ -221,7 +226,7 @@ def main() -> None:
         names = interactive_select()
 
     ok = skipped = failed = 0
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+    with ProcessPoolExecutor(max_workers=MAX_WORKERS) as pool:
         futures = {pool.submit(regen, name): name for name in names}
         for future in as_completed(futures):
             name = futures[future]

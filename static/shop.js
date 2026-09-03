@@ -147,4 +147,3 @@ function initShopSystem() {
 }
 
 document.addEventListener('DOMContentLoaded', initShopSystem);
-

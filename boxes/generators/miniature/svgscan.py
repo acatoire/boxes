@@ -59,7 +59,7 @@ def _hex_to_rgb255(value: str) -> tuple[int, int, int] | None:
     if len(h) not in (6, 8):
         return None
     try:
-        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+        return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
     except ValueError:
         return None
 

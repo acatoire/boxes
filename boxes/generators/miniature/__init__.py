@@ -13,16 +13,20 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 import datetime
 import pathlib
 from types import SimpleNamespace
+from typing import Protocol, cast
 
 from boxes import Boxes, Color, FloatStepper, boolarg
+from boxes.drawing import Context
 from boxes.settings.font_settings import FontSettings
 from boxes.settings.resource_settings import NONE_CHOICE, ResourceSettings, resource_path
 from boxes.settings.text_settings import TextSettings, draw_text_block, measure_text_block
 
-from .svgimport import draw_piece, load_svg_piece
+from .svgimport import SvgPiece, draw_piece, load_svg_piece
 
 THEME_DIR = pathlib.Path(__file__).parent / "fantasy"
 CHARACTER_DIR = THEME_DIR / "character"
@@ -39,6 +43,11 @@ _PET_HOLE_CY_FRACTION = 1 / 3
 
 # Standard tabletop miniature base diameters [mm], covering most games.
 BASE_HEIGHT_PRESETS = [25, 28.5, 30, 32, 40, 50, 60, 80, 100, 130]
+
+
+class PieceDimensions(Protocol):
+    width: float
+    height: float
 
 
 def _display_name(resource_stem: str) -> str:
@@ -59,7 +68,13 @@ def _compose_label(character: str | None, pet1: str | None, pet2: str | None) ->
     return " and ".join(pet_names)
 
 
-def _draw_hole(boxes_obj, piece, cx_fraction: float, cy_fraction: float, hole_length: float) -> None:
+def _draw_hole(
+    boxes_obj: MiniatureWorkshop,
+    piece: PieceDimensions,
+    cx_fraction: float,
+    cy_fraction: float,
+    hole_length: float,
+) -> None:
     """Draw one horizontal, thickness-tall peg hole centered at
     (*cx_fraction*, *cy_fraction*) of *piece*'s (width, height) -- position
     is expressed as a fraction so it still lands correctly however big the
@@ -74,12 +89,13 @@ def _draw_hole(boxes_obj, piece, cx_fraction: float, cy_fraction: float, hole_le
     cx = piece.width * cx_fraction
     cy = piece.height * cy_fraction
     with boxes_obj.saved_context():
+        ctx = cast(Context, boxes_obj.ctx)
         boxes_obj.set_source_color(Color.OUTER_CUT)
-        boxes_obj.ctx.rectangle(cx - length / 2, cy - height / 2, length, height)
-        boxes_obj.ctx.stroke()
+        ctx.rectangle(cx - length / 2, cy - height / 2, length, height)
+        ctx.stroke()
 
 
-def _draw_base_holes(boxes_obj, piece, pet_count: int) -> None:
+def _draw_base_holes(boxes_obj: MiniatureWorkshop, piece: PieceDimensions, pet_count: int) -> None:
     """Draw the miniature peg hole plus whichever pet peg hole(s) fit
     *pet_count* -- no user toggle, this is fully automatic:
 
@@ -116,6 +132,18 @@ class MiniatureWorkshop(Boxes):
     ui_group = "Game"
     shop = ["archichouette"]
     tags = ["rpg", "🎲", "wargame"]
+
+    Character_resource: str
+    Pet_resource: str
+    Pet2_resource: str
+    Base_resource: str
+    Base_height: float
+    Base_invert_pet_hole_side: bool
+    Board_corner_radius: float
+    Auto_label: bool
+    Font_size: float
+    burn: float
+    gap: float
 
     def __init__(self) -> None:
         Boxes.__init__(self)
@@ -166,7 +194,12 @@ class MiniatureWorkshop(Boxes):
                 return action.default
         return None
 
-    def _load(self, folder, name, target_height=0.0):
+    def _load(
+        self,
+        folder: pathlib.Path,
+        name: str,
+        target_height: float = 0.0,
+    ) -> tuple[SvgPiece, float] | None:
         """Return (piece, scale) for the resource named *name* in *folder*,
         or None if unset. *scale* is >1 native size when *target_height*
         requests a different height."""
@@ -177,11 +210,12 @@ class MiniatureWorkshop(Boxes):
         scale = target_height / piece.height if target_height and piece.height else 1.0
         return piece, scale
 
-    def _draw_at(self, piece, scale, x, y=0.0) -> None:
+    def _draw_at(self, piece: SvgPiece, scale: float, x: float, y: float = 0.0) -> None:
         with self.saved_context():
-            self.ctx.translate(x, y)
+            ctx = cast(Context, self.ctx)
+            ctx.translate(x, y)
             if scale != 1.0:
-                self.ctx.scale(scale, scale)
+                ctx.scale(scale, scale)
             draw_piece(self, piece)
 
     def _rounded_rect(self, w: float, h: float, r: float) -> None:
@@ -214,9 +248,9 @@ class MiniatureWorkshop(Boxes):
             raise ValueError("No character, pet or base resource available -- add svg files under the fantasy folder")
 
         x_cursor = 0.0
-        bbox = None  # [min_x, min_y, max_x, max_y] over every piece actually drawn
+        bbox: list[float] | None = None  # [min_x, min_y, max_x, max_y]
 
-        def draw_and_track(piece, scale, x, y=0.0) -> None:
+        def draw_and_track(piece: SvgPiece, scale: float, x: float, y: float = 0.0) -> None:
             nonlocal bbox
             self._draw_at(piece, scale, x, y)
             x0, y0, x1, y1 = x, y, x + piece.width * scale, y + piece.height * scale
@@ -248,7 +282,8 @@ class MiniatureWorkshop(Boxes):
             # the scaled context, at the piece's scaled size.
             scaled_piece = SimpleNamespace(width=piece.width * scale, height=piece.height * scale)
             with self.saved_context():
-                self.ctx.translate(x_cursor, 0)
+                ctx = cast(Context, self.ctx)
+                ctx.translate(x_cursor, 0)
                 _draw_base_holes(self, scaled_piece, len(pets))
 
             if len(pets) == 1:
@@ -284,15 +319,17 @@ class MiniatureWorkshop(Boxes):
         label_padding = 0.3 * self.Font_size if text_height else 0.0  # breathing room top/bottom
         label_height = text_height + 2 * label_padding
 
+        assert bbox is not None
         min_x, min_y, max_x, max_y = bbox
         top_y = max_y + label_height
         margin = self.OUTER_BORDER_MARGIN
         radius = self.Board_corner_radius
         with self.saved_context():
+            ctx = cast(Context, self.ctx)
             self.set_source_color(Color.OUTER_CUT)
-            self.ctx.translate(min_x - margin, min_y - margin)
+            ctx.translate(min_x - margin, min_y - margin)
             self._rounded_rect((max_x - min_x) + 2 * margin, (top_y - min_y) + 2 * margin, radius)
-            self.ctx.stroke()
+            ctx.stroke()
 
         if label_height:
             # Grows upward from here regardless of --Text_align's vertical
@@ -304,7 +341,8 @@ class MiniatureWorkshop(Boxes):
         # Small date stamp tucked in the bottom-right corner of the outer
         # cut border. set_font is reset first since it isn't part of the
         # save/restore state and would otherwise still be the caption's font.
-        self.ctx.set_font("sans-serif")
+        ctx = cast(Context, self.ctx)
+        ctx.set_font("sans-serif")
         date_inset = margin / 2.0
         self.text(
             datetime.date.today().isoformat(),

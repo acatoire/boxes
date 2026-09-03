@@ -249,4 +249,3 @@ function initThemeSystem() {
 }
 
 document.addEventListener('DOMContentLoaded', initThemeSystem);
-

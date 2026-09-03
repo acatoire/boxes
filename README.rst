@@ -62,7 +62,7 @@ startup or switched on the fly by the user.
 
 **Start in touch mode**::
 
-    python boxes/scripts/boxesserver.py --ui-mode touch --port 4455
+    python boxes/scripts/boxesserver.py --port 4455
 
 **Environment variable alternative**::
 

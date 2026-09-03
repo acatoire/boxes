@@ -43,6 +43,7 @@ from __future__ import annotations
 import argparse
 import pathlib
 import random
+from typing import cast
 
 from boxes import FloatStepper
 from boxes.edges import Settings
@@ -126,10 +127,10 @@ class ResourceSettings(Settings):
         folder = defaults.pop("folder", None)
         if folder is None:
             raise ValueError("ResourceSettings requires a 'folder' kwarg pointing to the resource directory")
-        extensions = defaults.pop("extensions", (".svg",))
+        extensions = cast(tuple[str, ...], defaults.pop("extensions", (".svg",)))
         optional = bool(defaults.pop("optional", False))
         height_default = defaults.pop("height", None)
-        height_presets = defaults.pop("height_presets", None)
+        height_presets = cast(list[float] | None, defaults.pop("height_presets", None))
         requested_default = defaults.pop("default", _DEFAULT_UNSET)
         label = str(defaults.pop("label", prefix or "Resource"))
 
@@ -171,7 +172,7 @@ class ResourceSettings(Settings):
             group.add_argument(
                 f"--{prefix}_height",
                 action="store", type=FloatStepper(0.5, presets=height_presets),
-                default=float(height_default),
+                default=float(cast(float, height_default)),
                 help=f"{label} height in mm (0 = use the artwork's native size; "
                      f"scales it proportionally, e.g. also changes a round piece's diameter)")
 
