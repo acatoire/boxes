@@ -511,3 +511,38 @@ body.touch-args form > p:last-of-type { display: none; }
   .touch-action-bar  { padding: 8px 10px; }
   .touch-action-btn  { padding: 0 18px; font-size: 0.95em; }
 }
+
+/* Collapsible per-part breakdown */
+.parts-info-details {
+  position: relative;
+  font-size: 0.88em;
+  color: #333;
+  background: rgba(0,0,0,0.04);
+  border-radius: 6px;
+  padding: 3px 10px;
+}
+.parts-info-details summary { cursor: pointer; white-space: nowrap; }
+.parts-info-list {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 6px 10px;
+}
+.parts-info-list table { border-collapse: collapse; white-space: nowrap; }
+.parts-info-list td { padding: 2px 8px; }
+.parts-info-list td:last-child { text-align: right; }
+
+.parts-info-sheet { font-weight: bold; padding: 2px 8px 6px; border-bottom: 1px solid rgba(0,0,0,0.12); margin-bottom: 4px; white-space: nowrap; }
+
+.price-info-bar:has(.price-details) { position: relative; }
+.price-details summary { cursor: pointer; white-space: nowrap; font-weight: bold; color: #2e7d32; }
+.price-details { position: relative; }
+.parts-info-list tr.price-selected { font-weight: bold; }

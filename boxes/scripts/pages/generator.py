@@ -231,6 +231,8 @@ class GeneratorUIMixin:
             f'  <div id="surface-info-bar" class="surface-info-bar"></div>\n'
             f'  <div id="price-info-bar" class="price-info-bar"></div>\n'
             f'  <div id="fit-info-bar" class="fit-info-bar"></div>\n'
+            f'  <details id="parts-info-details" class="parts-info-details" style="display:none">'
+            f'<summary></summary><div class="parts-info-list"></div></details>\n'
             f'</div>\n'
         )
         # Tab buttons go in the header center

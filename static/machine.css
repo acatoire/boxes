@@ -138,3 +138,14 @@ body.touch-machine {
   padding: 0 8px;
   box-sizing: border-box;
 }
+/* Radio lists (wood size / material pricing) */
+.ms-radio-list { display: flex; flex-direction: column; gap: 4px; }
+.ms-radio-group { font-weight: bold; font-size: 0.85em; color: #666; margin: 8px 0 2px; text-transform: uppercase; }
+.ms-radio {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,0.04);
+}
+.ms-radio:has(input:checked) { background: #e8f5e9; outline: 2px solid #2e7d32; }
+.ms-radio input { width: 20px; height: 20px; flex-shrink: 0; accent-color: #2e7d32; }
+.ms-radio-label { flex: 1 1 auto; }
+.ms-radio-side { color: #555; font-size: 0.9em; white-space: nowrap; margin-left: auto; }

@@ -75,7 +75,10 @@ class HomeLegacyMixin:
         return f'<link rel="stylesheet" href="{self.static_url}/self.css">'
 
     def genHTMLJS(self) -> str:
-        return f'<script src="{self.static_url}/self.js"></script>'
+        return (
+            f'<script src="{self.static_url}/sheet_fit.js"></script>'
+            f'<script src="{self.static_url}/self.js"></script>'
+        )
 
     def genHTMLLanguageSelection(self, lang: object) -> str:
         """Generates a dropdown selection for language change."""

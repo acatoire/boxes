@@ -137,8 +137,38 @@ function applyShopMenuVisibility() {
     return active;
 }
 
+/** Hidden feature: 10 consecutive clicks on the "Shop:" label leave shop mode
+ *  and bring back the full menu (Colors / Machine / Selection ...). */
+var SHOP_SECRET_CLICKS = 10;
+var SHOP_SECRET_RESET_MS = 3000;
+
+function initShopSecretUnlock() {
+    var count = 0;
+    var timer = null;
+    document.addEventListener('click', function (e) {
+        var t = e.target;
+        var zone = t && t.closest ? t.closest('.dropdown-shop, .th-sidenav-shop') : null;
+        if (!zone || (t.closest && t.closest('select'))) {
+            count = 0;  // any click elsewhere breaks the streak
+            return;
+        }
+        count += 1;
+        clearTimeout(timer);
+        timer = setTimeout(function () { count = 0; }, SHOP_SECRET_RESET_MS);
+        if (count >= SHOP_SECRET_CLICKS) {
+            count = 0;
+            saveShopId(null);
+            var params = new URLSearchParams(window.location.search);
+            params.delete('shop');
+            var qs = params.toString();
+            window.location.href = 'TouchHub' + (qs ? '?' + qs : '');
+        }
+    });
+}
+
 /** Called on every touch page's DOMContentLoaded. */
 function initShopSystem() {
+    initShopSecretUnlock();
     var active = applyShopMenuVisibility();
     populateShopSelects();
     if (active) {

@@ -654,7 +654,7 @@ const MATERIALS = [
     {id: 'noyer', label: '3mm Noyer', price_per_m2: 36},
 ];
 
-const MACHINE_DEFAULTS = {w: 300, h: 300, material: '', margin_coef: 1};
+const MACHINE_DEFAULTS = {w: 297, h: 210, material: '', margin_coef: 1};
 
 function loadMachineConfig() {
     try {
@@ -685,6 +685,15 @@ function initMachineConfigPanel() {
 
     // Build <optgroup> options sorted by brand
     sel.innerHTML = '<option value="">\u2014 Custom \u2014</option>';
+    const sheetGroup = document.createElement('optgroup');
+    sheetGroup.label = 'Sheets';
+    for (const s of SHEET_PRESETS) {
+        const opt = document.createElement('option');
+        opt.value = `${s.w}x${s.h}`;
+        opt.textContent = `${s.label} (${s.w}\u00d7${s.h} mm)`;
+        sheetGroup.appendChild(opt);
+    }
+    sel.appendChild(sheetGroup);
     const byBrand = {};
     for (const m of KNOWN_MACHINES) {
         (byBrand[m.brand] = byBrand[m.brand] || []).push(m);
@@ -719,8 +728,8 @@ function initMachineConfigPanel() {
         }
         matSel.value = cfg.material || '';
         matSel.addEventListener('change', function () {
-            const w = parseFloat(wInput.value) || 300;
-            const h = parseFloat(hInput.value) || 300;
+            const w = parseFloat(wInput.value) || 297;
+            const h = parseFloat(hInput.value) || 210;
             const coef = parseFloat(document.getElementById('machine-margin-coef')?.value || '1') || 1;
             saveMachineConfig(w, h, matSel.value, coef);
             _updatePriceInfo();
@@ -732,8 +741,8 @@ function initMachineConfigPanel() {
     if (coefInput) {
         coefInput.value = cfg.margin_coef !== undefined ? cfg.margin_coef : 1;
         coefInput.addEventListener('change', function () {
-            const w = parseFloat(wInput.value) || 300;
-            const h = parseFloat(hInput.value) || 300;
+            const w = parseFloat(wInput.value) || 297;
+            const h = parseFloat(hInput.value) || 210;
             const mat = matSel ? matSel.value : '';
             saveMachineConfig(w, h, mat, parseFloat(coefInput.value) || 1);
             _updatePriceInfo();
@@ -754,8 +763,8 @@ function initMachineConfigPanel() {
     });
 
     const onDimChange = function () {
-        const w = parseFloat(wInput.value) || 300;
-        const h = parseFloat(hInput.value) || 300;
+        const w = parseFloat(wInput.value) || 297;
+        const h = parseFloat(hInput.value) || 210;
         const mat = matSel ? matSel.value : '';
         const coef = parseFloat(coefInput?.value || '1') || 1;
         saveMachineConfig(w, h, mat, coef);
@@ -795,15 +804,11 @@ async function updateSurfaceInfo(svgUrl) {
             _clearSurfaceInfo();
             return;
         }
+        _svgParts = _measureSvgParts(text);
+        dims.partsArea = _svgParts.reduce((s, p) => s + p.w * p.h, 0);
         _svgDims = dims;
-        const areaMm2 = dims.w * dims.h;
-        const areaM2 = areaMm2 / 1_000_000;
-        const areaStr = areaM2.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        bar.innerHTML =
-            `<span class="surf-dims">\ud83d\udcd0 ${dims.w.toFixed(1)} \u00d7 ${dims.h.toFixed(1)} mm</span>`
-            + `<span class="surf-sep">\u2022</span>`
-            + `<span class="surf-area">${areaStr} m\u00b2</span>`;
-        bar.style.display = 'flex';
+        bar.innerHTML = '';  // total area now lives in the parts panel summary
+        _renderPartsDetails();
         _updateFitInfo();
         _updatePriceInfo();
     } catch (_) {
@@ -844,19 +849,7 @@ function _updatePriceInfo() {
     const cfg = loadMachineConfig();
     const matId = cfg.material || '';
     const margin = parseFloat(cfg.margin_coef) || 1;
-    const mat = MATERIALS.find(m => m.id === matId);
-    if (!mat) {
-        price.innerHTML = '';
-        return;
-    }
-    const areaM2 = (_svgDims.w * _svgDims.h) / 1_000_000;
-    const total = areaM2 * mat.price_per_m2 * margin;
-    const totalStr = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    price.innerHTML =
-        `<span class="surf-price-label">\ud83d\udcb6 ${mat.label}</span>`
-        + `<span class="surf-sep">\u2022</span>`
-        + `<span class="surf-price-value">${totalStr} \u20ac</span>`;
-    price.style.display = 'flex';
+    _renderPriceDetails(price, matId, margin);
 }
 
 function _updateFitInfo() {
@@ -865,7 +858,11 @@ function _updateFitInfo() {
     const cfg = loadMachineConfig();
     const mw = cfg.w, mh = cfg.h;
     const dw = _svgDims.w, dh = _svgDims.h;
-    if (dw <= mw && dh <= mh) {
+    const est = _partsSheetEstimate(mw, mh);
+    if (est) {
+        fit.className = 'fit-info-bar ' + (est.ok ? 'fit-ok' : 'fit-warn');
+        fit.textContent = est.text;
+    } else if (dw <= mw && dh <= mh) {
         fit.className = 'fit-info-bar fit-ok';
         fit.textContent = `\u2705 Fits on 1 sheet`;
     } else {
@@ -876,6 +873,7 @@ function _updateFitInfo() {
         fit.textContent = `\u26a0\ufe0f Needs ${total} sheet${total > 1 ? 's' : ''} (${sw}\u00d7${sh} grid)`;
     }
     fit.style.display = 'flex';
+    _renderPartsDetails();
     _updatePriceInfo();
 }
 

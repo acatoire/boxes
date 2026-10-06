@@ -71,7 +71,7 @@ class MachineUIMixin:
             f"  {self.genHTMLTouchJS()}\n"
             f"  {self.genHTMLShopJS()}\n"
             "</head>\n"
-            f'<body class="touch-machine" onload="initMachineConfigPanel()">\n'
+            f'<body class="touch-machine" onload="initMachineConfigPanel(); initMachineRadios()">\n'
             f"\n{touch_header}\n\n"
             '<div class="ms-body">\n'
             '  <div class="ms-title-row">\n'
@@ -83,20 +83,22 @@ class MachineUIMixin:
             "  </div>\n"
             f"  <p>{_('Set your laser engraving zone size. Used on the generator page to check if the design fits.')}</p>\n"
             '  <div class="ms-section">\n'
-            f"    <h3>{_('Custom size')}</h3>\n"
+            f"    <h3>\U0001F4D0 {_('Custom size')}</h3>\n"
             '    <div class="ms-dims">\n'
-            f'      <label>{_("Width (mm)")}<input type="number" id="machine-w" min="1" max="9999" step="1" value="300"></label>\n'
-            f'      <label>{_("Height (mm)")}<input type="number" id="machine-h" min="1" max="9999" step="1" value="300"></label>\n'
+            f'      <label>{_("Width (mm)")}<input type="number" id="machine-w" min="1" max="9999" step="1" value="297"></label>\n'
+            f'      <label>{_("Height (mm)")}<input type="number" id="machine-h" min="1" max="9999" step="1" value="210"></label>\n'
             "    </div>\n"
             "  </div>\n"
             '  <div class="ms-section">\n'
-            f"    <h3>{_('Machine presets')}</h3>\n"
-            f'    <select id="machine-preset" class="ms-preset-select"></select>\n'
+            f"    <h3>\U0001FAB5 {_('Wood size')}</h3>\n"
+            f'    <select id="machine-preset" class="ms-preset-select" hidden></select>\n'
+            f'    <div id="machine-preset-radios" class="ms-radio-list"></div>\n'
             "  </div>\n"
             '  <div class="ms-section">\n'
             f"    <h3>\U0001F4B6 {_('Material pricing')}</h3>\n"
             f"    <p style=\"font-size:.88em;color:#666;margin:0 0 10px\">{_('Select a material to get a cost estimate on the generator page.')}</p>\n"
-            f'    <select id="machine-material" class="ms-mat-select"></select>\n'
+            f'    <select id="machine-material" class="ms-mat-select" hidden></select>\n'
+            f'    <div id="machine-material-radios" class="ms-radio-list"></div>\n'
             "  </div>\n"
             '  <div class="ms-section">\n'
             f"    <h3>\U0001F4CA {_('Margin coefficient')}</h3>\n"
@@ -114,6 +116,7 @@ class MachineUIMixin:
             "function resetMachineSettingsPage() {\n"
             "    localStorage.removeItem('boxes-machine-config');\n"
             "    initMachineConfigPanel();\n"
+            "    initMachineRadios();\n"
             "    const btn = document.querySelector('.ms-reset-btn');\n"
             "    if (btn) { const t = btn.textContent; btn.textContent = '\u2713'; setTimeout(() => { btn.textContent = t; }, 1200); }\n"
             "}\n"

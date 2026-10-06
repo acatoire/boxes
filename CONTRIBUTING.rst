@@ -194,7 +194,7 @@ perfect. We can work on it together.
 Running the Code
 ----------------------------
 
-To serve website, run :code:`scripts/boxesserver` script.
+To serve website, run :code:`python boxes/scripts/boxesserver.py --port 4455` script.
 
 You can set the BOXES_GENERATOR_PATH environment variable to add
 custom generators if you cannot easily copy them in the sources /
