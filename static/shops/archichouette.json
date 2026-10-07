@@ -1,10 +1,10 @@
 {
   "theme": "archichouette",
   "machine": {
-    "w": 400,
-    "h": 380,
+    "w": 297,
+    "h": 210,
     "material": "tilleul3",
-    "margin_coef": 2.0
+    "margin_coef": 5.0
   },
   "colors": {
     "OUTER_CUT": "#ff0000",

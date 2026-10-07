@@ -781,3 +781,9 @@ body.theme-dark .help-modal-content,
 body.theme-dark h3 {
     color: var(--th-text, #222);
 }
+
+/* Keep hovered headings readable on dark themes */
+body.theme-dark h3:hover {
+    background-color: var(--th-neutral-btn-bg, #333);
+    color: var(--th-text, #222);
+}

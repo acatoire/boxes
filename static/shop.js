@@ -1,5 +1,5 @@
-/* ================================================================
-   Boxes.py – Shop mode (shop.js)
+﻿/* ================================================================
+   Boxes.py â€“ Shop mode (shop.js)
    Loaded on every touch-mode page. Lets a shop be selected via the
    `?shop=<id>` URL parameter (persisted in localStorage), which then:
      - applies the shop's theme, machine config and color config
@@ -60,7 +60,7 @@ function getActiveShopId() {
     return loadShopId() || null;
 }
 
-/** Fetch (and memoize) static/shops/index.json – the list of known shops. */
+/** Fetch (and memoize) static/shops/index.json â€“ the list of known shops. */
 function loadShopIndex() {
     if (_shopIndexPromise) return _shopIndexPromise;
     _shopIndexPromise = fetch(SHOP_STATIC_BASE + '/index.json')
@@ -127,27 +127,50 @@ function onShopChange(selectEl) {
     window.location.href = 'TouchHub' + (qs ? '?' + qs : '');
 }
 
-/** Hide/show every element flagged [data-hide-on-shop] based on shop state. */
+var SHOP_UNLOCK_KEY = 'boxes-shop-unlocked';
+function isShopUnlocked() {
+    try { return localStorage.getItem(SHOP_UNLOCK_KEY) === '1'; } catch (_) { return false; }
+}
+function setShopUnlocked(flag) {
+    try {
+        if (flag) {
+            localStorage.setItem(SHOP_UNLOCK_KEY, '1');
+        } else {
+            localStorage.removeItem(SHOP_UNLOCK_KEY);
+        }
+    } catch (_) { /* ignore */ }
+}
+/** Hide/show every element flagged [data-hide-on-shop]: hidden only while a
+ *  shop is active and the secret unlock has not been used. */
 function applyShopMenuVisibility() {
     var active = getActiveShopId();
+    var hidden = !!active && !isShopUnlocked();
     document.querySelectorAll('[data-hide-on-shop]').forEach(function (el) {
-        el.style.display = active ? 'none' : '';
+        el.style.display = hidden ? 'none' : '';
     });
     if (document.body) document.body.classList.toggle('shop-active', !!active);
     return active;
 }
-
-/** Hidden feature: 10 consecutive clicks on the "Shop:" label leave shop mode
- *  and bring back the full menu (Colors / Machine / Selection ...). */
+/** Re-hide the configuration menus (shop stays selected), back to the hub. */
+function reactivateHiddenFeatures() {
+    setShopUnlocked(false);
+    var id = getActiveShopId();
+    var params = new URLSearchParams(window.location.search);
+    if (id) params.set('shop', id);
+    var qs = params.toString();
+    window.location.href = 'TouchHub' + (qs ? '?' + qs : '');
+}
+/** Hidden feature: 10 consecutive clicks on the "Language:" label reveal the
+ *  hidden menus (Colors / Machine / Selection / Shop ...) while keeping the
+ *  active shop selected. */
 var SHOP_SECRET_CLICKS = 10;
 var SHOP_SECRET_RESET_MS = 3000;
-
 function initShopSecretUnlock() {
     var count = 0;
     var timer = null;
     document.addEventListener('click', function (e) {
         var t = e.target;
-        var zone = t && t.closest ? t.closest('.dropdown-shop, .th-sidenav-shop') : null;
+        var zone = t && t.closest ? t.closest('.dropdown-lang, .th-sidenav-lang') : null;
         if (!zone || (t.closest && t.closest('select'))) {
             count = 0;  // any click elsewhere breaks the streak
             return;
@@ -157,16 +180,11 @@ function initShopSecretUnlock() {
         timer = setTimeout(function () { count = 0; }, SHOP_SECRET_RESET_MS);
         if (count >= SHOP_SECRET_CLICKS) {
             count = 0;
-            saveShopId(null);
-            var params = new URLSearchParams(window.location.search);
-            params.delete('shop');
-            var qs = params.toString();
-            window.location.href = 'TouchHub' + (qs ? '?' + qs : '');
+            setShopUnlocked(true);
+            applyShopMenuVisibility();
         }
     });
-}
-
-/** Called on every touch page's DOMContentLoaded. */
+}/** Called on every touch page's DOMContentLoaded. */
 function initShopSystem() {
     initShopSecretUnlock();
     var active = applyShopMenuVisibility();

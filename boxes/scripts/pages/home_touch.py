@@ -105,6 +105,9 @@ class HomeTouchMixin:
     def genHTMLMachineCSS(self) -> str:
         return f'<link rel="stylesheet" href="{self.static_url}/machine.css">'
 
+    def genHTMLHideConfigCSS(self) -> str:
+        return f'<link rel="stylesheet" href="{self.static_url}/hideconfig.css">'
+
     def genHTMLTouchJS(self) -> str:
         return f'<script src="{self.static_url}/touch.js"></script>'
 
@@ -176,8 +179,9 @@ class HomeTouchMixin:
         dropdown_items.append(f'      <a href="colors" data-hide-on-shop>\U0001f3a8 {_("Colors")}</a>')
         dropdown_items.append(f'      <a href="machine" data-hide-on-shop>\u2699 {_("Machine")}</a>')
         dropdown_items.append(f'      <a href="categories" data-hide-on-shop>\U0001f4c2 {_("Selection")}</a>')
+        dropdown_items.append(f'      <a href="hideconfig" data-hide-on-shop>\U0001f512 {_("Hide Configuration")}</a>')
         dropdown_items.append(
-            f'      <div class="dropdown-shop">\U0001f6d2 {_("Shop:")} '
+            f'      <div class="dropdown-shop" data-hide-on-shop>\U0001f6d2 {_("Shop:")} '
             f'<select id="shop-select" onchange="onShopChange(this)"></select></div>'
         )
         lang_sel = self.genHTMLLanguageSelection(lang)
@@ -336,6 +340,7 @@ class HomeTouchMixin:
             f'\n    <a class="th-sidenav-link" href="colors{langparam}" data-hide-on-shop>\U0001f3a8 {_("Colors")}</a>'
             f'\n    <a class="th-sidenav-link" href="machine{langparam}" data-hide-on-shop>\u2699\ufe0f {_("Machine")}</a>'
             f'\n    <a class="th-sidenav-link" href="categories{langparam}" data-hide-on-shop>\U0001f4c2 {_("Selection")}</a>'
+            f'\n    <a class="th-sidenav-link" href="hideconfig{langparam}" data-hide-on-shop>\U0001f512 {_("Hide Configuration")}</a>'
         )
         sidebar_links_html += '\n    <hr class="th-sidenav-sep">'
         sidebar_links_html += (
@@ -343,7 +348,7 @@ class HomeTouchMixin:
             f'\n    <a class="th-sidenav-link" href="Menu{langparam}" data-hide-on-shop>\U0001f4cb {_("Menu")}</a>'
         )
         sidebar_links_html += (
-            f'\n    <div class="th-sidenav-shop">\U0001f6d2 {_("Shop:")} '
+            f'\n    <div class="th-sidenav-shop" data-hide-on-shop>\U0001f6d2 {_("Shop:")} '
             f'<select id="shop-select-sidebar" onchange="onShopChange(this)"></select></div>'
         )
         lang_sel = self.genHTMLLanguageSelection(lang)
