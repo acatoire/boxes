@@ -78,6 +78,7 @@ class HomeLegacyMixin:
         return (
             f'<script src="{self.static_url}/sheet_fit.js"></script>'
             f'<script src="{self.static_url}/self.js"></script>'
+            f'<script src="{self.static_url}/materials_editor.js"></script>'
         )
 
     def genHTMLLanguageSelection(self, lang: object) -> str:
@@ -89,7 +90,9 @@ class HomeLegacyMixin:
         html_option = ""
         for language in languages:
             sel = " selected" if language == current_language else ""
-            html_option += f"\t\t\t\t<option value='{language}'{sel}>{language}</option>\n"
+            html_option += (
+                f"\t\t\t\t<option value='{language}'{sel}>{language}</option>\n"
+            )
         # Navigate directly: keep current path, replace only the language param.
         onchange = (
             "var v=this.value;"
@@ -143,22 +146,36 @@ class HomeLegacyMixin:
 <hr/>
 """
 
-    def genLinks(self, lang: object, preview: bool = False, current_interface: str = "") -> str:
+    def genLinks(
+        self, lang: object, preview: bool = False, current_interface: str = ""
+    ) -> str:
         _ = lang.gettext  # type: ignore[attr-defined]
         links = [
             ("https://florianfesti.github.io/boxes/html/usermanual.html", _("Help")),
             ("https://hackaday.io/project/10649-boxespy", _("Home Page")),
-            ("https://florianfesti.github.io/boxes/html/index.html", _("Documentation")),
+            (
+                "https://florianfesti.github.io/boxes/html/index.html",
+                _("Documentation"),
+            ),
             ("https://github.com/florianfesti/boxes", _("Sources")),
         ]
         if self.legal_url:
             links.append((self.legal_url, _("Legal")))
-        links.append(("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back")))
+        links.append(
+            ("https://florianfesti.github.io/boxes/html/give_back.html", _("Give Back"))
+        )
 
-        dropdown_items = [f'    <a href="{url}" target="_blank" rel="noopener">{txt}</a>\n' for url, txt in links]
-        dropdown_items.append("    " + gen_interface_select_html(current_interface, _) + "\n")
+        dropdown_items = [
+            f'    <a href="{url}" target="_blank" rel="noopener">{txt}</a>\n'
+            for url, txt in links
+        ]
+        dropdown_items.append(
+            "    " + gen_interface_select_html(current_interface, _) + "\n"
+        )
         dropdown_items.append(f'    <a href="colors">\U0001f3a8 {_("Colors")}</a>\n')
-        dropdown_items.append(f'    <a href="categories">\U0001f4c2 {_("Categories")}</a>\n')
+        dropdown_items.append(
+            f'    <a href="categories">\U0001f4c2 {_("Categories")}</a>\n'
+        )
         # Language selection
         lang_sel = self.genHTMLLanguageSelection(lang)
         if "select" in lang_sel:
@@ -177,19 +194,25 @@ class HomeLegacyMixin:
             f'  <li class="right dropdown">\n'
             f'    <button class="dropdown-btn" onclick="toggleDropdown(event)">\u2630 {_("Menu")}</button>\n'
             f'    <div class="dropdown-content" id="main-dropdown">\n'
-            f'{dropdown_html}    </div>\n'
+            f"{dropdown_html}    </div>\n"
             f"  </li>\n"
         )
 
     # Form argument rendering
 
-    def arg2html(self, a: argparse.Action, prefix: str | None, defaults: dict | None = None, _=lambda s: s) -> str:
+    def arg2html(
+        self,
+        a: argparse.Action,
+        prefix: str | None,
+        defaults: dict | None = None,
+        _=lambda s: s,
+    ) -> str:
         name = a.option_strings[0].replace("-", "")
         if isinstance(a, argparse._HelpAction):
             return ""
         viewname = name
         if prefix and name.startswith(prefix + "_"):
-            viewname = name[len(prefix) + 1:]
+            viewname = name[len(prefix) + 1 :]
         display_name = getattr(a, "display_name", None)
         if display_name is not None:
             viewname = display_name
@@ -208,13 +231,9 @@ class HomeLegacyMixin:
             )
         else:
             label_html = f'<label for="{name}">{translated_viewname}</label>'
-        row_head = (
-            f'<tr>'
-            f'<td id="{name}_id">{label_html}</td>'
-            f"<td>"
-        )
+        row_head = f'<tr><td id="{name}_id">{label_html}</td><td>'
         row_tail = (
-            f'</td>'
+            f"</td>"
             f'<td id="{name}_description" style="display:none">{help_html}</td>'
             f"</tr>\n"
         )
@@ -240,50 +259,77 @@ class HomeLegacyMixin:
                 % (
                     e,
                     ' selected="selected"'
-                    if (e == (default or a.default)) or (str(e) == str(default or a.default))
+                    if (e == (default or a.default))
+                    or (str(e) == str(default or a.default))
                     else "",
                     _(e),
                 )
                 for e in a.choices
             )
-            input_html = (
-                '<select name="{}" id="{}" aria-labeledby="{} {}" size="1">\n{}</select>\n'.format(
-                    name, name, name + "_id", name + "_description", options
-                )
+            input_html = '<select name="{}" id="{}" aria-labeledby="{} {}" size="1">\n{}</select>\n'.format(
+                name, name, name + "_id", name + "_description", options
             )
         else:
             input_html = (
                 '<input name="%s" id="%s" aria-labeledby="%s %s" type="text" value="%s">'
-                % (name, name, name + "_id", name + "_description", default or a.default)
+                % (
+                    name,
+                    name,
+                    name + "_id",
+                    name + "_description",
+                    default or a.default,
+                )
             )
 
         return row_head + input_html + row_tail
 
-    def args2html_cached(self, name: str, box: object, lang: object, action: str = "", defaults: dict = {}) -> list[bytes]:
+    def args2html_cached(
+        self,
+        name: str,
+        box: object,
+        lang: object,
+        action: str = "",
+        defaults: dict = {},
+    ) -> list[bytes]:
         if defaults == {}:
             key = (name, lang.info().get("language", None), action)  # type: ignore[attr-defined]
             if key not in self._cache:
-                self._cache[key] = list(self.args2html(name, box, lang, action, defaults))
+                self._cache[key] = list(
+                    self.args2html(name, box, lang, action, defaults)
+                )
             return self._cache[key]
         return list(self.args2html(name, box, lang, action, defaults))
 
-    def args2html(self, name: str, box: object, lang: object, action: str = "", defaults: dict = {}):
+    def args2html(
+        self,
+        name: str,
+        box: object,
+        lang: object,
+        action: str = "",
+        defaults: dict = {},
+    ):
         _ = lang.gettext  # type: ignore[attr-defined]
         lang_name = lang.info().get("language", None)  # type: ignore[attr-defined]
         langparam = f"?language={lang_name}" if lang_name else ""
 
         no_img_msg = _(
-            'There is no image yet. Please donate an image of your project on '
-            '<a href=&quot;https://github.com/florianfesti/boxes/issues/628&quot; '
-            'target=&quot;_blank&quot; rel=&quot;noopener&quot;>GitHub</a>!'
+            "There is no image yet. Please donate an image of your project on "
+            "<a href=&quot;https://github.com/florianfesti/boxes/issues/628&quot; "
+            "target=&quot;_blank&quot; rel=&quot;noopener&quot;>GitHub</a>!"
         )
         desc_html = (
-            markdown.markdown(_(box.description), extensions=["extra"])  # type: ignore[attr-defined]
-            .replace('src="static/', f'src="{self.static_url}/')
-        ) if box.description else ""  # type: ignore[attr-defined]
+            (
+                markdown.markdown(_(box.description), extensions=["extra"]).replace(  # type: ignore[attr-defined]
+                    'src="static/', f'src="{self.static_url}/'
+                )
+            )
+            if box.description
+            else ""
+        )  # type: ignore[attr-defined]
 
         num_hide = len(box.argparser._action_groups) - 3  # type: ignore[attr-defined]
-        result = [f"""{self.genHTMLStart(lang)}
+        result = [
+            f"""{self.genHTMLStart(lang)}
 <head>
     <title>{_("%s - Boxes") % _(name)}</title>
     {self.genHTMLMeta()}
@@ -329,12 +375,17 @@ class HomeLegacyMixin:
 <div class="config-layout">
 <div class="config-form">
 <form id="arguments" action="{action}" method="GET" rel="nofollow">
-        """]
+        """
+        ]
         groupid = 0
-        for group in box.argparser._action_groups[3:] + box.argparser._action_groups[:3]:  # type: ignore[attr-defined]
+        for group in (
+            box.argparser._action_groups[3:] + box.argparser._action_groups[:3]
+        ):  # type: ignore[attr-defined]
             if not group._group_actions:
                 continue
-            if len(group._group_actions) == 1 and isinstance(group._group_actions[0], argparse._HelpAction):
+            if len(group._group_actions) == 1 and isinstance(
+                group._group_actions[0], argparse._HelpAction
+            ):
                 continue
             prefix = getattr(group, "prefix", None)
             result.append(
